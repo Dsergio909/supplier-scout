@@ -2,7 +2,7 @@
 
 # 🔭 Supplier Scout
 
-**Find new suppliers — including the ones that are not online — and compare them by what your order really costs.**<br>
+**Find new suppliers, including the ones that are not online, and compare them by what your order really costs.**<br>
 Location · real order cost · fair ratings · trust from referrals · human review · optional Claude agent.
 
 [![CI](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml/badge.svg)](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml)
@@ -222,11 +222,11 @@ Being explicit, because this matters more than the feature list:
 
 ## About
 
-Built by **Sergio García**, an International Business student in Bogotá who likes turning repetitive work into automated systems. I don't come from engineering: I learn by building, using generative AI as a pair programmer. I had sketched a first version of this idea while working in purchasing, but never kept it. This repository is a rebuild from scratch, written with Claude Code; the design choices (neutral scoring for missing data, human review, drafts instead of automatic messages) come from how purchasing actually works.
+Built by **Sergio García**, an International Business graduate (diploma pending) based in Bogotá who likes turning repetitive work into automated systems. I don't come from engineering: I learn by building, using generative AI as a pair programmer. I had sketched a first version of this idea while working in purchasing, but never kept it. This repository is a rebuild from scratch, written with Claude Code; the design choices (neutral scoring for missing data, human review, drafts instead of automatic messages) come from how purchasing actually works.
 
 Companion project: [Supplier Radar](https://github.com/Dsergio909/supplier-radar) keeps track of the suppliers you already have; Supplier Scout finds new ones.
 
-[LinkedIn](https://linkedin.com/in/sergio-david-garcia-celis-836b8a250) · [dsergio909@gmail.com](mailto:dsergio909@gmail.com)
+[Portfolio](https://dsergio909.github.io/) · [LinkedIn](https://linkedin.com/in/sergio-david-garcia-celis-836b8a250) · [dsergio909@gmail.com](mailto:dsergio909@gmail.com)
 
 ---
 
