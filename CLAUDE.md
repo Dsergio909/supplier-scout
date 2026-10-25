@@ -6,7 +6,7 @@ Al cerrar ("cierra el chat") o cuando diga "registra esto", revisa si pasó algo
 - En mi Google Drive, carpeta Cerebro: Carrera/REGISTRO.md (registro) y Carrera/00_Carrera.md (formato).
 - Si aparece una copia que dice "Este cerebro se mudó" (por ejemplo, en la carpeta vieja `Cerebro_Carrera`), ignórala.
 
-Esta sesión corre en la nube: aunque veas mi Drive con el conector, NO crees, reemplaces ni subas archivos del cerebro. Entrégame UNA entrada en un bloque de código para que yo la pegue al final de REGISTRO.md.
+Puedes escribir la entrada tú mismo: agrégala al final de REGISTRO.md sin editar ni borrar las anteriores, y confírmame en una línea. Si tu herramienta no puede agregar al final sin reemplazar el archivo completo o crear uno nuevo (por ejemplo, el conector de Drive desde la nube), no lo hagas: entrégame la entrada en un bloque de código para que yo la pegue.
 
 Si no puedes leer 00_Carrera.md, usa este formato:
 
