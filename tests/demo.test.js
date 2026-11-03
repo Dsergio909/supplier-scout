@@ -88,7 +88,7 @@ test('hardening: Trusted Types on, no HTML-string sinks, every new tab opened wi
   const app = fs.readFileSync(path.join(root, 'demo', 'app.js'), 'utf8');
   assert.match(app, /a\.target = '_blank';\s*a\.rel = 'noopener noreferrer';/, 'the one link helper sets rel');
   assert.match(app, /Math\.round\(x \* 1000\) \/ 1000/, 'the browser location is coarsened before it is sent');
-  for (const wf of ['ci.yml', 'pages.yml']) {
+  for (const wf of fs.readdirSync(path.join(root, '.github', 'workflows'))) {
     const text = fs.readFileSync(path.join(root, '.github', 'workflows', wf), 'utf8');
     for (const use of text.match(/uses: \S+/g)) assert.match(use, /@[0-9a-f]{40}$/, `${wf}: ${use} is pinned to a commit`);
   }
