@@ -1,0 +1,1178 @@
+{
+  "at": "2026-11-03T23:21:28.783Z",
+  "report": [
+    {
+      "scenario": {
+        "what": "plomero",
+        "place": "Kennedy, Bogotá",
+        "country": "CO",
+        "radiusKm": 5
+      },
+      "understood": [
+        "Plomería"
+      ],
+      "place": {
+        "label": "Kennedy, Bogotá",
+        "full": "Kennedy, UPZs de Bogotá, Localidad Kennedy, Bogotá ciudad, Bogotá, Distrito Capital, RAP (Especial) Central, 110851, Colombia",
+        "kind": "neighbourhood",
+        "country": "CO",
+        "lat": 4.6317782,
+        "lng": -74.1538873
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "radius",
+      "radiusKm": 5,
+      "stats": {
+        "total": 1,
+        "withWebsite": 0,
+        "withoutWebsite": 1,
+        "withPhone": 0
+      },
+      "travelTimes": 1,
+      "results": [
+        {
+          "name": "Servitecnico",
+          "ref": "osm:way/372141304",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 72G 11, Bogotá",
+          "minutes": 7
+        }
+      ],
+      "verified": [
+        {
+          "name": "Servitecnico",
+          "ref": "osm:way/372141304",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "craft=plumber"
+        }
+      ],
+      "seconds": 9.7
+    },
+    {
+      "scenario": {
+        "what": "ferretería",
+        "place": "Barranquilla",
+        "country": "CO",
+        "radiusKm": 5
+      },
+      "understood": [
+        "Ferretería"
+      ],
+      "place": {
+        "label": "Barranquilla, Atlántico",
+        "full": "Barranquilla, Atlántico, RAP Caribe, Colombia",
+        "kind": "county",
+        "country": "CO",
+        "lat": 11.0101922,
+        "lng": -74.8231794
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "centre",
+      "radiusKm": 10,
+      "stats": {
+        "total": 37,
+        "withWebsite": 2,
+        "withoutWebsite": 35,
+        "withPhone": 3
+      },
+      "travelTimes": 37,
+      "results": [
+        {
+          "name": "Ferretería Don Kike",
+          "ref": "osm:way/1272448357",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 43, Barranquilla",
+          "minutes": 8
+        },
+        {
+          "name": "Sumatec",
+          "ref": "osm:node/13101504190",
+          "phone": null,
+          "web": null,
+          "address": "Vía 40, Barranquilla",
+          "minutes": 11
+        },
+        {
+          "name": "Ferretería Reina",
+          "ref": "osm:node/12509222951",
+          "phone": null,
+          "web": null,
+          "address": "Vía 40, Barranquilla",
+          "minutes": 10
+        },
+        {
+          "name": "Miscelánea y Ferretería mi Buenaventura",
+          "ref": "osm:node/13634105217",
+          "phone": null,
+          "web": null,
+          "address": "Calle 106, Barranquilla",
+          "minutes": 9
+        },
+        {
+          "name": "Ferretería Cristina",
+          "ref": "osm:way/412989906",
+          "phone": null,
+          "web": null,
+          "address": "Calle 14 16-21, La Playa",
+          "minutes": 9
+        },
+        {
+          "name": "Ferretería El Jinete",
+          "ref": "osm:way/677021706",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 8 51B, Barranquilla",
+          "minutes": 18
+        },
+        {
+          "name": "Ferretería El Serrucho",
+          "ref": "osm:node/12769497207",
+          "phone": null,
+          "web": null,
+          "address": "Avenida de La Cordialidad 6, Barranquilla",
+          "minutes": 19
+        },
+        {
+          "name": "Ferretería Gran Simons",
+          "ref": "osm:node/6343810890",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 4C, Barranquilla",
+          "minutes": 17
+        },
+        {
+          "name": "Fergo Materiales",
+          "ref": "osm:way/678447640",
+          "phone": null,
+          "web": null,
+          "address": "Calle 36B 7, Barranquilla",
+          "minutes": 15
+        },
+        {
+          "name": "Ferreteria Samir",
+          "ref": "osm:way/677926673",
+          "phone": null,
+          "web": null,
+          "address": "Calle 99B, Barranquilla",
+          "minutes": 15
+        },
+        {
+          "name": "Ferretería Metrópolis Center ACE",
+          "ref": "osm:way/1213685542",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 43, Barranquilla",
+          "minutes": 5
+        },
+        {
+          "name": "Ferretería la 14",
+          "ref": "osm:way/779926262",
+          "phone": null,
+          "web": null,
+          "address": "Calle 61, Barranquilla",
+          "minutes": 14
+        },
+        {
+          "name": "DistriTornillos",
+          "ref": "osm:way/1060321365",
+          "phone": "+573023760600",
+          "web": "https://www.distritornillos.com/",
+          "address": "Vía 40 67-20, Barranquilla",
+          "minutes": 11
+        },
+        {
+          "name": "Farmacia Galán",
+          "ref": "osm:node/4589166626",
+          "phone": null,
+          "web": null,
+          "address": "Calle 35 4, Barranquilla",
+          "minutes": 16
+        },
+        {
+          "name": "Ferretería Santuario",
+          "ref": "osm:way/676568296",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 8C 51B, Barranquilla",
+          "minutes": 18
+        }
+      ],
+      "verified": [
+        {
+          "name": "Ferretería Don Kike",
+          "ref": "osm:way/1272448357",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "Sumatec",
+          "ref": "osm:node/13101504190",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "Ferretería Reina",
+          "ref": "osm:node/12509222951",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "Miscelánea y Ferretería mi Buenaventura",
+          "ref": "osm:node/13634105217",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        }
+      ],
+      "seconds": 13.7
+    },
+    {
+      "scenario": {
+        "what": "mantenimiento de aires acondicionados",
+        "place": "Medellín",
+        "country": "CO",
+        "radiusKm": 5
+      },
+      "understood": [
+        "Aire acondicionado y refrigeración"
+      ],
+      "place": {
+        "label": "Medellín, Antioquia",
+        "full": "Medellín, Valle de Aburrá, Antioquia, RAP del Agua y la Montaña, 0500, Colombia",
+        "kind": "city",
+        "country": "CO",
+        "lat": 6.2697324,
+        "lng": -75.6025597
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "centre",
+      "radiusKm": 10,
+      "stats": {
+        "total": 0,
+        "withWebsite": 0,
+        "withoutWebsite": 0,
+        "withPhone": 0
+      },
+      "travelTimes": 0,
+      "results": [],
+      "verified": [],
+      "seconds": 8.1
+    },
+    {
+      "scenario": {
+        "what": "cajas de cartón",
+        "place": "Fontibón, Bogotá",
+        "country": "CO",
+        "radiusKm": 6
+      },
+      "understood": [
+        "Empaques y cajas"
+      ],
+      "place": {
+        "label": "Fontibón, Bogotá",
+        "full": "Fontibón, UPZs de Bogotá, Localidad Fontibón, Bogotá ciudad, Bogotá, Distrito Capital, RAP (Especial) Central, 110921, Colombia",
+        "kind": "neighbourhood",
+        "country": "CO",
+        "lat": 4.6732943,
+        "lng": -74.1447464
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "radius",
+      "radiusKm": 6,
+      "stats": {
+        "total": 0,
+        "withWebsite": 0,
+        "withoutWebsite": 0,
+        "withPhone": 0
+      },
+      "travelTimes": 0,
+      "results": [],
+      "verified": [],
+      "seconds": 8
+    },
+    {
+      "scenario": {
+        "what": "cerrajero",
+        "place": "San Gil",
+        "country": "CO",
+        "radiusKm": 5
+      },
+      "understood": [
+        "Cerrajería"
+      ],
+      "place": {
+        "label": "San Gil, Santander",
+        "full": "San Gil, Guanentá, Santander, RAP Gran Santander, Colombia",
+        "kind": "town",
+        "country": "CO",
+        "lat": 6.5552856,
+        "lng": -73.1312353
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "centre",
+      "radiusKm": 10,
+      "stats": {
+        "total": 0,
+        "withWebsite": 0,
+        "withoutWebsite": 0,
+        "withPhone": 0
+      },
+      "travelTimes": 0,
+      "results": [],
+      "verified": [],
+      "seconds": 9.1
+    },
+    {
+      "scenario": {
+        "what": "plomero",
+        "place": "San Pedro",
+        "country": "CO",
+        "radiusKm": 5,
+        "expect": "homonyms"
+      },
+      "understood": [
+        "Plomería"
+      ],
+      "place": {
+        "label": "San Pedro, Valle del Cauca",
+        "full": "San Pedro, Centro, Valle del Cauca, RAP Pacífico, Colombia",
+        "kind": "town",
+        "country": "CO",
+        "lat": 3.9955682,
+        "lng": -76.2280495
+      },
+      "alternatives": [
+        "San Pedro, Sucre"
+      ],
+      "movedFrom": null,
+      "scope": "centre",
+      "radiusKm": 10,
+      "stats": {
+        "total": 0,
+        "withWebsite": 0,
+        "withoutWebsite": 0,
+        "withPhone": 0
+      },
+      "travelTimes": 0,
+      "results": [],
+      "verified": [],
+      "seconds": 6.9
+    },
+    {
+      "scenario": {
+        "what": "ferretería",
+        "place": "Lima",
+        "country": "CO",
+        "radiusKm": 5,
+        "expect": "other-country"
+      },
+      "understood": [
+        "Ferretería"
+      ],
+      "place": {
+        "label": "Lima, Madrid, Cundinamarca",
+        "full": "Lima, Madrid, Sabana Occidente, Cundinamarca, RAP (Especial) Central, Colombia",
+        "kind": "residential",
+        "country": "CO",
+        "lat": 4.7288168,
+        "lng": -74.2477621
+      },
+      "alternatives": [
+        "Lima, Flandes, Tolima",
+        "Lima, Riohacha, La Guajira",
+        "Lima, Chipatá, Santander"
+      ],
+      "movedFrom": null,
+      "scope": "radius",
+      "radiusKm": 5,
+      "stats": {
+        "total": 17,
+        "withWebsite": 0,
+        "withoutWebsite": 17,
+        "withPhone": 1
+      },
+      "travelTimes": 17,
+      "results": [
+        {
+          "name": "Sabana Grande",
+          "ref": "osm:node/7967862665",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 17, Mosquera",
+          "minutes": 8
+        },
+        {
+          "name": "D-Max Ferreteria",
+          "ref": "osm:way/527636312",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 9, Funza",
+          "minutes": 10
+        },
+        {
+          "name": "Ferre-electricos Sofi",
+          "ref": "osm:node/7967862648",
+          "phone": null,
+          "web": null,
+          "address": "Calle 9D, Mosquera",
+          "minutes": 8
+        },
+        {
+          "name": "La estación",
+          "ref": "osm:node/10975618610",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 4, Mosquera",
+          "minutes": 6
+        },
+        {
+          "name": "Cerrajería Santimaría",
+          "ref": "osm:node/4122171195",
+          "phone": "+576018260318",
+          "web": null,
+          "address": "Carrera 13 73, Funza",
+          "minutes": 11
+        },
+        {
+          "name": "Ferrelectricos P y J",
+          "ref": "osm:node/7967862636",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 15, Mosquera",
+          "minutes": 8
+        },
+        {
+          "name": "El Punto Electricos Y Pinturas",
+          "ref": "osm:node/5136176145",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 9, Funza",
+          "minutes": 11
+        },
+        {
+          "name": "my Penthouse",
+          "ref": "osm:node/7967753504",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 15, Mosquera",
+          "minutes": 8
+        },
+        {
+          "name": "Ferrelectricos La Novena",
+          "ref": "osm:node/5128995907",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 9, Funza",
+          "minutes": 11
+        },
+        {
+          "name": "Ferreteria Serviperfiles",
+          "ref": "osm:way/527622454",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Carrera 5 Este, Mosquera",
+          "minutes": 9
+        },
+        {
+          "name": "Techo PVC",
+          "ref": "osm:way/527609154",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 9, Funza",
+          "minutes": 11
+        },
+        {
+          "name": "Tornillos 7777777",
+          "ref": "osm:way/528547905",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 9, Funza",
+          "minutes": 11
+        },
+        {
+          "name": "Tuberia de Cobre",
+          "ref": "osm:way/527636310",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 9, Funza",
+          "minutes": 10
+        },
+        {
+          "name": "La Unión Oe",
+          "ref": "osm:node/6038219106",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 6, Funza",
+          "minutes": 10
+        },
+        {
+          "name": "MadeCetro",
+          "ref": "osm:way/528547910",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 9, Funza",
+          "minutes": 10
+        }
+      ],
+      "verified": [
+        {
+          "name": "Sabana Grande",
+          "ref": "osm:node/7967862665",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "D-Max Ferreteria",
+          "ref": "osm:way/527636312",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "Ferre-electricos Sofi",
+          "ref": "osm:node/7967862648",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "La estación",
+          "ref": "osm:node/10975618610",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        }
+      ],
+      "seconds": 9.5
+    },
+    {
+      "scenario": {
+        "what": "fumigación",
+        "place": "Miraflores, Lima",
+        "country": "PE",
+        "radiusKm": 5
+      },
+      "understood": [
+        "Fumigación y control de plagas"
+      ],
+      "place": {
+        "label": "Miraflores, Lima",
+        "full": "Miraflores, Lima, Lima Metropolitana, Lima, Perú",
+        "kind": "city",
+        "country": "PE",
+        "lat": -12.121498,
+        "lng": -77.0259064
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "whole",
+      "radiusKm": 5,
+      "stats": {
+        "total": 0,
+        "withWebsite": 0,
+        "withoutWebsite": 0,
+        "withPhone": 0
+      },
+      "travelTimes": 0,
+      "results": [],
+      "verified": [],
+      "seconds": 9.1
+    },
+    {
+      "scenario": {
+        "what": "tlapalería",
+        "place": "Coyoacán, Ciudad de México",
+        "country": "MX",
+        "radiusKm": 4
+      },
+      "understood": [
+        "Ferretería"
+      ],
+      "place": {
+        "label": "Coyoacán, Ciudad de México",
+        "full": "Coyoacán, Ciudad de México, México",
+        "kind": "borough",
+        "country": "MX",
+        "lat": 19.3498606,
+        "lng": -99.1619751
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "radius",
+      "radiusKm": 4,
+      "stats": {
+        "total": 28,
+        "withWebsite": 2,
+        "withoutWebsite": 26,
+        "withPhone": 1
+      },
+      "travelTimes": 28,
+      "results": [
+        {
+          "name": "Escor",
+          "ref": "osm:node/8843501791",
+          "phone": null,
+          "web": null,
+          "address": "Calle Leonardo Da Vinci, Ciudad de México",
+          "minutes": 8
+        },
+        {
+          "name": "Ferretería Extar",
+          "ref": "osm:node/5195253522",
+          "phone": null,
+          "web": null,
+          "address": "Calle Belisario Domínguez, Ciudad de México",
+          "minutes": 2
+        },
+        {
+          "name": "Ferretería Mayco",
+          "ref": "osm:node/5260447525",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Miguel Ángel de Quevedo, Ciudad de México",
+          "minutes": 4
+        },
+        {
+          "name": "Alucentro",
+          "ref": "osm:node/5175805825",
+          "phone": null,
+          "web": null,
+          "address": "Calzada General Pedro María Anaya, Ciudad de México",
+          "minutes": 3
+        },
+        {
+          "name": "Ferretería Universidad",
+          "ref": "osm:way/588236450",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Universidad 1863, Ciudad de México",
+          "minutes": 6
+        },
+        {
+          "name": "Tlapalería El Marcianito",
+          "ref": "osm:node/9976120142",
+          "phone": null,
+          "web": null,
+          "address": "Calle Osa Menor, Ciudad de México",
+          "minutes": 8
+        },
+        {
+          "name": "El Surtidor",
+          "ref": "osm:node/7030306002",
+          "phone": null,
+          "web": null,
+          "address": "Calle Bélgica, Ciudad de México",
+          "minutes": 6
+        },
+        {
+          "name": "Ferretería La Esmeralda",
+          "ref": "osm:node/5195010724",
+          "phone": null,
+          "web": null,
+          "address": "Calle Aguayo, Ciudad de México",
+          "minutes": 2
+        },
+        {
+          "name": "Ferretería Maya",
+          "ref": "osm:node/12614287202",
+          "phone": null,
+          "web": null,
+          "address": "Calle Santiago Rebull, Ciudad de México",
+          "minutes": 9
+        },
+        {
+          "name": "Tlapalería Carbajal",
+          "ref": "osm:node/5667281029",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Lázaro Cárdenas, Ciudad de México",
+          "minutes": 4
+        },
+        {
+          "name": "Ferrex Materiales para Construcción",
+          "ref": "osm:node/14040044491",
+          "phone": "+525555323203",
+          "web": "https://www.materialesparaconstruccion.com.mx/",
+          "address": "Calzada Emilio Carranza 135, Ciudad de México",
+          "minutes": 8
+        },
+        {
+          "name": "El Prado",
+          "ref": "osm:node/11842705783",
+          "phone": null,
+          "web": null,
+          "address": "Calzada Ermita Iztapalapa, Ciudad de México",
+          "minutes": 6
+        },
+        {
+          "name": "Fuji",
+          "ref": "osm:node/10002679793",
+          "phone": null,
+          "web": null,
+          "address": "Calzada Ermita Iztapalapa, Ciudad de México",
+          "minutes": 7
+        },
+        {
+          "name": "Cravioto",
+          "ref": "osm:node/5175805622",
+          "phone": null,
+          "web": null,
+          "address": "Avenida División del Norte, Ciudad de México",
+          "minutes": 3
+        },
+        {
+          "name": "Ferretería y Tlapalería Lara",
+          "ref": "osm:node/11016461078",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Pedro Henríquez Ureña, Ciudad de México",
+          "minutes": 8
+        }
+      ],
+      "verified": [
+        {
+          "name": "Escor",
+          "ref": "osm:node/8843501791",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "Ferretería Extar",
+          "ref": "osm:node/5195253522",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "Ferretería Mayco",
+          "ref": "osm:node/5260447525",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        },
+        {
+          "name": "Alucentro",
+          "ref": "osm:node/5175805825",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=hardware"
+        }
+      ],
+      "seconds": 13.6
+    },
+    {
+      "scenario": {
+        "what": "borracharia",
+        "place": "Pinheiros, São Paulo",
+        "country": "BR",
+        "radiusKm": 4
+      },
+      "understood": [
+        "Talleres de vehículos"
+      ],
+      "place": {
+        "label": "Pinheiros, São Paulo",
+        "full": "Pinheiros, Passarela de Integração Metrô-CPTM, Vila Madalena, Pinheiros, São Paulo, Região Sudeste, 05425-030, Brasil",
+        "kind": "railway",
+        "country": "BR",
+        "lat": -23.5672147,
+        "lng": -46.7019523
+      },
+      "alternatives": [
+        "Pinheiros, Lavrinhas, São Paulo"
+      ],
+      "movedFrom": null,
+      "scope": "radius",
+      "radiusKm": 4,
+      "stats": {
+        "total": 30,
+        "withWebsite": 0,
+        "withoutWebsite": 30,
+        "withPhone": 3
+      },
+      "travelTimes": 30,
+      "results": [
+        {
+          "name": "Motocar",
+          "ref": "osm:node/5693148242",
+          "phone": null,
+          "web": null,
+          "address": "Rua Arruda Alvim 124, São Paulo",
+          "minutes": 8
+        },
+        {
+          "name": "Centro automotivo Porto",
+          "ref": "osm:node/2853955452",
+          "phone": null,
+          "web": null,
+          "address": "Rua Cardeal Arcoverde 93, São Paulo",
+          "minutes": 8
+        },
+        {
+          "name": "Auto Vila",
+          "ref": "osm:way/450152354",
+          "phone": null,
+          "web": null,
+          "address": "Rua Henrique Schaumann 1152, São Paulo",
+          "minutes": 5
+        },
+        {
+          "name": "Auto Eletrico Akaike",
+          "ref": "osm:node/7643503534",
+          "phone": null,
+          "web": null,
+          "address": "Rua Ferreira de Araújo 948, São Paulo",
+          "minutes": 4
+        },
+        {
+          "name": "DBL",
+          "ref": "osm:node/7635668446",
+          "phone": null,
+          "web": null,
+          "address": "Rua Sumidouro 403, São Paulo",
+          "minutes": 3
+        },
+        {
+          "name": "Motor Lodge",
+          "ref": "osm:way/450156982",
+          "phone": "+551138194175",
+          "web": null,
+          "address": "Rua Ferreira de Araújo 706, São Paulo",
+          "minutes": 4
+        },
+        {
+          "name": "Meridional",
+          "ref": "osm:node/12534878801",
+          "phone": null,
+          "web": null,
+          "address": "Rua Henrique Schaumann, São Paulo",
+          "minutes": 7
+        },
+        {
+          "name": "Mecânica Docar",
+          "ref": "osm:node/9081133317",
+          "phone": null,
+          "web": null,
+          "address": "Rua Professor Ciridião Buarque 153, São Paulo",
+          "minutes": 10
+        },
+        {
+          "name": "Cardeal",
+          "ref": "osm:node/5918816622",
+          "phone": null,
+          "web": null,
+          "address": "Rua Fradique Coutinho 637, São Paulo",
+          "minutes": 4
+        },
+        {
+          "name": "Ravenna Auto Center",
+          "ref": "osm:node/2299043837",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Doutor Cardoso de Melo, São Paulo",
+          "minutes": 11
+        },
+        {
+          "name": "k2",
+          "ref": "osm:node/13340540933",
+          "phone": null,
+          "web": null,
+          "address": "Rua dos Pinheiros, São Paulo",
+          "minutes": 5
+        },
+        {
+          "name": "Brito-Car Serviços Automotivos",
+          "ref": "osm:node/12423289926",
+          "phone": null,
+          "web": null,
+          "address": "Rua Boturóca, São Paulo",
+          "minutes": 7
+        },
+        {
+          "name": "Antony Car",
+          "ref": "osm:node/4248789383",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Corifeu de Azevedo Marques 3009, São Paulo",
+          "minutes": 10
+        },
+        {
+          "name": "Borracharia",
+          "ref": "osm:node/5685289020",
+          "phone": null,
+          "web": null,
+          "address": "Rua Henrique Schaumann 716, São Paulo",
+          "minutes": 6
+        },
+        {
+          "name": "Auto brilho veiculos",
+          "ref": "osm:node/11380097670",
+          "phone": null,
+          "web": null,
+          "address": "Rua Cardeal Arcoverde, São Paulo",
+          "minutes": 6
+        }
+      ],
+      "verified": [
+        {
+          "name": "Motocar",
+          "ref": "osm:node/5693148242",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=car_repair"
+        },
+        {
+          "name": "Centro automotivo Porto",
+          "ref": "osm:node/2853955452",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=car_repair"
+        },
+        {
+          "name": "Auto Vila",
+          "ref": "osm:way/450152354",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=car_repair"
+        },
+        {
+          "name": "Auto Eletrico Akaike",
+          "ref": "osm:node/7643503534",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=car_repair"
+        }
+      ],
+      "seconds": 9.2
+    },
+    {
+      "scenario": {
+        "what": "recarga de extintores",
+        "place": "Cali",
+        "country": "CO",
+        "radiusKm": 6
+      },
+      "understood": [
+        "Extintores y seguridad industrial"
+      ],
+      "place": {
+        "label": "Cali, Valle del Cauca",
+        "full": "Cali, Sur, Valle del Cauca, RAP Pacífico, Colombia",
+        "kind": "county",
+        "country": "CO",
+        "lat": 3.4108435,
+        "lng": -76.5812127
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "centre",
+      "radiusKm": 10,
+      "stats": {
+        "total": 0,
+        "withWebsite": 0,
+        "withoutWebsite": 0,
+        "withPhone": 0
+      },
+      "travelTimes": 0,
+      "results": [],
+      "verified": [],
+      "seconds": 8.6
+    },
+    {
+      "scenario": {
+        "what": "papelería",
+        "place": "Chapinero, Bogotá",
+        "country": "CO",
+        "radiusKm": 3
+      },
+      "understood": [
+        "Papelería y oficina"
+      ],
+      "place": {
+        "label": "Chapinero, Bogotá",
+        "full": "UPZs Localidad Chapinero, Localidad Chapinero, Bogotá ciudad, Bogotá, Distrito Capital, RAP (Especial) Central, Colombia",
+        "kind": "quarter",
+        "country": "CO",
+        "lat": 4.636585,
+        "lng": -74.0650204
+      },
+      "alternatives": [],
+      "movedFrom": null,
+      "scope": "radius",
+      "radiusKm": 3,
+      "stats": {
+        "total": 32,
+        "withWebsite": 0,
+        "withoutWebsite": 32,
+        "withPhone": 1
+      },
+      "travelTimes": 32,
+      "results": [
+        {
+          "name": "Acuarela",
+          "ref": "osm:node/5178546573",
+          "phone": null,
+          "web": null,
+          "address": "Calle 52, Bogotá",
+          "minutes": 5
+        },
+        {
+          "name": "Arteb Papeleria",
+          "ref": "osm:node/3418862158",
+          "phone": null,
+          "web": null,
+          "address": "Calle 45 7-52, Bogotá",
+          "minutes": 3
+        },
+        {
+          "name": "Betta color",
+          "ref": "osm:node/4111098594",
+          "phone": null,
+          "web": null,
+          "address": "Calle 46, Bogotá",
+          "minutes": 3
+        },
+        {
+          "name": "Miscelánea Anjor",
+          "ref": "osm:node/5420493925",
+          "phone": null,
+          "web": null,
+          "address": "Calle 41 8-30, Bogotá",
+          "minutes": 3
+        },
+        {
+          "name": "Reprografía",
+          "ref": "osm:node/4113489187",
+          "phone": null,
+          "web": null,
+          "address": "Calle 51, Bogotá",
+          "minutes": 2
+        },
+        {
+          "name": "la U.com",
+          "ref": "osm:node/4126609483",
+          "phone": null,
+          "web": null,
+          "address": "Calle 47, Bogotá",
+          "minutes": 3
+        },
+        {
+          "name": "Centro de Copiado Taller encuadernación Don Justo",
+          "ref": "osm:node/3416665877",
+          "phone": null,
+          "web": null,
+          "address": "Carrera 8 43-89, Bogotá",
+          "minutes": 2
+        },
+        {
+          "name": "Papelería Educrearte",
+          "ref": "osm:node/6315227616",
+          "phone": null,
+          "web": null,
+          "address": "Calle 44 8-102, Bogotá",
+          "minutes": 2
+        },
+        {
+          "name": "Papeleria U Piloto",
+          "ref": "osm:node/3755937365",
+          "phone": null,
+          "web": null,
+          "address": "Calle 45A, Bogotá",
+          "minutes": 2
+        },
+        {
+          "name": "Señaletika FMR",
+          "ref": "osm:node/5146207163",
+          "phone": null,
+          "web": null,
+          "address": "Calle 74, Bogotá",
+          "minutes": 10
+        },
+        {
+          "name": "Papeleria Avila C",
+          "ref": "osm:node/4113489391",
+          "phone": null,
+          "web": null,
+          "address": "Calle 51 9-65, Bogotá",
+          "minutes": 2
+        },
+        {
+          "name": "Centro de Copiado Rt",
+          "ref": "osm:node/3418862153",
+          "phone": null,
+          "web": null,
+          "address": "Calle 45 7-36, Bogotá",
+          "minutes": 3
+        },
+        {
+          "name": "El Circulo",
+          "ref": "osm:way/334774751",
+          "phone": null,
+          "web": null,
+          "address": "Calle 40C 7-54, Bogotá",
+          "minutes": 3
+        },
+        {
+          "name": "Masivos",
+          "ref": "osm:node/6316406110",
+          "phone": null,
+          "web": null,
+          "address": "Avenida Calle 45, Bogotá",
+          "minutes": 3
+        },
+        {
+          "name": "Miscelánea",
+          "ref": "osm:node/5157855859",
+          "phone": null,
+          "web": null,
+          "address": "Calle 66, Bogotá",
+          "minutes": 10
+        }
+      ],
+      "verified": [
+        {
+          "name": "Acuarela",
+          "ref": "osm:node/5178546573",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=stationery"
+        },
+        {
+          "name": "Arteb Papeleria",
+          "ref": "osm:node/3418862158",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=stationery"
+        },
+        {
+          "name": "Betta color",
+          "ref": "osm:node/4111098594",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=stationery"
+        },
+        {
+          "name": "Miscelánea Anjor",
+          "ref": "osm:node/5420493925",
+          "ok": true,
+          "reason": "exists, same name",
+          "tag": "shop=stationery"
+        }
+      ],
+      "seconds": 8.4
+    }
+  ]
+}

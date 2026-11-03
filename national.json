@@ -1,0 +1,2153 @@
+{
+  "at": "2026-11-03T23:18:58.949Z",
+  "national": [
+    {
+      "scenario": {
+        "what": "papelería",
+        "region": "Bogotá, Distrito Capital"
+      },
+      "understood": [
+        "Papelería y oficina"
+      ],
+      "terms": [
+        "papelería [PAPELER]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 20,
+        "regional": 20,
+        "local": 0
+      },
+      "withContact": 14,
+      "inRegion": 13,
+      "multiNeed": 0,
+      "withPhone": 12,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Maria Alejandra Cardenas Aguilar",
+          "departments": 4,
+          "contracts": 5,
+          "example": "Suministro de elementos de papeleria, mobiliario, cafetería y elementos de aseo para el funcionamiento de las diferentes dependencias de…",
+          "contact": true
+        },
+        {
+          "name": "Cacharreria y Papeleria La 12 Norte",
+          "departments": 3,
+          "contracts": 7,
+          "example": "Suministro de papelería y útiles de oficina para la unidad prestadora de salud quindío",
+          "contact": true
+        },
+        {
+          "name": "Maria Araceli Leiva Perilla",
+          "departments": 3,
+          "contracts": 5,
+          "example": "Suministro de papeleria requerido por la registraduria para la jornada de elecciones de concejo de juventudes del municipio manta…",
+          "contact": true
+        },
+        {
+          "name": "Papeleria Milros Y/o Oscar Canchano",
+          "departments": 2,
+          "contracts": 30,
+          "example": "Suministros de insumos de papeleria, utiles de escritorio, oficina y de archivo o gestion documental, para la e.s.e. alejandro prospero…",
+          "contact": true
+        }
+      ],
+      "top": [
+        {
+          "name": "Papeleria Los Andes SAS",
+          "nit": "860026740",
+          "departments": 8,
+          "contracts": 38,
+          "last": "2026-10-19",
+          "needs": [
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro de productos de papelería, elementos, útiles y artículos de oficina necesarios para el cumplimiento de las funciones…",
+          "phone": "",
+          "website": "https://www.papelandes.com",
+          "contact": true
+        },
+        {
+          "name": "Grupo Los Lagos SAS",
+          "nit": "860053274",
+          "departments": 7,
+          "contracts": 16,
+          "last": "2026-10-14",
+          "needs": [
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro de papeleria, utiles de escritorio para la secretatria distrital de hacienda",
+          "phone": "+576017470153",
+          "website": "https://www.pedidos.papelagos.com.co/v2/index.php",
+          "contact": true
+        },
+        {
+          "name": "Central de Suministros SAS",
+          "nit": "804003744",
+          "departments": 5,
+          "contracts": 13,
+          "last": "2026-08-04",
+          "needs": [
+            "office"
+          ],
+          "exact": false,
+          "example": "Contratar la compra de utiles de papeleria para el uso del fortalecimiento de los programas psicosocilaes. educativos y tratamiento de la…",
+          "phone": "+576076507774",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Proveinsumos S.A.S.",
+          "nit": "900632517",
+          "departments": 4,
+          "contracts": 6,
+          "last": "2026-04-08",
+          "needs": [
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro de papeleria y oficina con destino a las dependencias de la administracion municipal simijaca cundinamarca para su correcto…",
+          "phone": "",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Institucional Star Services LTDA",
+          "nit": "830113914",
+          "departments": 4,
+          "contracts": 5,
+          "last": "2026-08-27",
+          "needs": [
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro y distribucion de elementos de papeleria e insumos de archivo con destino a las distintas dependencias y proyectos de la…",
+          "phone": "",
+          "website": "https://www.starservices.com.co",
+          "contact": false
+        },
+        {
+          "name": "Tafinco SAS",
+          "nit": "901251520",
+          "departments": 4,
+          "contracts": 5,
+          "last": "2026-08-20",
+          "needs": [
+            "office"
+          ],
+          "exact": false,
+          "example": "Adquisicion de elementos de papeleria y oficina, para la administracion central de la alcaldia municipio de el colegio, cundinamarca",
+          "phone": "",
+          "website": "",
+          "contact": false
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Papeleria Los Andes SAS · 860026740",
+          "contracts": 161,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Grupo Los Lagos SAS · 860053274",
+          "contracts": 546,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Central de Suministros SAS · 804003744",
+          "contracts": 799,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Maria Alejandra Cardenas Aguilar · persona natural (documento oculto)",
+          "contracts": 116,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Cacharreria y Papeleria La 12 Norte · persona natural (documento oculto)",
+          "contracts": 14,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 9.9
+    },
+    {
+      "scenario": {
+        "what": "dotación de aseo y papelería",
+        "region": "Bogotá, Distrito Capital"
+      },
+      "understood": [
+        "Aseo y limpieza",
+        "Papelería y oficina"
+      ],
+      "terms": [
+        "aseo [ASEO]",
+        "papelería [PAPELER]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 19,
+        "regional": 15,
+        "local": 6
+      },
+      "withContact": 17,
+      "inRegion": 13,
+      "multiNeed": 40,
+      "withPhone": 15,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Maria Araceli Leiva Perilla",
+          "departments": 5,
+          "contracts": 13,
+          "example": "Contratar la compra de insumos de productos de aseo, limpieza, cafeteria y restaurante, para la gerencia departamental colegiada de san…",
+          "contact": true
+        },
+        {
+          "name": "Maria Alejandra Cardenas Aguilar",
+          "departments": 4,
+          "contracts": 17,
+          "example": "Suministro de papelería e insumos para equipos de cómputo y elementos de aseo para garantizar el funcionamiento del concejo municipal de…",
+          "contact": true
+        },
+        {
+          "name": "Hector Garcia Gonzalez",
+          "departments": 3,
+          "contracts": 76,
+          "example": "Suministro de papelería, implementos de oficina, mobiliario, elementos de cafetería y aseo, así como demás materiales requeridos para…",
+          "contact": true
+        },
+        {
+          "name": "Milta Marcela Omen Hoyos",
+          "departments": 3,
+          "contracts": 11,
+          "example": "Contratar el suministro de productos alimenticios, lácteos, bebidas no alcohólicas, productos de papel, tabaco y productos de aseo…",
+          "contact": true
+        }
+      ],
+      "top": [
+        {
+          "name": "Grupo Los Lagos SAS",
+          "nit": "860053274",
+          "departments": 8,
+          "contracts": 25,
+          "last": "2026-10-14",
+          "needs": [
+            "cleaning",
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro de productos de aseo y limpieza para las unidades centralizadas y el comando de adquisiciones (coade) del ejército nacional…",
+          "phone": "+576017470153",
+          "website": "https://www.pedidos.papelagos.com.co/v2/index.php",
+          "contact": true
+        },
+        {
+          "name": "Central de Suministros SAS",
+          "nit": "804003744",
+          "departments": 5,
+          "contracts": 19,
+          "last": "2026-08-04",
+          "needs": [
+            "cleaning",
+            "office"
+          ],
+          "exact": false,
+          "example": "Contratar la compra de utiles de papeleria para el uso del fortalecimiento de los programas psicosocilaes. educativos y tratamiento de la…",
+          "phone": "+576076507774",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Camaleonsas",
+          "nit": "901618177",
+          "departments": 5,
+          "contracts": 19,
+          "last": "2026-07-23",
+          "needs": [
+            "cleaning",
+            "office"
+          ],
+          "exact": false,
+          "example": "Servicio integral de aseo y cafetería para la dirección seccional de impuestos y aduanas de quibdó",
+          "phone": "+573042597960",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Crr Soluciones Integrales S.A.S",
+          "nit": "901406206",
+          "departments": 5,
+          "contracts": 7,
+          "last": "2026-09-18",
+          "needs": [
+            "cleaning",
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro de productos de aseo y limpieza para el dispensario médico de tolemaida y sus satélites, durante la vigencia 2026.",
+          "phone": "+573209627691",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Inversiones Asdisan S.A.S",
+          "nit": "900322566",
+          "departments": 4,
+          "contracts": 21,
+          "last": "2026-07-29",
+          "needs": [
+            "cleaning",
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro de elementos de papelería, aseo y cafetería para la personería municipal de villavicencio",
+          "phone": "+573114486205",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Cisproaseo S.A.S.",
+          "nit": "901352432",
+          "departments": 4,
+          "contracts": 17,
+          "last": "2026-09-23",
+          "needs": [
+            "cleaning",
+            "office"
+          ],
+          "exact": false,
+          "example": "Suministro de papeleria elementos de oficina y aseo para el concejo municipal de viota",
+          "phone": "",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Grupo Los Lagos SAS · 860053274",
+          "contracts": 546,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Central de Suministros SAS · 804003744",
+          "contracts": 799,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Camaleonsas · 901618177",
+          "contracts": 40,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Maria Araceli Leiva Perilla · persona natural (documento oculto)",
+          "contracts": 306,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Maria Alejandra Cardenas Aguilar · persona natural (documento oculto)",
+          "contracts": 116,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 10.8
+    },
+    {
+      "scenario": {
+        "what": "recarga de extintores",
+        "region": "Antioquia"
+      },
+      "understood": [
+        "Extintores y seguridad industrial"
+      ],
+      "terms": [
+        "recarga de extintores (como lo escribió)",
+        "extintores [EXTINTOR]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 33,
+        "regional": 7,
+        "local": 0
+      },
+      "withContact": 19,
+      "inRegion": 12,
+      "multiNeed": 0,
+      "withPhone": 19,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Fredy Villabona Amorocho",
+          "departments": 17,
+          "contracts": 69,
+          "example": "Servicio de recarga y mantenimiento de equipos extintores para cada unidad de negocio y sede administrativa de la regional centro de la…",
+          "contact": true
+        },
+        {
+          "name": "Extintores y Seguridad del Atlantico",
+          "departments": 11,
+          "contracts": 53,
+          "example": "Prestación de servicios para la revisión general, mantenimiento y recarga de extintores de incendio, incluyendo el suministro e…",
+          "contact": true
+        },
+        {
+          "name": "Extintores Eje Cafetero",
+          "departments": 9,
+          "contracts": 67,
+          "example": "Realizar el mantenimiento, recarga y señalizacion de extintores, asi como la adquisicion de extintores, señalizacion vial y cintas…",
+          "contact": true
+        },
+        {
+          "name": "Tecniextintores y Señalizacion Jf",
+          "departments": 9,
+          "contracts": 49,
+          "example": "Servicio de mantenimiento y recarga de extintores, así como el suministro elementos de primeros auxilios para la personería municipal de…",
+          "contact": true
+        }
+      ],
+      "top": [
+        {
+          "name": "Hisesa SAS",
+          "nit": "900960281",
+          "departments": 21,
+          "contracts": 63,
+          "last": "2026-10-28",
+          "needs": [
+            "fireSafety"
+          ],
+          "exact": true,
+          "example": "Servicio de mantenimiento, recarga y compra de extintores, y compra e instalación de materiales, equipos y demás elementos requeridos para…",
+          "phone": "+573244798678",
+          "website": "https://www.grupohisesa.com",
+          "contact": true
+        },
+        {
+          "name": "Agrofumigacion Industrial S.A.S.",
+          "nit": "901256414",
+          "departments": 6,
+          "contracts": 67,
+          "last": "2026-10-07",
+          "needs": [
+            "fireSafety"
+          ],
+          "exact": true,
+          "example": "Servicios de recarga y mantenimiento de extintores requeridos para fortalecer el programa de seguridad y salud en el trabajo del…",
+          "phone": "+573172653220",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Exsolven SAS",
+          "nit": "900948144",
+          "departments": 6,
+          "contracts": 38,
+          "last": "2026-10-22",
+          "needs": [
+            "fireSafety"
+          ],
+          "exact": true,
+          "example": "Recarga y mantenimiento o reparación de extintores para la dirección de sanidad - nivel central de la policía nacional",
+          "phone": "+573107879595",
+          "website": "https://www.exsolven.com.co",
+          "contact": true
+        },
+        {
+          "name": "C&C del Caribe S.A.S",
+          "nit": "901183157",
+          "departments": 6,
+          "contracts": 19,
+          "last": "2026-10-30",
+          "needs": [
+            "fireSafety"
+          ],
+          "exact": true,
+          "example": "Suministro, instalación, recarga y mantenimiento de extintores en las sedes de la regional atlántico del instituto colombiano de bienestar…",
+          "phone": "+576056960116",
+          "website": "https://www.cycdelcaribe.com",
+          "contact": true
+        },
+        {
+          "name": "Distribuidora Dipro SAS",
+          "nit": "901460690",
+          "departments": 6,
+          "contracts": 18,
+          "last": "2026-07-09",
+          "needs": [
+            "fireSafety"
+          ],
+          "exact": true,
+          "example": "Servicios de mantenimiento, recarga, e instalación de extintores destinados a la dirección de sanidad ejército, regional de sanidad…",
+          "phone": "+573214302451",
+          "website": "https://extintoresdipro.com/",
+          "contact": true
+        },
+        {
+          "name": "Manpower Compañia Integral de Servicios SAS",
+          "nit": "900529261",
+          "departments": 5,
+          "contracts": 102,
+          "last": "2026-10-22",
+          "needs": [
+            "fireSafety"
+          ],
+          "exact": true,
+          "example": "Servicio de recarga, mantenimiento preventivo y correctivo de extintores para la dirección de tránsito y transporte de la policía nacional",
+          "phone": "+573134234215",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Hisesa SAS · 900960281",
+          "contracts": 310,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Agrofumigacion Industrial S.A.S. · 901256414",
+          "contracts": 268,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Exsolven SAS · 900948144",
+          "contracts": 119,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Fredy Villabona Amorocho · persona natural (documento oculto)",
+          "contracts": 99,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Extintores y Seguridad del Atlantico · persona natural (documento oculto)",
+          "contracts": 37,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 9.9
+    },
+    {
+      "scenario": {
+        "what": "vigilancia privada",
+        "region": "Valle del Cauca"
+      },
+      "understood": [
+        "Seguridad, cámaras y alarmas"
+      ],
+      "terms": [
+        "vigilancia privada [VIGILANCIA]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 38,
+        "regional": 0,
+        "local": 2
+      },
+      "withContact": 10,
+      "inRegion": 10,
+      "multiNeed": 0,
+      "withPhone": 10,
+      "people": 2,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Proyecta Holding,",
+          "departments": 1,
+          "contracts": 1,
+          "example": "Prestar servicios de apoyo logístico, para la ejecución de las actividades institucionales requeridas por la superintendencia de…",
+          "contact": true
+        },
+        {
+          "name": "Martha Isabel Ramírez Barrera",
+          "departments": 1,
+          "contracts": 1,
+          "example": "Prestación de servicios y vigilancia privada con arma para salvaguardar los bienes de las oficinas, planta de tratamiento de agua…",
+          "contact": false
+        }
+      ],
+      "top": [
+        {
+          "name": "Vp Global LTDA",
+          "nit": "802020036",
+          "departments": 7,
+          "contracts": 32,
+          "last": "2026-09-21",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Servicio de vigilancia y seguridad privada para las sedes del tránsito del atlántico",
+          "phone": "+576053608585",
+          "website": "https://www.grupovpglobal.com",
+          "contact": true
+        },
+        {
+          "name": "Vipers LTDA",
+          "nit": "800209088",
+          "departments": 7,
+          "contracts": 19,
+          "last": "2026-09-15",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Servicio de vigilancia y seguridad privada para las dependencias administrativas de las secretarías de la gobernación de córdoba y para…",
+          "phone": "+573216988910",
+          "website": "https://www.seguridadvipers.com",
+          "contact": true
+        },
+        {
+          "name": "Deteccion Seguridad Privada Limitada",
+          "nit": "901153192",
+          "departments": 5,
+          "contracts": 50,
+          "last": "2026-10-01",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Servicios de vigilancia privada para las dependencias y predios de la administración distrital de barrancabermeja.",
+          "phone": "+576017036365",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Seguridad Jano LTDA",
+          "nit": "822002315",
+          "departments": 5,
+          "contracts": 31,
+          "last": "2026-10-26",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Prestación integral del servicio de vigilancia y seguridad privada en imviyumbo a fin de proteger los bienes muebles e inmuebles de…",
+          "phone": "+576086712413",
+          "website": "https://www.seguridadjano.com",
+          "contact": true
+        },
+        {
+          "name": "Avizor Seguridad LTDA - Protege Tu Patrimonio",
+          "nit": "830024478",
+          "departments": 5,
+          "contracts": 26,
+          "last": "2026-10-29",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Prestar los servicios de vigilancia y seguridad privada, comprendidos por vigilancia física, servicio de escolta, monitoreo y soporte…",
+          "phone": "+576086827979",
+          "website": "https://web.avizor.com.co/",
+          "contact": true
+        },
+        {
+          "name": "Delthac 1 Seguridad LTDA",
+          "nit": "804000044",
+          "departments": 5,
+          "contracts": 25,
+          "last": "2026-10-15",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Prestar los servicios de seguridad y vigilancia privada con medios tecnológicos para las instituciones educativas oficiales y los puntos…",
+          "phone": "",
+          "website": "https://www.delthac1.com",
+          "contact": false
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Vp Global LTDA · 802020036",
+          "contracts": 76,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Vipers LTDA · 800209088",
+          "contracts": 76,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Deteccion Seguridad Privada Limitada · 901153192",
+          "contracts": 137,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Proyecta Holding, · persona natural (documento oculto)",
+          "contracts": 93,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Martha Isabel Ramírez Barrera · persona natural (documento oculto)",
+          "contracts": 18,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 9.7
+    },
+    {
+      "scenario": {
+        "what": "cajas de cartón",
+        "region": "Atlántico"
+      },
+      "understood": [
+        "Empaques y cajas"
+      ],
+      "terms": [
+        "cajas cartón [CAJA]"
+      ],
+      "failed": [],
+      "found": 5,
+      "reach": {
+        "national": 0,
+        "regional": 0,
+        "local": 5
+      },
+      "withContact": 4,
+      "inRegion": 0,
+      "multiNeed": 0,
+      "withPhone": 3,
+      "people": 0,
+      "staffLeaks": [],
+      "topPeople": [],
+      "top": [
+        {
+          "name": "Papeles y Cartones S.A",
+          "nit": "890925108",
+          "departments": 1,
+          "contracts": 2,
+          "last": "2026-10-29",
+          "needs": [
+            "packaging"
+          ],
+          "exact": false,
+          "example": "Suministrar cajas de cartón corrugado plegadizas, incluida sus partes internas como fondos, particiones que se requieran para el empaque…",
+          "phone": "+576044057000",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Carton de Colombia S.A.",
+          "nit": "890300406",
+          "departments": 1,
+          "contracts": 2,
+          "last": "2026-01-27",
+          "needs": [
+            "packaging"
+          ],
+          "exact": false,
+          "example": "El contratista se obliga con la industria licorera del cauca a suministrar cajas de cartón como material de empaque y embalaje para los…",
+          "phone": "",
+          "website": "https://www.smurfitkappa.com.co",
+          "contact": true
+        },
+        {
+          "name": "Cartones America SA",
+          "nit": "860026759",
+          "departments": 1,
+          "contracts": 2,
+          "last": "2026-01-26",
+          "needs": [
+            "packaging"
+          ],
+          "exact": false,
+          "example": "Suministro de cajas",
+          "phone": "+573005509898",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Formarchivos y Suministros S.A.S.",
+          "nit": "900336588",
+          "departments": 1,
+          "contracts": 1,
+          "last": "2026-09-29",
+          "needs": [
+            "packaging"
+          ],
+          "exact": false,
+          "example": "Adquisicion de material de archivo cajas de carton x-200, x-300 y carpetas de archivo cuatro aletas, tendientes a la organizacion…",
+          "phone": "",
+          "website": "",
+          "contact": false
+        },
+        {
+          "name": "Inversiones e Insumos Orka SAS",
+          "nit": "901524499",
+          "departments": 1,
+          "contracts": 1,
+          "last": "2025-10-02",
+          "needs": [
+            "packaging"
+          ],
+          "exact": false,
+          "example": "Adquisición de elementos y medios de embalaje (bolsas plásticas, cintas adhesivas transparentes, cinta de acordonamiento, bolsas de papel…",
+          "phone": "+573507493106",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Papeles y Cartones S.A · 890925108",
+          "contracts": 3,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Carton de Colombia S.A. · 890300406",
+          "contracts": 4,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Cartones America SA · 860026759",
+          "contracts": 7,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 5.7
+    },
+    {
+      "scenario": {
+        "what": "tóner para impresora",
+        "region": "Santander"
+      },
+      "understood": [
+        "Papelería y oficina"
+      ],
+      "terms": [
+        "tóner para impresora (como lo escribió)",
+        "papelería [PAPELER]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 19,
+        "regional": 7,
+        "local": 14
+      },
+      "withContact": 16,
+      "inRegion": 11,
+      "multiNeed": 0,
+      "withPhone": 15,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Maria Araceli Leiva Perilla",
+          "departments": 4,
+          "contracts": 6,
+          "example": "Suministro de toner, tintas y recargas para las impresoras de la secretaria de hacienda del municipio de filadelfia, caldas con el fin de…",
+          "contact": true
+        },
+        {
+          "name": "Zamora Jimenez Leonardo",
+          "departments": 4,
+          "contracts": 4,
+          "example": "Contratar la adquisicion de toner, suministros de oficina e impresora y elementos de aseo para la atencion y rerhabilitacion de la…",
+          "contact": true
+        },
+        {
+          "name": "Andres Manjarres",
+          "departments": 4,
+          "contracts": 4,
+          "example": "Contratar la adquisicion de toner y tintas de impresoras para las diferentes areas del cpms - riohacha",
+          "contact": true
+        },
+        {
+          "name": "Alejandro Correa Reina - Copirent",
+          "departments": 3,
+          "contracts": 3,
+          "example": "Suministro de tintas, cartuchos y toner para impresoras y fotocopiadoras de la administracion municipal",
+          "contact": true
+        }
+      ],
+      "top": [
+        {
+          "name": "Papeleria Los Andes SAS",
+          "nit": "860026740",
+          "departments": 9,
+          "contracts": 39,
+          "last": "2026-10-19",
+          "needs": [
+            "office"
+          ],
+          "exact": true,
+          "example": "Suministro de consumibles para impresión (toner) originales de máximo rendimiento plenamente compatibles con la impresora lexmark mx721…",
+          "phone": "",
+          "website": "https://www.papelandes.com",
+          "contact": true
+        },
+        {
+          "name": "Grupo Los Lagos SAS",
+          "nit": "860053274",
+          "departments": 9,
+          "contracts": 19,
+          "last": "2026-10-14",
+          "needs": [
+            "office"
+          ],
+          "exact": true,
+          "example": "Adquirir elementos de impresora y/o fotocopiadora (toners).",
+          "phone": "+576017470153",
+          "website": "https://www.pedidos.papelagos.com.co/v2/index.php",
+          "contact": true
+        },
+        {
+          "name": "Central de Suministros SAS",
+          "nit": "804003744",
+          "departments": 6,
+          "contracts": 14,
+          "last": "2026-08-04",
+          "needs": [
+            "office"
+          ],
+          "exact": true,
+          "example": "Adquisición de toners en cumplimiento de las obligaciones del contrato de comodato a titulo de préstamo de uso con destino a las…",
+          "phone": "+576076507774",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Sistemas y Distribuciones Formacon SAS",
+          "nit": "830006800",
+          "departments": 4,
+          "contracts": 6,
+          "last": "2026-08-11",
+          "needs": [
+            "office"
+          ],
+          "exact": true,
+          "example": "Contratar a monto agotable el suministro de toner, tintas y cartuchos para las impresoras instaladas en las diferentes dependencias de la…",
+          "phone": "",
+          "website": "https://www.formacon.com.co",
+          "contact": false
+        },
+        {
+          "name": "Simco Group SAS",
+          "nit": "901094964",
+          "departments": 4,
+          "contracts": 4,
+          "last": "2026-03-27",
+          "needs": [
+            "office"
+          ],
+          "exact": true,
+          "example": "Suministro de toners para impresoras, papelería e insumos de oficina para el departamento de policía vichada",
+          "phone": "+573164909998",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Crr Soluciones Integrales S.A.S",
+          "nit": "901406206",
+          "departments": 4,
+          "contracts": 4,
+          "last": "2026-03-18",
+          "needs": [
+            "office"
+          ],
+          "exact": true,
+          "example": "Adquisicion de impresora, toners, tintas y almohadillas para la contraloria departamental del caqueta",
+          "phone": "+573209627691",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Papeleria Los Andes SAS · 860026740",
+          "contracts": 161,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Grupo Los Lagos SAS · 860053274",
+          "contracts": 546,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Central de Suministros SAS · 804003744",
+          "contracts": 799,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Maria Araceli Leiva Perilla · persona natural (documento oculto)",
+          "contracts": 306,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Zamora Jimenez Leonardo · persona natural (documento oculto)",
+          "contracts": 468,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 9.7
+    },
+    {
+      "scenario": {
+        "what": "uniformes y dotación",
+        "region": "Bogotá, Distrito Capital"
+      },
+      "understood": [
+        "Textiles y confección"
+      ],
+      "terms": [
+        "uniformes y dotación (como lo escribió)",
+        "dotación [DOTACI]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 14,
+        "regional": 10,
+        "local": 16
+      },
+      "withContact": 15,
+      "inRegion": 16,
+      "multiNeed": 0,
+      "withPhone": 11,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "C&V Dotaciones",
+          "departments": 5,
+          "contracts": 11,
+          "example": "Suministro de uniformes para los deportistas que participarán en los juegos campesinos a realizarse en el municipio de sutamarchán…",
+          "contact": false
+        },
+        {
+          "name": "Pedro Jesus Blanco Forero",
+          "departments": 2,
+          "contracts": 4,
+          "example": "Adquisicion de dotacion (vestido de labor) para el personal que devenga un ingreso igual o inferior a dos salarios mínimos legales…",
+          "contact": true
+        },
+        {
+          "name": "Juan Carlos Soto Torres",
+          "departments": 2,
+          "contracts": 3,
+          "example": "Suministro de dotacion de uniformes (calzado-vestido) para una funcionaria del instituto para la educacion fisica, la recreacion y el…",
+          "contact": false
+        },
+        {
+          "name": "Comercio La Roca",
+          "departments": 2,
+          "contracts": 2,
+          "example": "Contratar la adquisición de dotación para los empleados púbicos del sena regional boyacá vigencia 2025 - lote 2 dotacion",
+          "contact": true
+        }
+      ],
+      "top": [
+        {
+          "name": "Eqs Dotaciones S.A.S.",
+          "nit": "900882365",
+          "departments": 10,
+          "contracts": 29,
+          "last": "2026-10-15",
+          "needs": [
+            "textiles"
+          ],
+          "exact": true,
+          "example": "Suministro de uniformes para los funcionarios del instituto para el desarrollo de antioquia -idea",
+          "phone": "+576043224351",
+          "website": "https://www.eqsdotaciones.com.co",
+          "contact": true
+        },
+        {
+          "name": "Pluxee Colombia S.A.S.",
+          "nit": "800219876",
+          "departments": 8,
+          "contracts": 14,
+          "last": "2026-07-14",
+          "needs": [
+            "textiles"
+          ],
+          "exact": true,
+          "example": "Adquisicion de chequeras y/o tarjetas de bonos unica y exclusivamente para dotacion de vestido y calzado de labor para los funcionarios…",
+          "phone": "",
+          "website": "",
+          "contact": false
+        },
+        {
+          "name": "Superior de Dotaciones SAS",
+          "nit": "830144875",
+          "departments": 7,
+          "contracts": 21,
+          "last": "2026-08-24",
+          "needs": [
+            "textiles"
+          ],
+          "exact": true,
+          "example": "Suministro de dotación y ropa de trabajo para los empleados públicos y línea blanca de los trabajadores oficiales de los centros de…",
+          "phone": "",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Dotación Integral S.A.S",
+          "nit": "830513863",
+          "departments": 6,
+          "contracts": 17,
+          "last": "2026-10-28",
+          "needs": [
+            "textiles"
+          ],
+          "exact": true,
+          "example": "Establecer: (i) las condiciones para la contratación de uniformes institucionales, dotaciones de vestuario de calle, prendas de vestir y…",
+          "phone": "",
+          "website": "https://www.dotacionintegral.com",
+          "contact": false
+        },
+        {
+          "name": "Dotaciones de Santander",
+          "nit": "901685040",
+          "departments": 6,
+          "contracts": 6,
+          "last": "2026-09-28",
+          "needs": [
+            "textiles"
+          ],
+          "exact": true,
+          "example": "Adquisición de uniformes (dotacion de vestuario y calzado) para los funcionarios del nivel asistencial de la contraloría general del…",
+          "phone": "+573185897720",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Ncs S.A.S",
+          "nit": "805022296",
+          "departments": 5,
+          "contracts": 5,
+          "last": "2026-10-05",
+          "needs": [
+            "textiles"
+          ],
+          "exact": true,
+          "example": "Establecer: (i) las condiciones para la contratación de uniformes institucionales, dotaciones de vestuario de calle, prendas de vestir y…",
+          "phone": "+576024895000",
+          "website": "https://www.quest.com.co",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Eqs Dotaciones S.A.S. · 900882365",
+          "contracts": 63,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Pluxee Colombia S.A.S. · 800219876",
+          "contracts": 520,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Superior de Dotaciones SAS · 830144875",
+          "contracts": 166,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "C&V Dotaciones · persona natural (documento oculto)",
+          "contracts": 36,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Pedro Jesus Blanco Forero · persona natural (documento oculto)",
+          "contracts": 84,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 10.2
+    },
+    {
+      "scenario": {
+        "what": "plomero",
+        "region": "Bogotá, Distrito Capital"
+      },
+      "understood": [
+        "Plomería"
+      ],
+      "terms": [
+        "plomero (como lo escribió)",
+        "mantenimiento hidrosanitario [HIDROSANITARI]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 0,
+        "regional": 3,
+        "local": 37
+      },
+      "withContact": 14,
+      "inRegion": 27,
+      "multiNeed": 0,
+      "withPhone": 13,
+      "people": 15,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Maria del Carmen Granada",
+          "departments": 2,
+          "contracts": 2,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios, ferretería, insumos y artículos para el funcionamiento y mantenimiento de la…",
+          "contact": false
+        },
+        {
+          "name": "William Alfonso Laguna Vargas Y/o Interamericana de Suministros",
+          "departments": 1,
+          "contracts": 3,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios y de ferretería para el mantenimiento y reparaciones locativas indispensables de las…",
+          "contact": true
+        },
+        {
+          "name": "Comercializadora Saga Cauca",
+          "departments": 1,
+          "contracts": 2,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios, ferretería, insumos y artículos para el funcionamiento y mantenimiento de la…",
+          "contact": true
+        },
+        {
+          "name": "Jhon Gerson Perez Brito",
+          "departments": 1,
+          "contracts": 2,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios, ferretería, insumos y artículos para el funcionamiento y mantenimiento de la…",
+          "contact": false
+        }
+      ],
+      "top": [
+        {
+          "name": "Imperial Supply SAS",
+          "nit": "900320531",
+          "departments": 2,
+          "contracts": 3,
+          "last": "2026-08-05",
+          "needs": [
+            "plumbing"
+          ],
+          "exact": false,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios, ferretería, insumos y demás bienes necesarios para el adecuado funcionamiento…",
+          "phone": "+573197709163",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Construcciones Geadanke S.A.S",
+          "nit": "901070500",
+          "departments": 2,
+          "contracts": 2,
+          "last": "2025-11-04",
+          "needs": [
+            "plumbing"
+          ],
+          "exact": false,
+          "example": "Mantenimiento hidrosanitario para las tres sedes del colegio",
+          "phone": "",
+          "website": "",
+          "contact": false
+        },
+        {
+          "name": "Comercializadora y Ferreteria Pqr. S.A.S",
+          "nit": "901445577",
+          "departments": 1,
+          "contracts": 6,
+          "last": "2026-07-22",
+          "needs": [
+            "plumbing"
+          ],
+          "exact": false,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios y de ferretería para el mantenimiento y reparaciones locativas de la sede de la…",
+          "phone": "+576087411153",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Nuestro Aliado Outsourcing SAS",
+          "nit": "900969814",
+          "departments": 1,
+          "contracts": 4,
+          "last": "2026-07-29",
+          "needs": [
+            "plumbing"
+          ],
+          "exact": false,
+          "example": "Suministro de materiales de ferretería, construccion, hidrosanitarios, electricos, pintura, herramientas y repuestos especiales por…",
+          "phone": "",
+          "website": "",
+          "contact": false
+        },
+        {
+          "name": "Ferrellanos H y C S.A.S.",
+          "nit": "900456061",
+          "departments": 1,
+          "contracts": 3,
+          "last": "2025-03-27",
+          "needs": [
+            "plumbing"
+          ],
+          "exact": false,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios y de ferretería para el mantenimiento y reparaciones locativas indispensables de la…",
+          "phone": "+576086629743",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Mafer",
+          "nit": "901375900",
+          "departments": 1,
+          "contracts": 2,
+          "last": "2026-09-30",
+          "needs": [
+            "plumbing"
+          ],
+          "exact": false,
+          "example": "Suministro de materiales eléctricos, hidrosanitarios y de ferretería para el mantenimiento y reparaciones locativas indispensables de la…",
+          "phone": "+576017421981",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Imperial Supply SAS · 900320531",
+          "contracts": 51,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Construcciones Geadanke S.A.S · 901070500",
+          "contracts": 83,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Comercializadora y Ferreteria Pqr. S.A.S · 901445577",
+          "contracts": 59,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Maria del Carmen Granada · persona natural (documento oculto)",
+          "contracts": 129,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "William Alfonso Laguna Vargas Y/o Interamericana de Suministros · persona natural (documento oculto)",
+          "contracts": 209,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 9.7
+    },
+    {
+      "scenario": {
+        "what": "vigilancia",
+        "region": "Bogotá, Distrito Capital"
+      },
+      "understood": [
+        "Seguridad, cámaras y alarmas"
+      ],
+      "terms": [
+        "vigilancia privada [VIGILANCIA]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 38,
+        "regional": 0,
+        "local": 2
+      },
+      "withContact": 10,
+      "inRegion": 24,
+      "multiNeed": 0,
+      "withPhone": 10,
+      "people": 2,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Proyecta Holding,",
+          "departments": 1,
+          "contracts": 1,
+          "example": "Prestar servicios de apoyo logístico, para la ejecución de las actividades institucionales requeridas por la superintendencia de…",
+          "contact": true
+        },
+        {
+          "name": "Martha Isabel Ramírez Barrera",
+          "departments": 1,
+          "contracts": 1,
+          "example": "Prestación de servicios y vigilancia privada con arma para salvaguardar los bienes de las oficinas, planta de tratamiento de agua…",
+          "contact": false
+        }
+      ],
+      "top": [
+        {
+          "name": "Vp Global LTDA",
+          "nit": "802020036",
+          "departments": 7,
+          "contracts": 32,
+          "last": "2026-09-21",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Servicio de vigilancia y seguridad privada para las sedes del tránsito del atlántico",
+          "phone": "+576053608585",
+          "website": "https://www.grupovpglobal.com",
+          "contact": true
+        },
+        {
+          "name": "Vipers LTDA",
+          "nit": "800209088",
+          "departments": 7,
+          "contracts": 19,
+          "last": "2026-09-15",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Servicio de vigilancia y seguridad privada para las dependencias administrativas de las secretarías de la gobernación de córdoba y para…",
+          "phone": "+573216988910",
+          "website": "https://www.seguridadvipers.com",
+          "contact": true
+        },
+        {
+          "name": "Deteccion Seguridad Privada Limitada",
+          "nit": "901153192",
+          "departments": 5,
+          "contracts": 50,
+          "last": "2026-10-01",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Servicios de vigilancia privada para las dependencias y predios de la administración distrital de barrancabermeja.",
+          "phone": "+576017036365",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Seguridad Jano LTDA",
+          "nit": "822002315",
+          "departments": 5,
+          "contracts": 31,
+          "last": "2026-10-26",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Prestación integral del servicio de vigilancia y seguridad privada en imviyumbo a fin de proteger los bienes muebles e inmuebles de…",
+          "phone": "+576086712413",
+          "website": "https://www.seguridadjano.com",
+          "contact": true
+        },
+        {
+          "name": "Avizor Seguridad LTDA - Protege Tu Patrimonio",
+          "nit": "830024478",
+          "departments": 5,
+          "contracts": 26,
+          "last": "2026-10-29",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Prestar los servicios de vigilancia y seguridad privada, comprendidos por vigilancia física, servicio de escolta, monitoreo y soporte…",
+          "phone": "+576086827979",
+          "website": "https://web.avizor.com.co/",
+          "contact": true
+        },
+        {
+          "name": "Delthac 1 Seguridad LTDA",
+          "nit": "804000044",
+          "departments": 5,
+          "contracts": 25,
+          "last": "2026-10-15",
+          "needs": [
+            "security"
+          ],
+          "exact": false,
+          "example": "Prestar los servicios de seguridad y vigilancia privada con medios tecnológicos para las instituciones educativas oficiales y los puntos…",
+          "phone": "",
+          "website": "https://www.delthac1.com",
+          "contact": false
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Vp Global LTDA · 802020036",
+          "contracts": 76,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Vipers LTDA · 800209088",
+          "contracts": 76,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Deteccion Seguridad Privada Limitada · 901153192",
+          "contracts": 137,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Proyecta Holding, · persona natural (documento oculto)",
+          "contracts": 93,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Martha Isabel Ramírez Barrera · persona natural (documento oculto)",
+          "contracts": 18,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 9.4
+    },
+    {
+      "scenario": {
+        "what": "productos de aseo",
+        "region": "Atlántico"
+      },
+      "understood": [
+        "Aseo y limpieza"
+      ],
+      "terms": [
+        "productos de aseo (como lo escribió)",
+        "aseo [ASEO]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 20,
+        "regional": 11,
+        "local": 9
+      },
+      "withContact": 18,
+      "inRegion": 2,
+      "multiNeed": 0,
+      "withPhone": 16,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Maria Araceli Leiva Perilla",
+          "departments": 4,
+          "contracts": 11,
+          "example": "Contrato de compra de productos de aseo y cafetería para el parque nacional natural selva de florencia.",
+          "contact": true
+        },
+        {
+          "name": "Lilia Fanny Guevara Parrado",
+          "departments": 4,
+          "contracts": 8,
+          "example": "Suministro de productos de aseo y limpieza requeridos para el funcionamiento de la central administrativa y contable cenac regional…",
+          "contact": true
+        },
+        {
+          "name": "Hector Garcia Gonzalez",
+          "departments": 3,
+          "contracts": 64,
+          "example": "Suministro de elementos de productos de aseo, cafetería y refrigerios bajo la modalidad de monto agotable con destino a las instalaciones…",
+          "contact": true
+        },
+        {
+          "name": "Distribuciones Emogue",
+          "departments": 3,
+          "contracts": 6,
+          "example": "Suministro de productos de aseo y limpieza, rec.10 y fondo interno (rec.16) para las unidades centralizadas por la cenac tunja",
+          "contact": true
+        }
+      ],
+      "top": [
+        {
+          "name": "Grupo Gec",
+          "nit": "901346888",
+          "departments": 10,
+          "contracts": 31,
+          "last": "2026-10-28",
+          "needs": [
+            "cleaning"
+          ],
+          "exact": true,
+          "example": "Suministro de productos de aseo y limpieza, y la adquisición de contenedores de salud ambiental para el funcionamiento de los…",
+          "phone": "+576023739920",
+          "website": "https://www.grupogec.com.co/",
+          "contact": true
+        },
+        {
+          "name": "Aseo y Limpieza Maxy Ya SAS",
+          "nit": "901631584",
+          "departments": 7,
+          "contracts": 38,
+          "last": "2026-08-13",
+          "needs": [
+            "cleaning"
+          ],
+          "exact": true,
+          "example": "Suministro de productos de aseo y limpieza para el dispensario médico de tolemaida y sus satélites, durante la vigencia 2025",
+          "phone": "+573197313559",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Arios Colombia S.A.S.",
+          "nit": "900183528",
+          "departments": 7,
+          "contracts": 22,
+          "last": "2026-10-13",
+          "needs": [
+            "cleaning"
+          ],
+          "exact": true,
+          "example": "Adquisición de elementos de aseo y productos para el cacom-6.",
+          "phone": "+576023739920",
+          "website": "https://www.arioscolombia.com.co",
+          "contact": true
+        },
+        {
+          "name": "Caprosum SAS",
+          "nit": "830040054",
+          "departments": 6,
+          "contracts": 17,
+          "last": "2026-08-31",
+          "needs": [
+            "cleaning"
+          ],
+          "exact": true,
+          "example": "Suministro de productos de aseo y limpieza con destino a las unidades centralizadas por la cenac de educación",
+          "phone": "+573163829830",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Fullchem de Colombia SAS",
+          "nit": "901251534",
+          "departments": 6,
+          "contracts": 16,
+          "last": "2026-07-31",
+          "needs": [
+            "cleaning"
+          ],
+          "exact": true,
+          "example": "Adquisición de productos de aseo y limpieza para el comando de adquisiciones del ejercito",
+          "phone": "+573208485200",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Inversiones Asdisan S.A.S",
+          "nit": "900322566",
+          "departments": 5,
+          "contracts": 17,
+          "last": "2026-06-26",
+          "needs": [
+            "cleaning"
+          ],
+          "exact": true,
+          "example": "Adquisición de productos de aseo y limpieza como insumos aeronáuticos con destino al baaas",
+          "phone": "+573114486205",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Grupo Gec · 901346888",
+          "contracts": 329,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Aseo y Limpieza Maxy Ya SAS · 901631584",
+          "contracts": 62,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Arios Colombia S.A.S. · 900183528",
+          "contracts": 90,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Maria Araceli Leiva Perilla · persona natural (documento oculto)",
+          "contracts": 306,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Lilia Fanny Guevara Parrado · persona natural (documento oculto)",
+          "contracts": 60,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 11.2
+    },
+    {
+      "scenario": {
+        "what": "fumigación",
+        "region": "Antioquia"
+      },
+      "understood": [
+        "Fumigación y control de plagas"
+      ],
+      "terms": [
+        "fumigación [FUMIGACI]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 14,
+        "regional": 17,
+        "local": 9
+      },
+      "withContact": 13,
+      "inRegion": 6,
+      "multiNeed": 0,
+      "withPhone": 12,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Extintores y Fumigaciones Caldas N°2",
+          "departments": 3,
+          "contracts": 5,
+          "example": "Contratar los servicios de fumigación y desratización para el epmsc de puerto berrio del instituto nacional penitenciario y carcelario…",
+          "contact": false
+        },
+        {
+          "name": "Fumifull Fumigaciones",
+          "departments": 2,
+          "contracts": 16,
+          "example": "Servicio de fumigación, desratización, lavado de tanques y análisis de agua potable en el establecimiento penitenciario de mediana…",
+          "contact": true
+        },
+        {
+          "name": "Fumigaciones Vectors",
+          "departments": 2,
+          "contracts": 10,
+          "example": "Prestar el servicio fumigación, contra ácaros, insectos, arácnidos, roedores y demás plagas reptantes, rastreras o voladores control de…",
+          "contact": true
+        },
+        {
+          "name": "Maria Ruth Diaz de Duque",
+          "departments": 2,
+          "contracts": 5,
+          "example": "Servicio de fumigacion y desratizacion, lavado de tanques y análisis químico del agua en las diferentes áreas de la reclusión de mujeres…",
+          "contact": false
+        }
+      ],
+      "top": [
+        {
+          "name": "Abc Fumiservices Fumigacion y Extintores S.A.S",
+          "nit": "901010739",
+          "departments": 7,
+          "contracts": 18,
+          "last": "2026-09-18",
+          "needs": [
+            "pest"
+          ],
+          "exact": false,
+          "example": "Prestar los servicios de fumigación, desratización y limpieza de archivos de las dependencias de la unidad de gestión general del…",
+          "phone": "+576076329695",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Fumigaciones Baldwing Col SAS",
+          "nit": "901743764",
+          "departments": 4,
+          "contracts": 6,
+          "last": "2026-05-11",
+          "needs": [
+            "pest"
+          ],
+          "exact": false,
+          "example": "Servicio de fumigación de vectores, insectos, voladores, rastreros, ofidios, xilófagos (comején), cimex lectularius chinches de cama…",
+          "phone": "+573222112862",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Tecnisec de Colombia LTDA.",
+          "nit": "805015606",
+          "departments": 4,
+          "contracts": 5,
+          "last": "2026-08-06",
+          "needs": [
+            "pest"
+          ],
+          "exact": false,
+          "example": "Prestación del servicio de fumigacion y desratización para los establecimientos de sanidad militar bas08 en armenia y sus unidades…",
+          "phone": "+573112523432",
+          "website": "https://www.tecnisecdecolombia.co",
+          "contact": true
+        },
+        {
+          "name": "Cecplag S.A.S",
+          "nit": "900822945",
+          "departments": 4,
+          "contracts": 5,
+          "last": "2026-06-02",
+          "needs": [
+            "pest"
+          ],
+          "exact": false,
+          "example": "Contratar un servicio de lavado y deseinfeccion a los tanques de almacenamiento de agua potable, una fumigacion y una desratizacion a las…",
+          "phone": "+576053921130",
+          "website": "https://www.cecplag.com.co",
+          "contact": true
+        },
+        {
+          "name": "E37 S.A.S.",
+          "nit": "900945243",
+          "departments": 4,
+          "contracts": 4,
+          "last": "2026-06-22",
+          "needs": [
+            "pest"
+          ],
+          "exact": false,
+          "example": "Contratar el servicio de fumigacion, desratización, y, control de la calidad del agua (lavado de tanques y analisis de agua) de la cárcel…",
+          "phone": "",
+          "website": "",
+          "contact": false
+        },
+        {
+          "name": "Fumigaciones Fumicali SAS",
+          "nit": "900424842",
+          "departments": 3,
+          "contracts": 13,
+          "last": "2026-10-09",
+          "needs": [
+            "pest"
+          ],
+          "exact": false,
+          "example": "Servicio de fumigación para el control general de plagas (insectos, rastreros, voladores, roedores, dicteros, ortópteras, bacterias hongos…",
+          "phone": "+573145775218",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Abc Fumiservices Fumigacion y Extintores S.A.S · 901010739",
+          "contracts": 158,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Fumigaciones Baldwing Col SAS · 901743764",
+          "contracts": 10,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Tecnisec de Colombia LTDA. · 805015606",
+          "contracts": 101,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Extintores y Fumigaciones Caldas N°2 · persona natural (documento oculto)",
+          "contracts": 100,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Fumifull Fumigaciones · persona natural (documento oculto)",
+          "contracts": 27,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 10.2
+    },
+    {
+      "scenario": {
+        "what": "mantenimiento de aires acondicionados",
+        "region": "Atlántico"
+      },
+      "understood": [
+        "Aire acondicionado y refrigeración"
+      ],
+      "terms": [
+        "mantenimiento de aires acondicionados (como lo escribió)",
+        "aire acondicionado [AIRE]"
+      ],
+      "failed": [],
+      "found": 40,
+      "reach": {
+        "national": 30,
+        "regional": 10,
+        "local": 0
+      },
+      "withContact": 20,
+      "inRegion": 10,
+      "multiNeed": 0,
+      "withPhone": 18,
+      "people": 20,
+      "staffLeaks": [],
+      "topPeople": [
+        {
+          "name": "Marino Duarte Silva",
+          "departments": 9,
+          "contracts": 41,
+          "example": "Servicio de mantenimiento preventivo y correctivo de los aires acondicionados ubicados en las diferentes dependencias y oficinas a cargo…",
+          "contact": true
+        },
+        {
+          "name": "Marco Andres Landinez Moreno",
+          "departments": 7,
+          "contracts": 31,
+          "example": "Servicios de mantenimiento preventivo y correctivo de aires acondicionados (todo incluido), destinado a las unidades centralizadas por la…",
+          "contact": true
+        },
+        {
+          "name": "Impocamaras - Brayan Alberto Camacho Oyola",
+          "departments": 7,
+          "contracts": 20,
+          "example": "Prestar el servicio de mantenimiento preventivo y correctivo integral a todo costo de los sistemas de aire acondicionado y extractores de…",
+          "contact": true
+        },
+        {
+          "name": "Pablo Andres Pinto Cortes",
+          "departments": 6,
+          "contracts": 7,
+          "example": "Prestar el servicio de mantenimiento preventivo integral y correctivo de los equipos de aires acondicionados, ubicados en la sede regional…",
+          "contact": true
+        }
+      ],
+      "top": [
+        {
+          "name": "Crr Soluciones Integrales S.A.S",
+          "nit": "901406206",
+          "departments": 20,
+          "contracts": 81,
+          "last": "2026-10-16",
+          "needs": [
+            "hvac"
+          ],
+          "exact": true,
+          "example": "Servicio de mantenimiento preventivo y correctivo de aires acondicionado, limpieza de techo y mantenimiento de canales de desagüe de la…",
+          "phone": "+573209627691",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "C&M Servicios e Ingenieria S.A.S",
+          "nit": "901603848",
+          "departments": 13,
+          "contracts": 59,
+          "last": "2026-09-17",
+          "needs": [
+            "hvac"
+          ],
+          "exact": true,
+          "example": "Servicio de mantenimiento preventivo y/o correctivo a todo costo de los equipos de aires acondicionados de la policía metropolitana del…",
+          "phone": "+573114839458",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "C-Line V&M LTDA",
+          "nit": "900224737",
+          "departments": 12,
+          "contracts": 47,
+          "last": "2026-10-06",
+          "needs": [
+            "hvac"
+          ],
+          "exact": true,
+          "example": "Servicio de mantenimiento preventivo y correctivo a todo costo de los equipos de aires acondicionados y refrigeración de la regional…",
+          "phone": "+576016594396",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Multiservicios Ingenieria Global Mig S.A.S",
+          "nit": "901523858",
+          "departments": 9,
+          "contracts": 31,
+          "last": "2026-10-06",
+          "needs": [
+            "hvac"
+          ],
+          "exact": true,
+          "example": "Suministro e instalación de nuevos equipos de aire acondicionado y mantenimiento preventivo y correctivo de equipos del sistema de aire…",
+          "phone": "+573107998775",
+          "website": "",
+          "contact": true
+        },
+        {
+          "name": "Ac Friosystem SAS",
+          "nit": "901283653",
+          "departments": 8,
+          "contracts": 36,
+          "last": "2026-10-26",
+          "needs": [
+            "hvac"
+          ],
+          "exact": true,
+          "example": "Servicio de mantenimiento preventivo y correctivo del sistema de aires acondicionados central tipo chiller y tipo mini split de la…",
+          "phone": "+573107751017",
+          "website": "https://www.friosystem.com",
+          "contact": true
+        },
+        {
+          "name": "Servingcol Group SAS",
+          "nit": "901282641",
+          "departments": 8,
+          "contracts": 20,
+          "last": "2026-10-22",
+          "needs": [
+            "hvac"
+          ],
+          "exact": true,
+          "example": "Servicio de mantenimiento preventivo y/o correctivo a todo costo de los equipos de acondicionamiento de aires (aires acondicionados…",
+          "phone": "+573133726308",
+          "website": "",
+          "contact": true
+        }
+      ],
+      "verified": [
+        {
+          "nit": "Crr Soluciones Integrales S.A.S · 901406206",
+          "contracts": 859,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "C&M Servicios e Ingenieria S.A.S · 901603848",
+          "contracts": 139,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "C-Line V&M LTDA · 900224737",
+          "contracts": 116,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Marino Duarte Silva · persona natural (documento oculto)",
+          "contracts": 135,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        },
+        {
+          "nit": "Marco Andres Landinez Moreno · persona natural (documento oculto)",
+          "contracts": 171,
+          "inRegistry": true,
+          "active": "Si",
+          "ok": true
+        }
+      ],
+      "seconds": 10.5
+    }
+  ]
+}
