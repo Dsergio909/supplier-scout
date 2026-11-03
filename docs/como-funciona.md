@@ -17,20 +17,28 @@ Buscar un proveedor nuevo suele ser una búsqueda en Google, una hoja de cálcul
 Arriba de la pestaña **Buscar** está el buscador:
 
 1. En **¿Qué necesitas?** escribe con tus palabras un producto o un servicio: *mantenimiento de aires acondicionados*, *plomero*, *recarga de extintores*, *fumigación*, *cajas de cartón*, *tornillería*. Debajo aparece lo que la app entendió, por ejemplo **Entendí: Aire acondicionado y refrigeración**.
-2. Escribe **la zona o barrio y la ciudad**, por ejemplo *Kennedy, Bogotá*, y elige el **país**.
+2. Escribe **la ciudad, el pueblo o el barrio**: *Barranquilla*, *Guatavita*, *Kennedy, Bogotá*. Elige el **país**, o pulsa **Usar mi ubicación** para buscar donde estás.
 3. Pulsa **Buscar en el mapa**. En unos segundos aparecen en el ranking los negocios que existen de verdad en esa zona, con su teléfono, dirección y horario cuando el mapa los tiene.
 4. El mensaje de resultado dice cuántos encontró, **cuántos no tienen página web** y cuántos tienen teléfono.
 5. Pulsa **Ver en Google Maps** para abrir la misma búsqueda en Google Maps. Google suele tener más negocios; desde ahí puedes llamar, ver fotos y leer reseñas.
-6. Cada negocio tiene **Ver en OpenStreetMap** (su ficha en el mapa) y **Buscar en Google Maps** (para ver fotos, reseñas y llamar). **Pedir cotización** arma un mensaje listo para WhatsApp o correo; si es un servicio, pide el valor del servicio, qué incluye y el tiempo de respuesta.
+6. Cada negocio muestra su dirección y horario cuando el mapa los tiene, un botón **Llamar**, **Ver en OpenStreetMap** (su ficha en el mapa) y **Buscar en Google Maps** (para ver fotos, reseñas y llamar). **Pedir cotización** arma un mensaje listo para WhatsApp o correo; si es un servicio, pide el valor del servicio, qué incluye y el tiempo de respuesta.
 7. **Volver a los datos de ejemplo** regresa a la demo con proveedores ficticios.
 
 **No necesitas poner cantidades.** En compras primero se buscan varias opciones y la cantidad se negocia con cada proveedor. Las cantidades solo aparecen en la pestaña **Cotizaciones**, cuando ya tienes precios y quieres comparar el costo real de un pedido.
+
+### Cómo identifica el lugar
+
+- **Ciudad o pueblo completo.** Si escribes solo *Barranquilla* o *San Gil*, busca en todo el municipio y sus alrededores. Si la ciudad mide más de 10 km desde el centro (Bogotá, Barranquilla, Medellín), busca 10 km alrededor del centro y te avisa: para otra zona, escribe el barrio (*Soledad, Atlántico* o *Kennedy, Bogotá*).
+- **Nombres repetidos.** Muchos pueblos se llaman igual (*San Pedro*, *La Unión*, *Santa Rosa*). La app muestra dónde buscó, con el departamento (*San Pedro, Valle del Cauca*), y debajo te ofrece los otros: **¿No era ahí? Elige: San Pedro, Antioquia · San Pedro, Sucre**. Elegir otro no vuelve a consultar el buscador de lugares.
+- **País equivocado.** Si escribes *Lima* con Colombia seleccionado, no lo encuentra en Colombia, lo busca en el resto del mundo, te dice *No lo encontré en Colombia: busqué en Lima (Perú)* y cambia el país.
+- **Usar mi ubicación.** El navegador te pide permiso; la ubicación solo se usa para la consulta al mapa y no se guarda.
+- El buscador de lugares es Nominatim, de OpenStreetMap. Por su política de uso, la app no sugiere lugares mientras escribes: busca cuando pulsas el botón.
 
 ### Cómo entiende lo que escribes
 
 No usa inteligencia artificial: usa reglas, así que siempre se puede explicar qué buscó.
 
-1. **Oficios y servicios** que reconoce en español, inglés, portugués y francés, con plurales y sin importar tildes: aire acondicionado y refrigeración, plomería, electricista, cerrajería, soldadura y estructuras metálicas, pintores, vidrios y ventanas, obras y remodelaciones (también *reparaciones locativas*), techos e impermeabilización, jardinería, fumigación, servicio de aseo, talleres de vehículos, computadores y soporte técnico, electrodomésticos, tapicería, avisos, catering, mudanzas, seguridad y cámaras, extintores y seguridad industrial, ascensores, plantas eléctricas y motobombas, contabilidad y abogados. Cada uno sabe qué etiquetas usa OpenStreetMap (por ejemplo `craft=hvac` para aire acondicionado) y qué palabras suelen ir en el nombre del negocio (*refrigeración*, *climatización*).
+1. **Oficios y servicios** que reconoce en español, inglés, portugués y francés, con plurales y sin importar tildes: aire acondicionado y refrigeración, plomería, electricista, cerrajería, soldadura y estructuras metálicas, pintores, vidrios y ventanas, obras y remodelaciones (también *reparaciones locativas*), techos e impermeabilización, jardinería, fumigación, servicio de aseo, lavandería, talleres de vehículos y montallantas, tornería y mecanizado, computadores y soporte técnico, electrodomésticos, tapicería, avisos, catering, mudanzas, seguridad y cámaras, extintores y seguridad industrial, ascensores, plantas eléctricas y motobombas, contabilidad y abogados. Cada uno sabe qué etiquetas usa OpenStreetMap (por ejemplo `craft=hvac` para aire acondicionado) y qué palabras suelen ir en el nombre del negocio (*refrigeración*, *climatización*).
 2. Si no es un oficio, busca en las **categorías de compra**: empaques, ferretería, impresión, textiles, electrónica, alimentos, aseo, transporte, mantenimiento, papelería, muebles e impresión 3D.
 3. Si no reconoce nada, busca negocios que tengan **esas palabras en el nombre** y te lo dice: *Buscaré negocios que tengan en su nombre: arepa*.
 
@@ -48,6 +56,7 @@ La palabra *mantenimiento* sola no decide nada: en *mantenimiento de ascensores*
 ### Límites de la búsqueda real
 
 - El radio máximo es de **10 km**, para no saturar el servicio gratuito de OpenStreetMap. Si pides más, la app busca 10 km y te avisa.
+- Si el servidor del mapa está ocupado, la app reintenta una vez a los 3 segundos; si sigue ocupado, te pide intentar en un minuto.
 - Los datos del mapa pueden estar incompletos o desactualizados: **confirma por teléfono antes de comprar**.
 - Los negocios encontrados no traen precios ni reseñas. Aparecen con "sin reseñas" (neutro) y "sin cotización", y el ranking te dice qué preguntar.
 - Un negocio solo aparece si alguien lo registró en OpenStreetMap con la etiqueta o el nombre adecuados. Si no sale lo que buscas, prueba otras palabras ("refrigeración" en vez de "aires") o ábrelo en Google Maps.

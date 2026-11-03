@@ -15,6 +15,13 @@
 
   var Osm = root.ScoutOsm;
   var MAX_BYTES = 5 * 1024 * 1024;
+  var ALTERNATIVES = 5;
+  // Nominatim's policy: at most one request per second.
+  var NOMINATIM_GAP_MS = 1100;
+  // The public Overpass server is often busy for a few seconds: one polite retry.
+  var OVERPASS_RETRY_MS = 3000;
+  // Enough for a whole town; the ranking orders them by distance.
+  var MAX_RESULTS = 150;
   var TIMEOUT_MS = 30000;
 
   function LiveError(code, detail) {
@@ -45,42 +52,82 @@
     }).finally(function () { clearTimeout(timer); });
   }
 
+  function wait(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
   /**
-   * Geocode `place`, search what the buyer typed (`what`, read by
+   * Place name -> { places, movedFrom }. Looks in the chosen country first; if the
+   * place is not there ("Lima" with Colombia selected), asks once more without a
+   * country, one second later, and says which country it was found in.
+   */
+  function locate(place, country) {
+    return fetchJson(Osm.geocodeUrl(place, country, { limit: ALTERNATIVES })).then(function (results) {
+      var places = Osm.parsePlaces(results);
+      if (places.length || !country) return { places: places, movedFrom: null };
+      return wait(NOMINATIM_GAP_MS).then(function () {
+        return fetchJson(Osm.geocodeUrl(place, null, { limit: ALTERNATIVES }));
+      }).then(function (world) {
+        return { places: Osm.parsePlaces(world), movedFrom: country };
+      });
+    });
+  }
+
+  /**
+   * Geocode `place` (or use `point`, a place chosen among the alternatives or the
+   * browser's location), search what the buyer typed (`what`, read by
    * ScoutServices.interpret: map tags + words in business names) within
    * `radiusKm` (capped at 10 km by Overpass etiquette) and return a dataset the
    * demo can load like the samples. A plain `category` still works.
    */
   function search(params) {
     var p = params || {};
-    var radiusKm = Math.min(Osm.MAX_RADIUS_M / 1000, Math.max(1, Number(p.radiusKm) || 3));
     var place = String(p.place || '').trim();
     var what = String(p.what || '').trim().slice(0, 120);
     var wanted = what && root.ScoutServices ? root.ScoutServices.interpret(what) : null;
     if (wanted && wanted.kind === 'empty') wanted = null;
     var category = wanted ? wanted.categories[0] || '' : p.category;
     if (!wanted && !p.category) return Promise.reject(LiveError('nothing-to-search'));
-    return fetchJson(Osm.geocodeUrl(place, p.country)).then(function (results) {
-      var point = Osm.parseGeocode(results, place);
+    var given = p.point && isFinite(p.point.lat) && isFinite(p.point.lng) && Math.abs(p.point.lat) <= 90 && Math.abs(p.point.lng) <= 180
+      ? p.point : null;
+    if (p.point && !given) return Promise.reject(LiveError('place-not-found'));
+    var located = given
+      ? Promise.resolve({ places: [given], movedFrom: null, given: true })
+      : locate(place, p.country);
+    return located.then(function (loc) {
+      var point = loc.places[0];
       if (!point) throw LiveError('place-not-found');
+      var country = point.country || p.country;
+      var scope = Osm.searchRadius(point, p.radiusKm);
+      var radiusKm = scope.km;
       var query = wanted
-        ? Osm.buildQuery({ tags: wanted.tags, nameHint: wanted.nameHint, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000 })
-        : Osm.buildQuery({ category: p.category, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000 });
-      return fetchJson(Osm.ENDPOINT, {
-        method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'data=' + encodeURIComponent(query)
+        ? Osm.buildQuery({ tags: wanted.tags, nameHint: wanted.nameHint, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000, limit: MAX_RESULTS })
+        : Osm.buildQuery({ category: p.category, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000, limit: MAX_RESULTS });
+      function ask() {
+        return fetchJson(Osm.ENDPOINT, {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'data=' + encodeURIComponent(query)
+        });
+      }
+      return ask().catch(function (err) {
+        if (err.code !== 'busy' || p.noRetry) throw err;
+        return wait(OVERPASS_RETRY_MS).then(ask);
       }).then(function (json) {
-        var found = Osm.normalize(json, { country: p.country, category: category });
-        var short = place.slice(0, 60);
+        var found = Osm.normalize(json, { country: country, category: category });
+        var short = (point.label || place).slice(0, 60);
         return {
           point: point,
+          alternatives: loc.given ? [] : loc.places.slice(1),
+          movedFrom: loc.movedFrom && country !== loc.movedFrom ? loc.movedFrom : null,
+          country: country,
+          scope: scope.scope,
           wanted: wanted,
           radiusKm: radiusKm,
           stats: found.stats,
           dataset: {
             live: true,
-            country: p.country,
+            country: country,
             label: { es: 'Búsqueda real · ' + short, en: 'Live search · ' + short, pt: 'Busca real · ' + short, fr: 'Recherche réelle · ' + short },
             clusters: '',
             fx: p.fx || { USD: 1 },

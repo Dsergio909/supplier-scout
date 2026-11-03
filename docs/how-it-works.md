@@ -17,20 +17,28 @@ Finding a new supplier usually means a Google search, a spreadsheet and a few ph
 At the top of the **Search** tab is the search bar:
 
 1. In **What do you need?** type a product or a service in your own words: *air conditioning maintenance*, *plumber*, *fire extinguisher refill*, *pest control*, *cardboard boxes*, *hardware*. Below it the app shows what it understood, for example **I understood: Air conditioning & refrigeration**.
-2. Type the **neighbourhood and city**, for example *Kennedy, Bogotá*, and pick the **country**.
+2. Type the **city, town or neighbourhood**: *Barranquilla*, *Guatavita*, *Kennedy, Bogotá*. Pick the **country**, or press **Use my location** to search where you are.
 3. Press **Search the map**. Within seconds, businesses that really exist in that area appear in the ranking, with phone, address and opening hours when the map has them.
 4. The result message says how many were found, **how many have no website** and how many have a phone number.
 5. Press **Open in Google Maps** to open the same search in Google Maps. Google usually lists more businesses; from there you can call, see photos and read reviews.
-6. Every business has **View on OpenStreetMap** (its map entry) and **Find on Google Maps** (photos, reviews, call). **Request a quote** drafts a message for WhatsApp or email; for a service it asks for the price of the job, what it includes and the response time.
+6. Every business shows its address and opening hours when the map has them, a **Call** button, **View on OpenStreetMap** (its map entry) and **Find on Google Maps** (photos, reviews, call). **Request a quote** drafts a message for WhatsApp or email; for a service it asks for the price of the job, what it includes and the response time.
 7. **Back to the sample data** returns to the demo's fictional suppliers.
 
 **No quantities needed.** In purchasing you first look for several options and negotiate the quantity with each supplier. Quantities only appear in the **Quotes** tab, once you have prices and want to compare the real cost of an order.
+
+### How it identifies the place
+
+- **A whole city or town.** Type just *Barranquilla* or *San Gil* and it searches the whole municipality and its surroundings. If the city reaches more than 10 km from its centre (Bogotá, Barranquilla, Medellín), it searches 10 km around the centre and says so: for another area, type the neighbourhood.
+- **Repeated names.** Many towns share a name (*San Pedro*, *La Unión*, *Santa Rosa*). The app shows where it searched, with the region (*San Pedro, Valle del Cauca*), and offers the others below: **Not that one? Pick: San Pedro, Antioquia · San Pedro, Sucre**. Picking one does not query the place search again.
+- **Wrong country.** Type *Lima* with Colombia selected: it is not found in Colombia, so the app looks in the rest of the world, says *Not found in Colombia: searched Lima (Peru)* and switches the country.
+- **Use my location.** The browser asks for permission; the position is used only for the map query and is not stored.
+- Place search is OpenStreetMap's Nominatim. Its usage policy forbids search-as-you-type, so the app searches when you press the button.
 
 ### How it reads what you type
 
 No AI: rules, so it can always explain what it searched for.
 
-1. **Trades and services** it recognises in Spanish, English, Portuguese and French, with plurals and without accents: air conditioning and refrigeration, plumbing, electricians, locksmiths, welding and metalwork, painters, glass and windows, building and renovation, roofing and waterproofing, gardening, pest control, cleaning services, vehicle repair, computers and IT support, appliances, upholstery, signs, catering, moving, security and cameras, fire extinguishers and safety, elevators, generators and pumps, accounting and lawyers. Each knows its OpenStreetMap tags (for example `craft=hvac` for air conditioning) and the words businesses usually have in their names (*refrigeración*, *climatización*).
+1. **Trades and services** it recognises in Spanish, English, Portuguese and French, with plurals and without accents: air conditioning and refrigeration, plumbing, electricians, locksmiths, welding and metalwork, painters, glass and windows, building and renovation, roofing and waterproofing, gardening, pest control, cleaning services, laundry, vehicle and tyre repair, machining, computers and IT support, appliances, upholstery, signs, catering, moving, security and cameras, fire extinguishers and safety, elevators, generators and pumps, accounting and lawyers. Each knows its OpenStreetMap tags (for example `craft=hvac` for air conditioning) and the words businesses usually have in their names (*refrigeración*, *climatización*).
 2. If it is not a trade, it looks at the **purchase categories**: packaging, hardware, printing, textiles, electronics, food, cleaning supplies, transport, maintenance, office supplies, furniture and 3D printing.
 3. If it recognises nothing, it searches for businesses with **those words in their name** and says so.
 
@@ -48,6 +56,7 @@ The word *maintenance* alone decides nothing: *elevator maintenance* searches fo
 ### Limits of the live search
 
 - The maximum radius is **10 km**, to avoid overloading OpenStreetMap's free service. If you ask for more, the app searches 10 km and tells you.
+- If the map server is busy, the app retries once after 3 seconds; if it is still busy, it asks you to try again in a minute.
 - Map data can be incomplete or out of date: **confirm by phone before you buy**.
 - Businesses found on the map have no prices or reviews. They show "no reviews" (neutral) and "no quote", and the ranking tells you what to ask.
 - A business only appears if someone added it to OpenStreetMap with the right tag or name. If you do not find what you need, try other words or open Google Maps.

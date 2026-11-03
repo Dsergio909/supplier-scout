@@ -110,6 +110,12 @@ main.shell { display: grid; gap: var(--s4); padding-top: var(--s4); padding-bott
 .live { border-top: 3px solid var(--brand); }
 .live-form { display: grid; grid-template-columns: minmax(240px, 2fr) minmax(180px, 1.3fr) minmax(130px, .8fr) auto; gap: var(--s3); align-items: end; }
 .live-form .what input { font-size: 16px; }
+.place-field { display: grid; gap: var(--s1); min-width: 0; }
+.place-field .field-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s2); }
+.place-field .field-head label { display: block; font-size: 12px; line-height: 16px; letter-spacing: .32px; color: var(--muted); }
+.place-field .field-head .linkish { font-size: 12px; line-height: 16px; letter-spacing: .32px; }
+.alt-row { margin-top: var(--s2); display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; color: var(--muted); font-size: 13px; }
+.alt-row[hidden] { display: none; }
 .understood { margin: var(--s3) 0 0; color: var(--muted); display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; min-height: 20px; }
 .understood:empty { display: none; }
 .understood .tag-ok { background: var(--brand-tint); color: var(--brand); border-radius: 2px; padding: 2px var(--s2); font-size: 13px; font-weight: 500; }
@@ -139,6 +145,7 @@ main.shell { display: grid; gap: var(--s4); padding-top: var(--s4); padding-bott
 .badge:not(:empty) { background: var(--warn); color: #fff; font-size: 12px; line-height: 16px; padding: 0 6px; border-radius: 8px; letter-spacing: 0; }
 .tabpanel { display: grid; gap: var(--s4); }
 .tabpanel[hidden] { display: none; }
+[hidden] { display: none !important; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s4); }
 .search-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
 
@@ -226,6 +233,7 @@ details.why li.warn { color: var(--warn); }
 .excluded ul { margin: var(--s1) 0 0; padding-left: var(--s4); }
 .excluded li { margin: 2px 0; }
 
+.place-line { margin-top: var(--s1); color: var(--muted); font-size: 13px; line-height: 18px; }
 .chip { font-size: 12px; line-height: 16px; letter-spacing: .32px; padding: 2px var(--s2); border-radius: 2px; background: var(--layer); color: var(--muted); white-space: nowrap; }
 .chip.src { color: var(--c); background: var(--layer); box-shadow: inset 2px 0 0 var(--c); }
 .chip.offline { color: var(--pink); font-weight: 600; }

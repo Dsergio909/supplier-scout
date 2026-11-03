@@ -132,11 +132,17 @@
     };
   }
 
-  /** Nominatim URL for a place name, limited to one country when it is known. */
-  function geocodeUrl(place, countryCode) {
+  /**
+   * Nominatim URL for a place name, limited to one country when it is known.
+   * options.limit > 1 asks for alternatives ("San Pedro" exists in many places)
+   * and the address parts used to name them.
+   */
+  function geocodeUrl(place, countryCode, options) {
     var q = String(place || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 120);
     if (!q) throw new Error('A place name is required, e.g. "Fontibón, Bogotá"');
-    var params = new URLSearchParams({ q: q, format: 'jsonv2', limit: '1' });
+    var limit = Math.min(10, Math.max(1, Math.round(Number(options && options.limit) || 1)));
+    var params = new URLSearchParams({ q: q, format: 'jsonv2', limit: String(limit) });
+    if (limit > 1) params.set('addressdetails', '1');
     if (/^[A-Z]{2}$/.test(countryCode || '') && countryCode !== 'XX') params.set('countrycodes', countryCode.toLowerCase());
     return GEOCODE_ENDPOINT + '?' + params.toString();
   }
@@ -149,6 +155,78 @@
     var lng = Number(hit.lon);
     if (!isFinite(lat) || !isFinite(lng)) return null;
     return { lat: lat, lng: lng, label: String(hit.display_name || place).slice(0, 160) };
+  }
+
+  // Nominatim address types that name a whole town or city (search all of it, up to the cap).
+  var WHOLE_PLACE = ['city', 'town', 'village', 'municipality', 'hamlet'];
+
+  function clean(text, max) {
+    return String(text == null ? '' : text).replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+  }
+
+  /**
+   * Every Nominatim hit -> { lat, lng, name, label, full, kind, country, bbox, wholePlace }.
+   * Needs the address parts (geocodeUrl with options.limit > 1) to name homonyms apart.
+   * label is short and tells homonyms apart: "San Pedro, Valle del Cauca".
+   */
+  function parsePlaces(results) {
+    if (!Array.isArray(results)) return [];
+    var seen = {};
+    return results.map(function (hit) {
+      var lat = Number(hit && hit.lat);
+      var lng = Number(hit && hit.lon);
+      if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+      var a = hit.address || {};
+      var full = clean(hit.display_name, 200);
+      var name = clean(hit.name || full.split(',')[0], 80);
+      var town = a.city || a.town || a.village || a.municipality || a.county;
+      var region = a.state || a.region || a.province || a.county;
+      var parts = [name];
+      if (town && clean(town, 80) !== name) parts.push(clean(town, 80));
+      if (region && parts.indexOf(clean(region, 80)) === -1) parts.push(clean(region, 80));
+      // Without address details, the first two parts of the full name ("Kennedy, Bogotá").
+      if (parts.length === 1 && full.indexOf(',') !== -1) parts = full.split(',').slice(0, 2).map(function (x) { return x.trim(); });
+      var bb = Array.isArray(hit.boundingbox) ? hit.boundingbox.map(Number) : null;
+      var kind = clean(hit.addresstype || hit.type, 40);
+      var place = {
+        lat: lat, lng: lng, name: name, label: parts.filter(Boolean).join(', '), full: full,
+        kind: kind,
+        country: /^[a-z]{2}$/i.test(a.country_code || '') ? a.country_code.toUpperCase() : null,
+        bbox: bb && bb.length === 4 && bb.every(isFinite) ? bb : null,
+        wholePlace: WHOLE_PLACE.indexOf(kind) !== -1
+      };
+      var key = place.label + '|' + Math.round(lat * 100) + '|' + Math.round(lng * 100);
+      if (seen[key]) return null;
+      seen[key] = true;
+      return place;
+    }).filter(Boolean);
+  }
+
+  function haversineKm(lat1, lng1, lat2, lng2) {
+    var rad = Math.PI / 180;
+    var dLat = (lat2 - lat1) * rad;
+    var dLng = (lng2 - lng1) * rad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  /**
+   * How far around the point to search. A town or city is searched whole when it
+   * fits in the cap ("all of Barranquilla"); a bigger one is searched around its
+   * centre and the caller says so. Neighbourhoods and addresses use the radius asked.
+   * Returns { km, scope: 'radius' | 'whole' | 'centre' }.
+   */
+  function searchRadius(place, wantedKm) {
+    var maxKm = MAX_RADIUS_M / 1000;
+    var km = Math.min(maxKm, Math.max(1, Number(wantedKm) || 3));
+    if (!place || !place.wholePlace || !place.bbox) return { km: km, scope: 'radius' };
+    var b = place.bbox; // [south, north, west, east]
+    var half = Math.max(
+      haversineKm(place.lat, place.lng, b[0], place.lng), haversineKm(place.lat, place.lng, b[1], place.lng),
+      haversineKm(place.lat, place.lng, place.lat, b[2]), haversineKm(place.lat, place.lng, place.lat, b[3])
+    );
+    if (half > maxKm) return { km: maxKm, scope: 'centre' };
+    return { km: Math.max(km, Math.min(maxKm, Math.ceil(half))), scope: 'whole' };
   }
 
   /**
@@ -165,7 +243,8 @@
   var api = {
     ENDPOINT: ENDPOINT, GEOCODE_ENDPOINT: GEOCODE_ENDPOINT, ATTRIBUTION: ATTRIBUTION, MAX_RADIUS_M: MAX_RADIUS_M,
     safeRegex: safeRegex, buildQuery: buildQuery, normalize: normalize,
-    geocodeUrl: geocodeUrl, parseGeocode: parseGeocode, mapsSearchUrl: mapsSearchUrl
+    geocodeUrl: geocodeUrl, parseGeocode: parseGeocode, parsePlaces: parsePlaces, searchRadius: searchRadius,
+    mapsSearchUrl: mapsSearchUrl
   };
 
   if (isNode) {

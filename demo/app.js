@@ -43,7 +43,7 @@
   var state = null;
   var prefs = { lang: detectLanguage(), datasetId: 'bogota' };
   // Live search status. Live results are never saved: they are real data, shown fresh.
-  var live = { busy: false, status: '', kind: '', country: null, lastSampleId: 'bogota' };
+  var live = { busy: false, status: '', kind: '', country: null, lastSampleId: 'bogota', alternatives: [], places: [] };
 
   /** The first browser language we speak (pt-BR -> pt), otherwise English. */
   function detectLanguage() {
@@ -588,6 +588,11 @@
     var nameBox = el('div');
     nameBox.appendChild(el('div', 'name', s.name));
     nameBox.appendChild(sourceChips(s));
+    var where = [s.address, s.city].filter(Boolean).join(', ');
+    var hours = /^Horario \(OSM\): (.+)$/.exec(s.notes || '');
+    if (where || hours) {
+      nameBox.appendChild(el('div', 'place-line', [where, hours ? t('hoursLabel') + ': ' + hours[1] : ''].filter(Boolean).join(' · ')));
+    }
     title.appendChild(nameBox);
     head.appendChild(title);
     var score = el('div', 'score');
@@ -640,6 +645,11 @@
       state.openRfq = state.openRfq === s.id ? null : s.id;
       renderResults();
     }));
+    if (s.phones && s.phones[0] && /^\+?[0-9]{6,15}$/.test(s.phones[0])) {
+      var call = el('a', 'btn small', t('call'));
+      call.href = 'tel:' + s.phones[0];
+      actions.appendChild(call);
+    }
     var osmRef = (s.sources || []).map(function (src) { return /^osm:(node|way|relation)\/(\d+)$/.exec(src && src.ref || ''); }).filter(Boolean)[0];
     if (osmRef) {
       actions.appendChild(link('https://www.openstreetmap.org/' + osmRef[1] + '/' + osmRef[2], t('mapEntry')));
@@ -1019,7 +1029,9 @@
 
   function updateMapsLink() {
     var place = $('livePlace').value.trim() || defaultPlace();
-    var where = place + ', ' + countryName($('liveCountry').value || country());
+    var where = live.myPoint && place === t('myLocation')
+      ? live.myPoint.lat.toFixed(5) + ',' + live.myPoint.lng.toFixed(5)
+      : place + ', ' + countryName($('liveCountry').value || country());
     var what = (state.need.query || '').trim() || catLabel(state.need.category);
     try { $('mapsLink').href = Osm.mapsSearchUrl(what, where); } catch (err) { /* keep the previous link */ }
   }
@@ -1054,6 +1066,7 @@
     if (document.activeElement !== what) what.value = state.need.query || '';
     renderUnderstood();
     renderTryChips();
+    renderAlternatives();
     var codes = Object.keys(C.PROFILES).filter(function (code) { return code !== 'XX'; })
       .sort(function (a, b) { return countryName(a).localeCompare(countryName(b), prefs.lang); });
     fillSelect($('liveCountry'), codes.map(function (code) { return { value: code, label: countryName(code) }; }), live.country || country());
@@ -1085,9 +1098,15 @@
     return { USD: 1 };
   }
 
-  function liveSearch() {
+  /**
+   * Search the map. `point` skips geocoding: a place picked among the
+   * alternatives, or the browser's location.
+   */
+  function liveSearch(point) {
     if (live.busy) return;
-    var place = $('livePlace').value.trim();
+    // "tu ubicación" in the box means the position the browser already gave.
+    if (!point && live.myPoint && $('livePlace').value.trim() === t('myLocation')) point = live.myPoint;
+    var place = point ? point.label : $('livePlace').value.trim();
     if (!place) { $('livePlace').focus(); return; }
     var what = $('liveWhat').value.trim().slice(0, 120);
     if (!what || Services.interpret(what).kind === 'empty') {
@@ -1102,30 +1121,80 @@
     live.busy = true;
     live.country = code;
     live.kind = 'busy';
+    live.alternatives = [];
     live.status = fmt(t('liveSearching'), { cat: what, place: place });
     renderLive();
     Live.search({
-      what: what, place: place, country: code, radiusKm: radiusKm, fx: fxFor(code), unit: state.need.unit
+      what: what, place: place, point: point || null, country: code, radiusKm: radiusKm, fx: fxFor(code), unit: state.need.unit
     }).then(function (res) {
       if (!dataset().live) live.lastSampleId = prefs.datasetId;
       saveState();
+      res.dataset.fx = fxFor(res.country);
       Sample.DATASETS.live = res.dataset;
       prefs.datasetId = 'live';
       loadState();
       state.tab = 'search';
       live.busy = false;
+      live.country = res.country;
+      // Keep every candidate place so the buyer can switch between homonyms.
+      if (!point) live.places = [res.point].concat(res.alternatives || []);
+      else if (!live.places.some(function (x) { return x === point; })) live.places = [];
+      live.alternatives = live.places.filter(function (x) { return x !== res.point && !(x.lat === res.point.lat && x.lng === res.point.lng); });
+      var where = res.point.label || place;
+      if (!point) $('livePlace').value = where;
       var st = res.stats;
+      var notes = [];
+      if (res.movedFrom) notes.push(fmt(t('placeMoved'), { from: countryName(res.movedFrom), to: countryName(res.country), place: where }));
       live.kind = st.total ? 'ok' : 'warn';
-      live.status = st.total
-        ? fmt(t('liveFound'), { n: st.total, place: place, offline: st.withoutWebsite, phone: st.withPhone })
-        : fmt(t('liveNone'), { cat: what, place: place });
-      if (Number(radiusKm) > res.radiusKm) live.status += ' ' + fmt(t('liveCapped'), { km: res.radiusKm });
+      notes.push(st.total
+        ? fmt(t('liveFound'), { n: st.total, place: where, offline: st.withoutWebsite, phone: st.withPhone })
+        : fmt(t('liveNone'), { cat: what, place: where }));
+      if (res.scope === 'whole') notes.push(fmt(t('scopeWhole'), { place: res.point.name || where, km: res.radiusKm }));
+      else if (res.scope === 'centre') notes.push(fmt(t('scopeCentre'), { place: res.point.name || where, km: res.radiusKm }));
+      else if (Number(radiusKm) > res.radiusKm) notes.push(fmt(t('liveCapped'), { km: res.radiusKm }));
+      live.status = notes.join(' ');
       render();
     }, function (err) {
       live.busy = false;
       live.kind = 'error';
       live.status = t('liveError')[err && err.code] || t('liveError').http;
       renderLive();
+    });
+  }
+
+  /** "Use my location": the browser asks first; the position goes only to OpenStreetMap's Overpass. */
+  function nearMe() {
+    if (live.busy) return;
+    function fail(code) {
+      live.kind = 'error';
+      live.status = t('geoError')[code];
+      renderLive();
+    }
+    if (!navigator.geolocation) { fail('unsupported'); return; }
+    live.kind = 'busy';
+    live.status = fmt(t('liveSearching'), { cat: $('liveWhat').value.trim(), place: t('myLocation') });
+    renderLive();
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      live.status = '';
+      $('livePlace').value = t('myLocation');
+      live.myPoint = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: t('myLocation'), name: t('myLocation'), country: null };
+      liveSearch(live.myPoint);
+    }, function (err) {
+      fail(err && err.code === 1 ? 'denied' : 'unavailable');
+    }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
+  }
+
+  function renderAlternatives() {
+    var row = $('altRow');
+    var box = clear($('altChips'));
+    var list = dataset().live ? live.alternatives : [];
+    row.hidden = !list.length || live.busy;
+    list.forEach(function (alt) {
+      var label = alt.label + (alt.country && alt.country !== country() ? ' (' + countryName(alt.country) + ')' : '');
+      box.appendChild(button(label, '', function () {
+        $('livePlace').value = alt.label;
+        liveSearch(alt);
+      }));
     });
   }
 
@@ -1177,12 +1246,15 @@
       clearTimeout(queryTimer);
       queryTimer = setTimeout(function () { onQueryChange(value); }, 200);
     });
+    $('nearMe').addEventListener('click', nearMe);
     $('liveCountry').addEventListener('change', function () { live.country = $('liveCountry').value; updateMapsLink(); });
     $('livePlace').addEventListener('input', updateMapsLink);
     $('liveBack').addEventListener('click', function () {
       prefs.datasetId = Sample.DATASETS[live.lastSampleId] ? live.lastSampleId : 'bogota';
       live.status = '';
       live.kind = '';
+      live.alternatives = [];
+      live.places = [];
       $('livePlace').value = '';
       loadState();
       render();

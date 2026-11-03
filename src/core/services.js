@@ -111,9 +111,23 @@
     {
       id: 'vehicles', category: 'maintenance',
       label: { es: 'Talleres de vehículos', en: 'Vehicle repair', pt: 'Oficinas mecânicas', fr: 'Garages automobiles' },
-      keywords: ['mecanico', 'taller mecanico', 'taller automotriz', 'vehiculo', 'carro', 'camion', 'moto', 'llanta', 'latoneria', 'lubricentro', 'car repair', 'mechanic', 'tyre', 'oficina mecanica', 'mecanica', 'pneu', 'garagiste'],
-      osm: [['shop', 'car_repair'], ['shop', 'tyres'], ['shop', 'motorcycle_repair']],
-      nameHint: 'mecanic|automotr|llant|lubric|latoner|autopart'
+      keywords: ['mecanico', 'taller mecanico', 'taller automotriz', 'vehiculo', 'carro', 'camion', 'moto', 'llanta', 'montallanta', 'vulcanizadora', 'gomeria', 'latoneria', 'lubricentro', 'lavadero de carro', 'car repair', 'mechanic', 'tyre', 'oficina mecanica', 'mecanica', 'pneu', 'garagiste'],
+      osm: [['shop', 'car_repair'], ['shop', 'tyres'], ['shop', 'motorcycle_repair'], ['amenity', 'car_wash']],
+      nameHint: 'mecanic|automotr|llant|lubric|latoner|autopart|montallant|vulcaniz|gomeri'
+    },
+    {
+      id: 'machining', category: 'maintenance',
+      label: { es: 'Tornería y mecanizado', en: 'Machining & turning', pt: 'Tornearia e usinagem', fr: 'Usinage et tournage' },
+      keywords: ['torno', 'tornero', 'torneria', 'mecanizado', 'rectificadora', 'fresadora', 'cnc', 'corte laser', 'machining', 'machine shop', 'tornearia', 'usinagem', 'usinage', 'tournage'],
+      osm: [['craft', 'machinist'], ['craft', 'turner']],
+      nameHint: 'torner|tornos|mecaniz|rectific|fresad|cnc|usinag|tornear'
+    },
+    {
+      id: 'laundry', category: 'cleaning',
+      label: { es: 'Lavandería', en: 'Laundry', pt: 'Lavanderia', fr: 'Blanchisserie' },
+      keywords: ['lavanderia', 'lavado de ropa', 'lavado de uniforme', 'tintoreria', 'laundry', 'dry cleaning', 'lavanderia industrial', 'blanchisserie', 'pressing'],
+      osm: [['shop', 'laundry'], ['shop', 'dry_cleaning']],
+      nameHint: 'lavander|tintorer|laundry|blanchiss'
     },
     {
       id: 'it', category: 'electronics',

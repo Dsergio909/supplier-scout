@@ -25,7 +25,7 @@
     },
     {
       id: 'printing', label: { es: 'Impresión y litografía', en: 'Printing', pt: 'Gráfica e impressão', fr: 'Imprimerie' },
-      keywords: ['impresion', 'impresiones', 'litografia', 'tipografia', 'imprenta', 'serigrafia', 'rotulos', 'pendon', 'pendones', 'sticker', 'stickers', 'volantes', 'gran formato', 'printing', 'print shop', 'grafica', 'impressao', 'imprimerie'],
+      keywords: ['impresion', 'impresiones', 'fotocopia', 'fotocopias', 'copias', 'litografia', 'tipografia', 'imprenta', 'serigrafia', 'rotulos', 'pendon', 'pendones', 'sticker', 'stickers', 'volantes', 'gran formato', 'printing', 'print shop', 'grafica', 'impressao', 'imprimerie'],
       osm: [['shop', 'copyshop'], ['craft', 'printer'], ['shop', 'printing']], nameHint: 'litograf|impres|tipograf|imprenta'
     },
     {

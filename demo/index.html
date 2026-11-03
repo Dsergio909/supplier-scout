@@ -63,7 +63,10 @@
       <div class="panel-head"><div><h2 data-i18n="liveTitle"></h2><p class="meta" data-i18n="liveHint"></p></div></div>
       <form class="live-form" id="liveForm" autocomplete="off">
         <label class="what"><span data-i18n="whatLabel"></span><input id="liveWhat" type="search" maxlength="120" required></label>
-        <label class="grow"><span data-i18n="livePlace"></span><input id="livePlace" type="text" maxlength="120" required></label>
+        <div class="place-field grow">
+          <div class="field-head"><label for="livePlace" data-i18n="livePlace"></label><button type="button" class="linkish" id="nearMe" data-i18n="nearMe"></button></div>
+          <input id="livePlace" type="text" maxlength="120" required>
+        </div>
         <label><span data-i18n="liveCountry"></span><select id="liveCountry"></select></label>
         <div class="live-actions">
           <button type="submit" class="btn primary" id="liveSearch" data-i18n="liveButton"></button>
@@ -73,6 +76,7 @@
       <p class="understood" id="understood" aria-live="polite"></p>
       <div class="try-row"><span data-i18n="tryLabel"></span><span id="tryChips" class="try-chips"></span></div>
       <p id="liveStatus" class="status-line" role="status" aria-live="polite"></p>
+      <div class="alt-row" id="altRow" hidden><span data-i18n="altLabel"></span><span id="altChips" class="try-chips"></span></div>
       <p class="fine"><span data-i18n="mapsHint"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span id="liveBackWrap" hidden> · <button type="button" class="linkish" id="liveBack" data-i18n="liveBack"></button></span></p>
     </section>
 
