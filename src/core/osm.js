@@ -27,6 +27,7 @@
   var MAPS_SEARCH = 'https://www.google.com/maps/search/';
   var MAX_RADIUS_M = 10000;
   var MIN_RADIUS_M = 100;
+  var BUSINESS_KEYS = ['shop', 'craft', 'office'];
   var ATTRIBUTION = 'Data © OpenStreetMap contributors (ODbL)';
 
   // Accent-insensitive matching: OSM names are written "Cartón", "Ferretería", "Papelaria".
@@ -69,7 +70,14 @@
       .slice(0, 12)
       .map(function (kv) { return '  nwr["' + kv[0] + '"="' + kv[1] + '"]' + around + ';'; });
     var hint = safeRegex(p.nameHint != null ? p.nameHint : cat && cat.nameHint);
-    if (hint) lines.push('  nwr["name"~"' + hint + '",i]' + around + ';');
+    // Words in the name are matched on businesses only (shops, trades, offices):
+    // matching every named street, park or building was slow on the public
+    // server and brought places that are not suppliers.
+    if (hint) {
+      BUSINESS_KEYS.forEach(function (key) {
+        lines.push('  nwr["' + key + '"]["name"~"' + hint + '",i]' + around + ';');
+      });
+    }
     if (!lines.length) throw new Error('There is nothing to search for: give a category, map tags or a name hint');
     var max = Math.min(200, Math.max(1, Number(p.limit) || 60));
     return '[out:json][timeout:25];\n(\n' + lines.join('\n') + '\n);\nout center tags ' + max + ';';

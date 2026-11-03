@@ -13,7 +13,9 @@ const { fakeFetch, fixture } = require('./helpers/fake-fetch');
 test('OSM query: category tags plus an accent-insensitive name search', () => {
   const q = osm.buildQuery({ category: 'packaging', lat: 4.6782, lng: -74.1411, radiusM: 3000 });
   assert.match(q, /nwr\["shop"="packaging"\]\(around:3000,4\.6782,-74\.1411\);/);
-  assert.match(q, /nwr\["name"~"[^"]*\[cç\]\[aáàâã\]rt\[oóôõ\]\[nñ\][^"]*",i\]/, 'matches "cartón" and "carton"');
+  assert.match(q, /nwr\["shop"\]\["name"~"[^"]*\[cç\]\[aáàâã\]rt\[oóôõ\]\[nñ\][^"]*",i\]/, 'matches "cartón" and "carton"');
+  for (const key of ['shop', 'craft', 'office']) assert.ok(q.includes(`nwr["${key}"]["name"~`), `name words only on ${key}=*`);
+  assert.doesNotMatch(q, /nwr\["name"~/, 'never a name search over every object');
   assert.match(q, /out center tags 60;$/);
 });
 

@@ -53,18 +53,37 @@ const SERVERS = [
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const results = [];
-  const post = (q) => ({ method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' }, body: 'data=' + encodeURIComponent(q) });
-  results.push(await probe('nominatim', 'https://nominatim.openstreetmap.org/search?q=Kennedy%2C%20Bogot%C3%A1&format=jsonv2&limit=1&countrycodes=co'));
-  for (const [name, url] of SERVERS) {
-    await sleep(2000);
-    results.push(await probe(name + ' light', url, post(LIGHT)));
+  // Nominatim can also search businesses near a point (its "special phrases"),
+  // with phone and website in extratags. Is it a usable fallback when Overpass is down?
+  const box = (lat, lng, d) => [lng - d, lat + d, lng + d, lat - d].map((x) => x.toFixed(4)).join(',');
+  const nomi = (q, lat, lng, d) => 'https://nominatim.openstreetmap.org/search?' + new URLSearchParams({
+    q, format: 'jsonv2', limit: '40', viewbox: box(lat, lng, d), bounded: '1', addressdetails: '1', extratags: '1'
+  });
+  const cases = [
+    ['ferretería · Kennedy', 'ferretería', 4.628, -74.151, 0.05],
+    ['hardware store · Kennedy', 'hardware store', 4.628, -74.151, 0.05],
+    ['plomero · Kennedy', 'plomero', 4.628, -74.151, 0.05],
+    ['plumber · Bogotá', 'plumber', 4.65, -74.10, 0.12],
+    ['[shop=hardware] · Barranquilla', '[shop=hardware]', 10.98, -74.80, 0.08],
+    ['ferretería · Barranquilla', 'ferretería', 10.98, -74.80, 0.08],
+    ['papelería · Chapinero', 'papelería', 4.65, -74.06, 0.04],
+    ['cerrajería · Medellín', 'cerrajería', 6.25, -75.57, 0.08]
+  ];
+  for (const [name, q, lat, lng, d] of cases) {
+    await sleep(1500);
+    const r = await probe('nominatim ' + name, nomi(q, lat, lng, d));
+    try {
+      const arr = JSON.parse(r.head.length < r.bytes ? (await (await fetch(nomi(q, lat, lng, d), { headers: { 'User-Agent': UA } })).text()) : r.head);
+      r.elements = arr.length;
+      r.names = arr.slice(0, 6).map((e) => `${e.name} [${e.category}=${e.type}]${e.extratags && (e.extratags.phone || e.extratags['contact:phone']) ? ' tel' : ''}`);
+      r.kinds = [...new Set(arr.map((e) => e.category + '=' + e.type))].slice(0, 8);
+    } catch (e) { r.parseError = String(e.message); }
+    delete r.head;
+    results.push(r);
+    await sleep(1100);
   }
   await sleep(2000);
-  results.push(await probe('overpass-api.de heavy', SERVERS[0][1], post(HEAVY)));
-  await sleep(2000);
-  results.push(await probe('overpass-api.de light again', SERVERS[0][1], post(LIGHT)));
-  await sleep(1500);
-  results.push(await probe('osrm', 'https://router.project-osrm.org/table/v1/driving/-74.151,4.628;-74.140,4.630?sources=0&annotations=duration,distance'));
+  results.push(await probe('overpass-api.de status', 'https://overpass-api.de/api/status'));
   for (const r of results) console.log(JSON.stringify(r));
   fs.writeFileSync(path.join(OUT, 'probe.json'), JSON.stringify(results, null, 2));
 })();
