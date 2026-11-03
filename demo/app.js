@@ -3,8 +3,9 @@
  *
  * Every decision (ranking, costs, capture parsing, duplicates, trust) comes
  * from src/core, the same code the CLI, the agent and the tests use. This
- * file only wires it to the page. All content is rendered with textContent;
- * the page makes no network requests (CSP connect-src 'none').
+ * file only wires it to the page. All content is rendered with textContent.
+ * The only network calls are the live OpenStreetMap search in live.js, and
+ * the Content-Security-Policy allows no other host.
  */
 (function () {
   'use strict';
@@ -21,6 +22,8 @@
   var M = window.ScoutMessages;
   var Out = window.ScoutOutreach;
   var Sample = window.ScoutSample;
+  var Osm = window.ScoutOsm;
+  var Live = window.ScoutLive;
 
   var STORAGE = 'supplier-scout:v1:';
   var MAX_IMPORT_BYTES = 2 * 1024 * 1024;
@@ -37,6 +40,8 @@
 
   var state = null;
   var prefs = { lang: detectLanguage(), datasetId: 'bogota' };
+  // Live search status. Live results are never saved: they are real data, shown fresh.
+  var live = { busy: false, status: '', kind: '', country: null, lastSampleId: 'bogota' };
 
   /** The first browser language we speak (pt-BR -> pt), otherwise English. */
   function detectLanguage() {
@@ -201,7 +206,7 @@
    * hand, so a saved state is treated like an import: every field is checked before use.
    */
   function loadState() {
-    var saved = readStorage('state:' + prefs.datasetId);
+    var saved = dataset().live ? null : readStorage('state:' + prefs.datasetId);
     var base = freshState();
     if (saved && saved.db) {
       base.db = Schema.sanitizeDatabase(saved.db);
@@ -235,6 +240,7 @@
 
   function saveState() {
     writeStorage('prefs', prefs);
+    if (dataset().live) return;
     writeStorage('state:' + prefs.datasetId, {
       db: state.db, pending: state.pending, distinct: state.distinct, need: state.need,
       preset: state.preset, weights: state.weights, settings: state.settings, tab: state.tab
@@ -300,6 +306,8 @@
       return { value: id, label: Sample.DATASETS[id].label[prefs.lang] };
     }), prefs.datasetId);
     $('langGroup').setAttribute('aria-label', t('language'));
+    $('howLink').href = 'https://github.com/Dsergio909/supplier-scout/blob/main/docs/' +
+      (prefs.lang === 'es' ? 'como-funciona.md' : 'how-it-works.md');
     var profile = C.getProfile(country());
     var params = {
       procurement: profile.procurement.join(', ') || '—',
@@ -319,7 +327,7 @@
 
   /** Where formal suppliers show up in this country, even without a website. */
   function renderCountryInfo(profile) {
-    $('countryTitle').textContent = fmt(t('countryTitle'), { country: profile.name[prefs.lang].toUpperCase() });
+    $('countryTitle').textContent = fmt(t('countryTitle'), { country: profile.name[prefs.lang] });
     var rows = [
       [t('countryTax'), profile.vatName + ' ' + (profile.vatRate ? M.formatPercent(profile.vatRate, prefs.lang) : '(' + t('countryTaxVaries') + ')') + ' · ' + profile.currency],
       [t('countryTaxId'), profile.taxIdName + ' (' + (profile.taxIdCheck === 'checksum' ? t('countryCheck') : t('countryFormat')) + ')'],
@@ -378,7 +386,7 @@
     var ds = dataset();
     var n = state.need;
     fillSelect($('needPreset'), [{ value: '', label: t('custom') }].concat(ds.needs.map(function (x) {
-      return { value: x.id, label: x.quantity + ' ' + (t('units')[x.unit] || x.unit) + ' · ' + x.item };
+      return { value: x.id, label: x.quantity + ' ' + (t('units')[x.unit] || x.unit) + (x.item ? ' · ' + x.item : ' · ' + catLabel(x.category)) };
     })), n.presetId || '');
     var cats = Cat.CATEGORIES.map(function (c) { return { value: c.id, label: c.label[prefs.lang] }; });
     fillSelect($('category'), cats, n.category);
@@ -438,12 +446,12 @@
     desc.textContent = fmt(t('radarDesc'), { o: o.label });
     box.appendChild(desc);
     [1, 2, 3].forEach(function (i) {
-      box.appendChild(svg('circle', { cx: c, cy: c, r: (R * i) / 3, fill: 'none', stroke: 'var(--line)', 'stroke-width': 2, 'stroke-dasharray': '4 4' }));
+      box.appendChild(svg('circle', { cx: c, cy: c, r: (R * i) / 3, fill: 'none', stroke: 'var(--line)', 'stroke-width': 1 }));
     });
     box.appendChild(svg('line', { x1: c, y1: c - R - 8, x2: c, y2: c + R + 8, stroke: 'var(--line)', 'stroke-width': 1 }));
     box.appendChild(svg('line', { x1: c - R - 8, y1: c, x2: c + R + 8, y2: c, stroke: 'var(--line)', 'stroke-width': 1 }));
     var sweep = svg('g', { class: 'sweep' });
-    sweep.appendChild(svg('line', { x1: c, y1: c, x2: c, y2: c - R, stroke: 'var(--green)', 'stroke-width': 2, opacity: 0.35 }));
+    sweep.appendChild(svg('line', { x1: c, y1: c, x2: c, y2: c - R, stroke: 'var(--brand)', 'stroke-width': 1.5, opacity: 0.35 }));
     box.appendChild(sweep);
 
     var noCoords = 0;
@@ -465,18 +473,18 @@
       var km = Geo.distanceKm(o, s);
       title.textContent = s.name + ' · ' + M.formatKm(km, prefs.lang) + (p.r.rank ? ' · #' + p.r.rank : '');
       g.appendChild(title);
-      g.appendChild(svg('rect', p.excluded
-        ? { x: x, y: y, width: 8, height: 8, fill: 'none', stroke: color, 'stroke-width': 2, opacity: 0.5 }
-        : { x: x, y: y, width: 8, height: 8, fill: color }));
+      g.appendChild(svg('circle', p.excluded
+        ? { cx: x + 4, cy: y + 4, r: 4, fill: 'none', stroke: color, 'stroke-width': 1.5, opacity: 0.6 }
+        : { cx: x + 4, cy: y + 4, r: 4.5, fill: color }));
       if (p.r.rank && p.r.rank <= 3) {
-        var label = svg('text', { x: x + 11, y: y + 8, fill: 'var(--text)', 'font-family': 'Press Start 2P, monospace', 'font-size': 8 });
+        var label = svg('text', { x: x + 11, y: y + 8, fill: 'var(--text)', 'font-family': 'Plex Sans, sans-serif', 'font-size': 11, 'font-weight': 600 });
         label.textContent = String(p.r.rank);
         g.appendChild(label);
       }
       box.appendChild(g);
     });
-    box.appendChild(svg('rect', { x: c - 5, y: c - 5, width: 10, height: 10, fill: 'var(--bg)', stroke: 'var(--text)', 'stroke-width': 2 }));
-    box.appendChild(svg('rect', { x: c - 2, y: c - 2, width: 4, height: 4, fill: 'var(--pink)' }));
+    box.appendChild(svg('circle', { cx: c, cy: c, r: 6, fill: 'var(--surface)', stroke: 'var(--text)', 'stroke-width': 2 }));
+    box.appendChild(svg('circle', { cx: c, cy: c, r: 2, fill: 'var(--text)' }));
     var hint = fmt(t('radarHint'), { n: Math.round((radius / 3) * 10) / 10 });
     $('radarHint').textContent = noCoords ? hint + ' · ' + fmt(t('radarNoCoords'), { n: noCoords }) : hint;
 
@@ -497,7 +505,7 @@
     (s.sources || []).forEach(function (src) {
       if (seen[src.type]) return;
       seen[src.type] = true;
-      var chip = el('span', 'chip src', M.SOURCES[prefs.lang][src.type].toUpperCase());
+      var chip = el('span', 'chip src', M.SOURCES[prefs.lang][src.type]);
       chip.style.setProperty('--c', SOURCE_COLORS[src.type]);
       chip.title = src.ref || '';
       wrap.appendChild(chip);
@@ -560,7 +568,9 @@
     fact(t('orderTotal'), r.cost ? money(r.cost.total) : t('noQuote'));
     fact(t('perUnit'), r.cost ? money(r.cost.unitCost) : t('none'));
     fact(t('distance'), r.km === null ? t('none') : M.formatKm(r.km, prefs.lang));
-    fact(t('rating'), M.formatDecimal(r.rating.value.toFixed(1), prefs.lang) + ' / 5');
+    // A neutral prior is not a review: say so instead of showing a made-up average.
+    var reviewed = r.rating.externalCount || r.rating.internalCount;
+    fact(t('rating'), reviewed ? M.formatDecimal(r.rating.value.toFixed(1), prefs.lang) + ' / 5' : t('ratingNone'));
     li.appendChild(facts);
 
     var bars = el('div', 'factor-bars');
@@ -589,6 +599,11 @@
       state.openRfq = state.openRfq === s.id ? null : s.id;
       renderResults();
     }));
+    var osmRef = (s.sources || []).map(function (src) { return /^osm:(node|way|relation)\/(\d+)$/.exec(src && src.ref || ''); }).filter(Boolean)[0];
+    if (osmRef) {
+      actions.appendChild(link('https://www.openstreetmap.org/' + osmRef[1] + '/' + osmRef[2], t('mapEntry')));
+      actions.appendChild(link(Osm.mapsSearchUrl(s.name, [s.address, s.city || origin().label].filter(Boolean).join(', ')), t('mapsEntry')));
+    }
     li.appendChild(actions);
     if (state.openRfq === s.id) li.appendChild(outreachBlock(s));
     return li;
@@ -936,8 +951,108 @@
 
   // ---------- render & events ----------
 
+  // ---------- live search & theme ----------
+
+  function storedTheme() {
+    try { return window.localStorage.getItem(STORAGE + 'theme'); } catch (err) { return null; }
+  }
+  function isDark() {
+    var forced = document.documentElement.getAttribute('data-theme');
+    if (forced) return forced === 'dark';
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+
+  function countryName(code) {
+    var profile = C.getProfile(code);
+    return profile.name[prefs.lang] || profile.name.en || code;
+  }
+
+  function defaultPlace() {
+    var o = origin();
+    var city = C.getProfile(country()).sampleCity;
+    return dataset().live || !city || o.label === city ? o.label : o.label + ', ' + city;
+  }
+
+  function updateMapsLink() {
+    var place = $('livePlace').value.trim() || defaultPlace();
+    var where = place + ', ' + countryName($('liveCountry').value || country());
+    try { $('mapsLink').href = Osm.mapsSearchUrl(catLabel(state.need.category), where); } catch (err) { /* keep the previous link */ }
+  }
+
+  function renderLive() {
+    var cats = Cat.CATEGORIES.map(function (c) { return { value: c.id, label: c.label[prefs.lang] }; });
+    fillSelect($('liveCategory'), cats, state.need.category);
+    var codes = Object.keys(C.PROFILES).filter(function (code) { return code !== 'XX'; })
+      .sort(function (a, b) { return countryName(a).localeCompare(countryName(b), prefs.lang); });
+    fillSelect($('liveCountry'), codes.map(function (code) { return { value: code, label: countryName(code) }; }), live.country || country());
+    var input = $('livePlace');
+    input.placeholder = t('livePlacePh');
+    if (!input.value) input.value = defaultPlace();
+    $('liveSearch').disabled = live.busy;
+    $('liveSearch').setAttribute('aria-busy', String(live.busy));
+    var status = $('liveStatus');
+    status.textContent = live.status;
+    status.className = 'status-line' + (live.kind ? ' ' + live.kind : '');
+    $('liveBackWrap').hidden = !dataset().live;
+    var fine = document.querySelector('[data-i18n="fictional"]');
+    if (fine && dataset().live) fine.textContent = t('liveNote');
+    var badge = $('envBadge');
+    badge.textContent = dataset().live ? t('liveBadge') : t('sampleBadge');
+    badge.className = 'env' + (dataset().live ? ' real' : '');
+    $('theme').setAttribute('aria-label', isDark() ? t('themeLight') : t('themeDark'));
+    $('theme').title = $('theme').getAttribute('aria-label');
+    updateMapsLink();
+  }
+
+  function fxFor(code) {
+    var keys = Object.keys(Sample.DATASETS);
+    for (var i = 0; i < keys.length; i++) {
+      var ds = Sample.DATASETS[keys[i]];
+      if (!ds.live && ds.country === code) return ds.fx;
+    }
+    return { USD: 1 };
+  }
+
+  function liveSearch() {
+    if (live.busy) return;
+    var place = $('livePlace').value.trim();
+    if (!place) { $('livePlace').focus(); return; }
+    var code = $('liveCountry').value || country();
+    var category = state.need.category;
+    live.busy = true;
+    live.country = code;
+    live.kind = 'busy';
+    live.status = fmt(t('liveSearching'), { cat: catLabel(category), place: place });
+    renderLive();
+    Live.search({
+      place: place, country: code, category: category, radiusKm: state.need.radiusKm, fx: fxFor(code),
+      item: state.need.item, quantity: state.need.quantity, unit: state.need.unit, neededInDays: state.need.neededInDays
+    }).then(function (res) {
+      if (!dataset().live) live.lastSampleId = prefs.datasetId;
+      saveState();
+      Sample.DATASETS.live = res.dataset;
+      prefs.datasetId = 'live';
+      loadState();
+      state.tab = 'search';
+      live.busy = false;
+      var st = res.stats;
+      live.kind = st.total ? 'ok' : 'warn';
+      live.status = st.total
+        ? fmt(t('liveFound'), { n: st.total, place: place, offline: st.withoutWebsite, phone: st.withPhone })
+        : fmt(t('liveNone'), { cat: catLabel(category), place: place });
+      if (Number(state.need.radiusKm) > res.radiusKm) live.status += ' ' + fmt(t('liveCapped'), { km: res.radiusKm });
+      render();
+    }, function (err) {
+      live.busy = false;
+      live.kind = 'error';
+      live.status = t('liveError')[err && err.code] || t('liveError').http;
+      renderLive();
+    });
+  }
+
   function render() {
     applyI18n();
+    renderLive();
     renderKpis();
     renderTabs();
     renderNeedForm();
@@ -955,12 +1070,38 @@
     render();
   }
 
+  /** A preset's item ("cajas de cartón") makes no sense once the category changes. */
+  function changeCategory(value) {
+    if (state.need.presetId && value !== state.need.category) state.need.item = '';
+    onNeedChange('category', value);
+  }
+
   function bind() {
+    $('liveForm').addEventListener('submit', function (e) { e.preventDefault(); liveSearch(); });
+    $('liveCategory').addEventListener('change', function () { changeCategory($('liveCategory').value); });
+    $('liveCountry').addEventListener('change', function () { live.country = $('liveCountry').value; updateMapsLink(); });
+    $('livePlace').addEventListener('input', updateMapsLink);
+    $('liveBack').addEventListener('click', function () {
+      prefs.datasetId = Sample.DATASETS[live.lastSampleId] ? live.lastSampleId : 'bogota';
+      live.status = '';
+      live.kind = '';
+      $('livePlace').value = '';
+      loadState();
+      render();
+    });
+    $('theme').addEventListener('click', function () {
+      var next = isDark() ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { window.localStorage.setItem(STORAGE + 'theme', next); } catch (err) { /* private mode */ }
+      renderLive();
+    });
     document.querySelectorAll('[data-lang]').forEach(function (b) {
       b.addEventListener('click', function () { prefs.lang = b.getAttribute('data-lang'); render(); });
     });
     $('dataset').addEventListener('change', function () {
       saveState();
+      if (!Sample.DATASETS[$('dataset').value].live) live.lastSampleId = $('dataset').value;
+      $('livePlace').value = '';
       prefs.datasetId = $('dataset').value;
       loadState();
       render();
@@ -983,7 +1124,7 @@
       if (n) state.need = { presetId: n.id, category: n.category, item: n.item, quantity: n.quantity, unit: n.unit, originId: n.originId, radiusKm: n.radiusKm, neededInDays: n.neededInDays, budget: null };
       render();
     });
-    $('category').addEventListener('change', function () { onNeedChange('category', $('category').value); });
+    $('category').addEventListener('change', function () { changeCategory($('category').value); });
     $('item').addEventListener('change', function () { onNeedChange('item', $('item').value.slice(0, 120)); });
     $('quantity').addEventListener('change', function () { onNeedChange('quantity', Math.max(0, Number($('quantity').value) || 1)); });
     $('unit').addEventListener('change', function () { onNeedChange('unit', $('unit').value); });
@@ -1067,6 +1208,8 @@
     });
   }
 
+  var savedTheme = storedTheme();
+  if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.setAttribute('data-theme', savedTheme);
   var savedPrefs = readStorage('prefs');
   if (savedPrefs && I18N[savedPrefs.lang]) prefs.lang = savedPrefs.lang;
   if (savedPrefs && Sample.DATASETS[savedPrefs.datasetId]) prefs.datasetId = savedPrefs.datasetId;

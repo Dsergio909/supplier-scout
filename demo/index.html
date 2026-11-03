@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src https://nominatim.openstreetmap.org https://overpass-api.de; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
 <title>Supplier Scout</title>
 <meta name="description" content="Find new suppliers, including the ones with no website, and compare them by real order cost, fair ratings, distance and trust.">
 <meta property="og:type" content="website">
@@ -19,29 +20,28 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="top">
-  <div class="brand">
-    <svg class="logo" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-      <rect x="2" y="2" width="4" height="4" fill="var(--green)"/><rect x="10" y="2" width="4" height="4" fill="var(--green)"/>
-      <rect x="1" y="6" width="6" height="8" fill="var(--blue)"/><rect x="9" y="6" width="6" height="8" fill="var(--blue)"/>
-      <rect x="7" y="7" width="2" height="3" fill="var(--green)"/>
-      <rect x="2" y="9" width="4" height="4" fill="var(--bg)"/><rect x="10" y="9" width="4" height="4" fill="var(--bg)"/>
-      <rect x="3" y="10" width="1" height="1" fill="var(--pink)"/><rect x="11" y="10" width="1" height="1" fill="var(--pink)"/>
-    </svg>
-    <div>
-      <h1>SUPPLIER SCOUT</h1>
-      <p class="tag" data-i18n="tagline"></p>
-    </div>
-  </div>
-  <div class="controls">
-    <label class="dataset"><span class="sr-only" data-i18n="dataset"></span><select id="dataset"></select></label>
-    <div class="lang" id="langGroup" role="group" aria-label="Language">
-      <button type="button" data-lang="es" lang="es" title="Español">ES</button><button type="button" data-lang="en" lang="en" title="English">EN</button><button type="button" data-lang="pt" lang="pt" title="Português">PT</button><button type="button" data-lang="fr" lang="fr" title="Français">FR</button>
+<header class="appbar">
+  <div class="shell appbar-inner">
+    <a class="brand" href="./" aria-label="Supplier Scout">
+      <span class="mark" aria-hidden="true">SS</span>
+      <span class="name">Supplier Scout</span>
+      <span class="module" data-i18n="tagline"></span>
+    </a>
+    <div class="controls">
+      <span class="env" id="envBadge"></span>
+      <a class="link" id="howLink" href="https://github.com/Dsergio909/supplier-scout/blob/main/docs/como-funciona.md" data-i18n="howLink"></a>
+      <label class="dataset"><span class="sr-only" data-i18n="dataset"></span><select id="dataset"></select></label>
+      <div class="segmented" id="langGroup" role="group" aria-label="Language">
+        <button type="button" data-lang="es" lang="es" title="Español">ES</button><button type="button" data-lang="en" lang="en" title="English">EN</button><button type="button" data-lang="pt" lang="pt" title="Português">PT</button><button type="button" data-lang="fr" lang="fr" title="Français">FR</button>
+      </div>
+      <button type="button" class="icon-btn" id="theme" aria-label="Tema">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+      </button>
     </div>
   </div>
 </header>
 
-<main>
+<main class="shell">
   <section class="intro panel">
     <p data-i18n="intro"></p>
     <p class="fine" data-i18n="fictional"></p>
@@ -59,6 +59,21 @@
 
   <!-- 1 · SEARCH -->
   <section id="panel-search" role="tabpanel" aria-labelledby="tab-search" class="tabpanel">
+    <section class="panel live" id="livePanel">
+      <div class="panel-head"><div><h2 data-i18n="liveTitle"></h2><p class="meta" data-i18n="liveHint"></p></div></div>
+      <form class="live-form" id="liveForm" autocomplete="off">
+        <label><span data-i18n="liveCategory"></span><select id="liveCategory"></select></label>
+        <label><span data-i18n="liveCountry"></span><select id="liveCountry"></select></label>
+        <label class="grow"><span data-i18n="livePlace"></span><input id="livePlace" type="text" maxlength="120" required></label>
+        <div class="live-actions">
+          <button type="submit" class="btn primary" id="liveSearch" data-i18n="liveButton"></button>
+          <a class="btn" id="mapsLink" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer"><span data-i18n="mapsButton"></span> ↗</a>
+        </div>
+      </form>
+      <p id="liveStatus" class="status-line" role="status" aria-live="polite"></p>
+      <p class="fine"><span data-i18n="mapsHint"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span id="liveBackWrap" hidden> · <button type="button" class="linkish" id="liveBack" data-i18n="liveBack"></button></span></p>
+    </section>
+
     <div class="grid search-grid">
       <form class="panel need" id="needForm" autocomplete="off">
         <div class="panel-head"><h2 data-i18n="needTitle"></h2></div>
@@ -83,7 +98,7 @@
 
       <section class="panel radar-panel">
         <div class="panel-head"><h2 data-i18n="radarTitle"></h2><span class="hint-inline" id="radarHint"></span></div>
-        <svg id="radar" viewBox="0 0 320 320" role="img" aria-labelledby="radarDesc" shape-rendering="crispEdges"><desc id="radarDesc"></desc></svg>
+        <svg id="radar" viewBox="0 0 320 320" role="img" aria-labelledby="radarDesc"><desc id="radarDesc"></desc></svg>
         <ul class="legend-row" id="sourceLegend"></ul>
       </section>
     </div>
@@ -193,10 +208,10 @@
     <section class="panel legend">
       <h2 data-i18n="tiersTitle"></h2>
       <ol class="tiers">
-        <li><span class="chip exact">EXACT</span> <span data-i18n="tierExact"></span></li>
-        <li><span class="chip high">HIGH</span> <span data-i18n="tierHigh"></span></li>
-        <li><span class="chip medium">MEDIUM</span> <span data-i18n="tierMedium"></span></li>
-        <li><span class="chip low">LOW</span> <span data-i18n="tierLow"></span></li>
+        <li><span class="code exact">Exact</span> <span data-i18n="tierExact"></span></li>
+        <li><span class="code high">High</span> <span data-i18n="tierHigh"></span></li>
+        <li><span class="code medium">Medium</span> <span data-i18n="tierMedium"></span></li>
+        <li><span class="code low">Low</span> <span data-i18n="tierLow"></span></li>
       </ol>
       <ul id="mergeLog" class="log"></ul>
     </section>
@@ -236,7 +251,7 @@ npm run agent -- "Necesito 500 cajas de cartón cerca de Fontibón, Bogotá, en 
   </section>
 </main>
 
-<footer>
+<footer class="shell footer">
   <span data-i18n="footer"></span>
   <a href="https://github.com/Dsergio909/supplier-scout" rel="noopener noreferrer">GitHub ↗</a>
 </footer>
@@ -244,6 +259,7 @@ npm run agent -- "Necesito 500 cajas de cartón cerca de Fontibón, Bogotá, en 
 <script src="../src/core/text.js"></script>
 <script src="../src/core/countries.js"></script>
 <script src="../src/core/categories.js"></script>
+<script src="../src/core/osm.js"></script>
 <script src="../src/core/geo.js"></script>
 <script src="../src/core/quotes.js"></script>
 <script src="../src/core/schema.js"></script>
@@ -257,6 +273,7 @@ npm run agent -- "Necesito 500 cajas de cartón cerca de Fontibón, Bogotá, en 
 <script src="../src/core/outreach.js"></script>
 <script src="../src/data/sample.js"></script>
 <script src="i18n.js"></script>
+<script src="live.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

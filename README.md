@@ -3,19 +3,19 @@
 # 🔭 Supplier Scout
 
 **Find new suppliers, including the ones that are not online, and compare them by what your order really costs.**<br>
-Location · real order cost · fair ratings · trust from referrals · human review · optional Claude agent.
+Live map search · real order cost · fair ratings · trust from referrals · human review · optional Claude agent.
 
 [![CI](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml/badge.svg)](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml)
-![Node 22+](https://img.shields.io/badge/node-22%2B-4da3ff)
-![Claude API](https://img.shields.io/badge/Claude_API-agent-ff5ea8)
-![Web app dependencies: 0](https://img.shields.io/badge/web_app_dependencies-0-39ff88)
-![Countries: 23 + generic](https://img.shields.io/badge/countries-23_%2B_generic-39ff88)
-![Languages: ES · EN · PT · FR](https://img.shields.io/badge/languages-ES_·_EN_·_PT_·_FR-4da3ff)
+![Node 22+](https://img.shields.io/badge/node-22%2B-0b6b66)
+![Claude API](https://img.shields.io/badge/Claude_API-agent-0b6b66)
+![Web app dependencies: 0](https://img.shields.io/badge/web_app_dependencies-0-0b6b66)
+![Countries: 23 + generic](https://img.shields.io/badge/countries-23_%2B_generic-0b6b66)
+![Languages: ES · EN · PT · FR](https://img.shields.io/badge/languages-ES_·_EN_·_PT_·_FR-0b6b66)
 ![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)
 
-[**▶ Live demo**](https://dsergio909.github.io/supplier-scout/) · [🇪🇸 Resumen en español](#-resumen-en-español) · [Playbook: suppliers that are not online](docs/offline-playbook.md) · [Countries and languages](docs/countries.md)
+[**▶ Live demo**](https://dsergio909.github.io/supplier-scout/) · [How it works](docs/how-it-works.md) · [Cómo funciona (español)](docs/como-funciona.md) · [🇪🇸 Resumen en español](#-resumen-en-español) · [Playbook: suppliers that are not online](docs/offline-playbook.md) · [Countries and languages](docs/countries.md)
 
-<img src="docs/screenshot.png" alt="Supplier Scout demo: KPI tiles, the search form and a pixel-art radar of suppliers around the buyer" width="100%">
+<img src="docs/screenshot.png" alt="Supplier Scout demo: counters, the live OpenStreetMap search with an Open in Google Maps button, the need form and a radar of suppliers around the buyer" width="100%">
 
 </div>
 
@@ -27,16 +27,19 @@ Finding a new supplier usually means a web search, a spreadsheet and a few phone
 2. **The cheapest list price is rarely the cheapest order.** Pack sizes, minimum orders, tax, shipping and payment terms change the total. A $2,100 box with a 1,000-unit minimum and 10-day delivery loses to a $2,600 box delivered in 2 days.
 3. **Star ratings mislead.** A 5.0 from 2 reviews beats a 4.7 from 300, and a supplier with no online reviews looks worse than one with bad reviews.
 
+The full walkthrough, from the live map search to how the ranking decides, is in **[How it works](docs/how-it-works.md)** ([español](docs/como-funciona.md)).
+
 ## What it does
 
-1. **Searches by location.** Distance from your delivery point, a search radius, and suppliers that deliver are kept even when they are far.
-2. **Compares the real cost of your order.** Every quote becomes whole packs, the minimum order, tax, shipping, your currency (at a rate you set) and, optionally, the value of paying later.
-3. **Rates fairly.** A Bayesian average of online reviews and your own team's reviews. No reviews means "unknown", not "bad".
-4. **Finds and records offline suppliers.** Community maps and public registries (connectors), fair and chamber-of-commerce lists (CSV), business cards and WhatsApp messages (a parser that runs in the browser), and referrals from people you trust.
-5. **Keeps a human in the loop.** New captures and ambiguous duplicates go to a review queue. Quote requests and referral requests are drafted for you to send; nothing is sent automatically.
-6. **Explains every position.** Each result says why: order total, adjusted rating, distance, trust, lead time, and warnings (no quote yet, misses the deadline, over budget, unverified).
-7. **Optional Claude agent.** Describe what you need in plain language; the agent searches your list, the map and the registry, ranks the candidates and drafts the messages.
-8. **Works across Latin America and beyond.** Spanish-speaking Latin America, Brazil, Spain, Portugal, France and the US have country profiles, and the whole app speaks Spanish, English, Portuguese and French. [Details](docs/countries.md).
+1. **Finds real businesses on the map, in the browser.** Type a neighbourhood and a city, pick what you need, and the demo searches OpenStreetMap, the community map where many shops and workshops with no website are listed. It reports how many have no website, links every result to its map entry, and opens the same search in Google Maps with one click (an official link: no key, no scraping).
+2. **Searches by location.** Distance from your delivery point, a search radius, and suppliers that deliver are kept even when they are far.
+3. **Compares the real cost of your order.** Every quote becomes whole packs, the minimum order, tax, shipping, your currency (at a rate you set) and, optionally, the value of paying later.
+4. **Rates fairly.** A Bayesian average of online reviews and your own team's reviews. No reviews means "unknown", not "bad".
+5. **Finds and records offline suppliers.** Community maps and public registries (connectors), fair and chamber-of-commerce lists (CSV), business cards and WhatsApp messages (a parser that runs in the browser), and referrals from people you trust.
+6. **Keeps a human in the loop.** New captures and ambiguous duplicates go to a review queue. Quote requests and referral requests are drafted for you to send; nothing is sent automatically.
+7. **Explains every position.** Each result says why: order total, adjusted rating, distance, trust, lead time, and warnings (no quote yet, misses the deadline, over budget, unverified).
+8. **Optional Claude agent.** Describe what you need in plain language; the agent searches your list, the map and the registry, ranks the candidates and drafts the messages.
+9. **Works across Latin America and beyond.** Spanish-speaking Latin America, Brazil, Spain, Portugal, France and the US have country profiles, and the whole app speaks Spanish, English, Portuguese and French. [Details](docs/countries.md).
 
 ## Finding suppliers that are not online
 
@@ -46,7 +49,7 @@ This is the core of the project. The full guide is in the [playbook](docs/offlin
 |---|---|
 | Referrals from current suppliers and colleagues | Drafts the "who do you buy this from?" message; records who recommended whom; counts only independent referrals toward trust |
 | Public registries (procurement, chambers of commerce) | SECOP II connector for Colombia; an OCDS connector for every government that publishes open contracting data; any Socrata open-data portal; CSV import for any other registry. The app lists each country's procurement portal and business registry |
-| Community maps | OpenStreetMap connector for any country, reporting how many results have no website |
+| Community maps | Live OpenStreetMap search in the web app and a connector in the CLI, for any country, reporting how many results have no website; a one-click Google Maps search for the businesses OSM does not have |
 | Trade districts and fairs | CSV import that recognises columns by name in Spanish, English, Portuguese and French |
 | Business cards, flyers, WhatsApp | Rule-based parser: name, tax ID with check digit, phones, emails, handles, address, prices, pack size, minimum order, lead time, payment terms |
 | Verification | Tax-ID check digits, verification levels (contacted → formal → visited → bought from), human review queue |
@@ -106,11 +109,11 @@ Built in Colombia, meant for Latin America, usable anywhere. The full table is i
 | Malicious import file (XSS, `javascript:` links, huge files) | One sanitising gate for all external data (also applied to what the browser saved, since storage is shared by every page on the same GitHub Pages domain); http(s) links only; 2 MB limit; the page renders with `textContent` only |
 | Huge or hostile inputs (availability) | Capture text capped at 5,000 characters and tested against regex backtracking; imports capped at 2,000 suppliers; duplicate search and ranking tested to stay fast at those limits; connector responses capped at 5 MB while streaming |
 | Spreadsheet formula injection in the CSV export | Cells starting with `=`, `+`, `-`, `@` are exported as text (tested) |
-| Demo page | Strict CSP with no third-party origins at all: scripts, styles and fonts (self-hosted, SIL Open Font License) come from the site itself, and `connect-src 'none'` means the page makes no network requests. No cookies or trackers |
+| Demo page | Strict CSP: scripts, styles and fonts (IBM Plex, self-hosted, SIL Open Font License) come from the site itself, and `connect-src` allows only OpenStreetMap's Nominatim and Overpass, used only when you press *Search the map* (tested). No cookies or trackers. Map results go through the same sanitising gate as any import |
 | Personal data of sole traders (Colombia: Law 1581 of 2012; LGPD in Brazil and similar laws across the region) | Consent checkbox on capture that names the selected country's law, warning in the ranking when consent was refused, never sent to the AI agent when refused, data stays in the browser unless exported. The OCDS connector imports the business, never the contact person's name (tested) |
 | Leaking real data from this public repo | All data is fictional: `.example` domains, phones in unassigned ranges (Colombia `999`, Mexico `55 0000`, Brazil `(11) 0000`, or ranges reserved for fiction), tax IDs generated with a correct check digit. Tests enforce it |
 | CI supply chain | Read-only permissions, no persisted credentials, `npm ci --ignore-scripts`, one runtime dependency (the official SDK, used only by the agent), Dependabot for security updates |
-| Terms of the data sources | OSM and Nominatim: attribution and an identifying User-Agent, geocoding only when you give a place name; Google Places: records are flagged for refresh or deletion per Google's terms |
+| Terms of the data sources | OSM and Nominatim: attribution, one geocoding call per search, a 10 km radius cap and the button disabled while a search runs (the CLI also sends an identifying User-Agent); Google Maps: only an official search link, nothing is copied (scraping Maps is against Google's terms); Google Places (CLI, your own key): records are flagged for refresh or deletion per Google's terms |
 
 ## Architecture
 
@@ -146,6 +149,7 @@ flowchart LR
 
 ```
 src/core/          shared logic, no dependencies (browser + Node)
+  osm.js             OpenStreetMap query and parsing, Google Maps search link (shared by the web app and the CLI)
   countries.js       23 country profiles: currency, tax, tax-ID check digits, phone habits, registries
   capture.js         business card / flyer / WhatsApp text -> draft supplier
   quotes.js          units, packs, minimum order, tax, shipping, FX, payment terms
@@ -159,10 +163,10 @@ src/connectors/    OpenStreetMap, Socrata/SECOP, OCDS, Google Places, Nominatim 
 src/data/          fictional demo data (Bogotá, Mexico City and São Paulo)
 cli/scout.js       connectors, CSV import, merge and rank from the terminal (args.js: shared parser)
 agent/             Claude agent: tools, loop, system prompt, CLI
-demo/              the web app (GitHub Pages): app.js, i18n.js (ES/EN/PT/FR texts), self-hosted fonts
-tests/             150 tests: core, regional formats, connectors against API-shaped fixtures,
+demo/              the web app (GitHub Pages): app.js, live.js (the only file that uses the network), i18n.js (ES/EN/PT/FR texts), self-hosted IBM Plex fonts
+tests/             154 tests: core, regional formats, connectors against API-shaped fixtures,
                    CLI, agent loop with a scripted model, demo security guards
-docs/              screenshots, the offline playbook and the country coverage table
+docs/              how it works (ES/EN), screenshots, the offline playbook and the country coverage table
 ```
 
 ## Run it
@@ -206,9 +210,9 @@ npm run agent -- --dry-run --db data/all.json --category packaging --qty 500 --l
 
 Being explicit, because this matters more than the feature list:
 
-- **Tested (150 automated tests in CI):** all core logic; every country profile; check digits with fictional numbers that pass and fail; cards and WhatsApp messages written the way suppliers write in Mexico, the Dominican Republic, Brazil, Ecuador, Chile, Peru, Costa Rica and France; the connectors against fictional fixtures shaped like each API's documented responses (OCDS included); the CLI end to end; the agent loop against a scripted stand-in for the Claude API (tool calls, parallel results, errors, refusals, step limit, append-only history, no invented suppliers, no phones sent to the model); that every interface text exists in the four languages; the demo's CSP and rendering guards; speed at the import limits. The web app was checked in Chromium in the four languages, on desktop and on a 375 px phone viewport.
+- **Tested (154 automated tests in CI):** all core logic; every country profile; check digits with fictional numbers that pass and fail; cards and WhatsApp messages written the way suppliers write in Mexico, the Dominican Republic, Brazil, Ecuador, Chile, Peru, Costa Rica and France; the connectors against fictional fixtures shaped like each API's documented responses (OCDS included); the CLI end to end; the agent loop against a scripted stand-in for the Claude API (tool calls, parallel results, errors, refusals, step limit, append-only history, no invented suppliers, no phones sent to the model); that every interface text exists in the four languages; the live map search with simulated OpenStreetMap responses (geocoding, results, errors, size and time limits); the demo's CSP and rendering guards; speed at the import limits. The web app was checked in Chromium in the four languages, in light and dark mode, on desktop and on a 390 px phone viewport.
 - **Checked against official sources, not against live systems:** the check-digit algorithms were compared with examples published by each tax authority (those real numbers are not kept in the repository). Tax rates, portal names and law names are as of 2026 and are editable defaults, not tax or legal advice.
-- **Not yet run against the live services:** the development environment could not reach OpenStreetMap, datos.gov.co, OCDS publishers, Google or the Claude API. The request formats follow each service's documentation, but the first real run may need small adjustments. The SECOP connector reads the dataset's columns at run time (`--describe` shows the mapping) precisely because I could not verify their names.
+- **Not yet run against the live services:** the development environment could not reach OpenStreetMap (so the in-browser search was tested end to end with simulated responses shaped like the real ones), datos.gov.co, OCDS publishers, Google or the Claude API. The request formats follow each service's documentation, but the first real run may need small adjustments. The SECOP connector reads the dataset's columns at run time (`--describe` shows the mapping) precisely because I could not verify their names.
 - **Known limits:** GitHub Pages cannot send security headers, so the CSP is a `<meta>` tag and cannot forbid framing (the page has no sensitive actions to hijack); distance is a straight line, not travel time; tax rates are editable defaults and import duties are not included; the capture parser handles common formats and anything unusual needs a manual fix, which is why every capture goes to review.
 
 ## Roadmap
@@ -222,7 +226,7 @@ Being explicit, because this matters more than the feature list:
 
 ## About
 
-Built by **Sergio García**, an International Business graduate (diploma pending) based in Bogotá who likes turning repetitive work into automated systems. I don't come from engineering: I learn by building, using generative AI as a pair programmer. I had sketched a first version of this idea while working in purchasing, but never kept it. This repository is a rebuild from scratch, written with Claude Code; the design choices (neutral scoring for missing data, human review, drafts instead of automatic messages) come from how purchasing actually works.
+Built by **Sergio García**, an International Business graduate (diploma pending) based in Bogotá who likes turning repetitive work into automated systems. I don't come from engineering: I learn by building, using generative AI as a pair programmer. Supplier Scout is an independent project built with Claude Code; the design choices (neutral scoring for missing data, human review, drafts instead of automatic messages) come from what I saw of how purchasing actually works.
 
 Companion project: [Supplier Radar](https://github.com/Dsergio909/supplier-radar) keeps track of the suppliers you already have; Supplier Scout finds new ones.
 
@@ -234,6 +238,7 @@ Companion project: [Supplier Radar](https://github.com/Dsergio909/supplier-radar
 
 **Supplier Scout** sirve para encontrar proveedores nuevos, **incluidos los que no aparecen en internet**, y compararlos por lo que realmente cuesta tu pedido.
 
+- **Busca negocios reales en el mapa, desde el navegador:** escribes barrio y ciudad, eliges qué necesitas y la demo busca en OpenStreetMap, donde aparecen muchos talleres y locales sin página web. Dice cuántos no tienen web, enlaza cada resultado a su ficha en el mapa y con un clic abre la misma búsqueda en Google Maps (enlace oficial: sin claves y sin copiar datos).
 - **Busca por ubicación:** distancia desde tu punto de entrega, radio de búsqueda y proveedores que hacen envíos.
 - **Compara el costo real del pedido**, no el precio de lista: paquetes completos, compra mínima, IVA, envío, moneda (con tu tasa) y el valor de pagar a plazo.
 - **Reseñas justas:** un 5.0 con 2 reseñas no le gana a un 4.7 con 300, y "sin reseñas" cuenta como neutro, no como malo. Las reseñas de tu equipo pesan más.
@@ -243,7 +248,7 @@ Companion project: [Supplier Radar](https://github.com/Dsergio909/supplier-radar
 - **Pensado para América Latina, útil en cualquier país:** 23 perfiles (los países hispanohablantes de la región, salvo Cuba que usa el genérico, más Puerto Rico, Brasil, España, Portugal, Francia y EE. UU.) más uno genérico. Cada uno conoce su moneda, su impuesto (IVA, IGV, ITBIS, ITBMS, ISV...), su ID tributario (con dígito de verificación en 13 países, incluido el CNPJ alfanumérico de Brasil), cómo se escriben los teléfonos, las unidades locales (arroba, quintal, libra) y dónde buscar proveedores formales (portal de compras públicas, registro de empresas y ley de datos). Hay conector para los datos abiertos de compras públicas en formato OCDS.
 - **En cuatro idiomas:** español, inglés, portugués y francés, en la web, en las explicaciones, en los mensajes y en el agente. [Detalle por país](docs/countries.md).
 
-Todos los datos de la demo son ficticios (dominios `.example`, teléfonos en rangos sin asignar, IDs tributarios generados). Honestidad: los conectores y el agente están probados con respuestas simuladas; todavía no se han ejecutado contra los servicios reales porque el entorno de desarrollo no tenía acceso a internet. [Ver la demo en vivo](https://dsergio909.github.io/supplier-scout/) · [Guía para encontrar proveedores fuera de internet](docs/offline-playbook.md).
+Los datos de ejemplo de la demo son ficticios (dominios `.example`, teléfonos en rangos sin asignar, IDs tributarios generados); los de la búsqueda en el mapa son reales. Honestidad: la búsqueda en el mapa, los conectores y el agente están probados con respuestas simuladas; todavía no se han ejecutado contra los servicios reales porque el entorno de desarrollo no tenía acceso a internet. [Ver la demo en vivo](https://dsergio909.github.io/supplier-scout/) · [Cómo funciona](docs/como-funciona.md) · [Guía para encontrar proveedores fuera de internet](docs/offline-playbook.md).
 
 ## License
 
