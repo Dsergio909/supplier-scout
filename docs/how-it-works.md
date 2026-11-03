@@ -54,6 +54,12 @@ The word *maintenance* alone decides nothing: *elevator maintenance* searches fo
 
 **Nothing is made up.** Every live result is a place that exists in OpenStreetMap, with a link to its entry. If the map has no businesses of that category in the area, the app says so and suggests a larger radius or Google Maps. The demo's sample data (Bogotá, Mexico City and São Paulo) is fictional and labelled as such.
 
+### Checked with real data
+
+In November 2026 the app was run against the real OpenStreetMap services with 12 purchasing searches in Colombia, Peru, Mexico and Brazil (the manual `live-check.yml` workflow in GitHub Actions). All **46 businesses checked exist** on the official OpenStreetMap API with the name the app shows. Where the map is well covered it found 16 to 37 real businesses (hardware stores in Barranquilla and Coyoacán, stationers in Chapinero, garages in Pinheiros). For trades such as locksmiths, pest control or fire-extinguisher refills, San Gil, Cali, Medellín and Miraflores returned 0: those businesses are not on the map, which is what **Open in Google Maps** is for.
+
+**When the main server is slow.** The public server that finds businesses (Overpass) sometimes takes 30 seconds or more. If it has not answered in 5 seconds, the app asks the OpenStreetMap search (Nominatim) in parallel, which answers in under a second, and says so: *Source: OpenStreetMap search*. That search returns up to 40 businesses per type.
+
 ### Limits of the live search
 
 - The maximum radius is **10 km**, to avoid overloading OpenStreetMap's free service. If you ask for more, the app searches 10 km and tells you.

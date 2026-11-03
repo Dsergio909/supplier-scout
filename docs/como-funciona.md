@@ -54,6 +54,12 @@ La palabra *mantenimiento* sola no decide nada: en *mantenimiento de ascensores*
 
 **Nada se inventa.** Cada resultado de la búsqueda real es un lugar que existe en OpenStreetMap, con un enlace a su ficha. Si el mapa no tiene negocios de esa categoría en la zona, la app lo dice y te sugiere ampliar el radio o abrir Google Maps. Los datos de ejemplo de la demo (Bogotá, Ciudad de México y São Paulo) sí son ficticios y están marcados como tales.
 
+### Comprobado con datos reales
+
+En noviembre de 2026 la app se probó contra los servicios reales de OpenStreetMap con 12 búsquedas de compras en Colombia, Perú, México y Brasil (flujo manual `live-check.yml` en GitHub Actions). Los **46 negocios revisados existen** en la API oficial de OpenStreetMap con el mismo nombre que muestra la app. Donde el mapa está bien completo encontró entre 16 y 37 negocios reales (ferreterías en Barranquilla y Coyoacán, papelerías en Chapinero, talleres en Pinheiros). Para oficios como cerrajería, fumigación o recarga de extintores, en San Gil, Cali, Medellín o Miraflores encontró 0: esos negocios no están en el mapa, y para eso está **Ver en Google Maps**.
+
+**Si el servidor principal está lento.** El servidor público que busca negocios (Overpass) a veces tarda 30 segundos o más. Si en 5 segundos no responde, la app pregunta en paralelo al buscador de OpenStreetMap (Nominatim), que responde en menos de un segundo, y te lo dice: *Fuente: buscador de OpenStreetMap*. Ese buscador trae hasta 40 negocios por tipo.
+
 ### Límites de la búsqueda real
 
 - El radio máximo es de **10 km**, para no saturar el servicio gratuito de OpenStreetMap. Si pides más, la app busca 10 km y te avisa.

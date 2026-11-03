@@ -188,11 +188,15 @@
       var a = hit.address || {};
       var full = clean(hit.display_name, 200);
       var name = clean(hit.name || full.split(',')[0], 80);
-      var town = a.city || a.town || a.village || a.municipality || a.county;
-      var region = a.state || a.region || a.province || a.county;
+      // "Bogotá ciudad" -> "Bogotá"; the region only when it adds something
+      // ("San Pedro, Valle del Cauca", not "Kennedy, Bogotá, Bogotá, Distrito Capital").
+      var town = clean(a.city || a.town || a.village || a.municipality || a.county, 80).replace(/\s+ciudad$/i, '');
+      var region = clean(a.state || a.region || a.province || a.county, 80);
+      var fold = function (x) { return x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
       var parts = [name];
-      if (town && clean(town, 80) !== name) parts.push(clean(town, 80));
-      if (region && parts.indexOf(clean(region, 80)) === -1) parts.push(clean(region, 80));
+      if (town && fold(town) !== fold(name)) parts.push(town);
+      var placeWords = fold(parts.join(' '));
+      if (region && placeWords.indexOf(fold(region.split(',')[0])) === -1) parts.push(region);
       // Without address details, the first two parts of the full name ("Kennedy, Bogotá").
       if (parts.length === 1 && full.indexOf(',') !== -1) parts = full.split(',').slice(0, 2).map(function (x) { return x.trim(); });
       var bb = Array.isArray(hit.boundingbox) ? hit.boundingbox.map(Number) : null;

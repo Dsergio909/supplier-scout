@@ -206,3 +206,10 @@ test('Nominatim fallback keeps only the exact business type asked for', () => {
   assert.deepEqual(Osm.normalizePois(hits, { tag: ['shop', 'stationery'] }).suppliers.map((s) => s.name), ['Papelería Mafalda']);
   assert.equal(Osm.normalizePois(hits, {}).suppliers.length, 2, 'a search by words keeps any business');
 });
+
+test('places: short, readable labels as seen in the live check', () => {
+  const [kennedy] = Osm.parsePlaces([{ lat: '4.63', lon: '-74.15', name: 'Kennedy', addresstype: 'neighbourhood', display_name: 'Kennedy, UPZs de Bogotá, Localidad Kennedy, Bogotá ciudad, Bogotá, Distrito Capital, Colombia', address: { suburb: 'Kennedy', city: 'Bogotá ciudad', state: 'Bogotá, Distrito Capital', country_code: 'co' } }]);
+  assert.equal(kennedy.label, 'Kennedy, Bogotá');
+  const [sp] = Osm.parsePlaces([town('San Pedro', 'Valle del Cauca', 'town', 3.99, -76.23, [3.98, 4.01, -76.24, -76.21])]);
+  assert.equal(sp.label, 'San Pedro, Valle del Cauca');
+});
