@@ -115,6 +115,10 @@ The priorities (balanced, cheapest, most reliable, nearest, urgent) change each 
 - **Why Google reviews are not inside the app:** showing Google data next to a non-Google map goes against Google's terms, and the key would be exposed in the browser. For reviews and photos, every card has **Find on Google Maps**.
 - No cookies, accounts or analytics. What you capture or import stays in your browser.
 - Quote requests and referral requests are **drafts**: you review and send them. Nothing is sent automatically.
+- **Fair use of the free services:** at most one request per second to place search and routing, even across several fast searches.
+- **Your location:** *Use my location* sends it rounded to about 100 m; the exact position never leaves the browser.
+- **Browser protection:** the page turns on Trusted Types and never builds HTML from text, so a malicious business name on the map cannot run code.
+- **Results you did not ask for:** the search also looks at words inside business names. The words were chosen not to bring real but unrelated businesses ("gardening" does not bring kindergartens, "packaging" does not bring a bank called "Caja Social"), and automated tests watch for it.
 
 ## For advanced users
 

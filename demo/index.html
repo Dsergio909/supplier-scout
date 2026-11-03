@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' https://tile.openstreetmap.org; connect-src https://nominatim.openstreetmap.org https://overpass-api.de https://router.project-osrm.org; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' https://tile.openstreetmap.org; connect-src https://nominatim.openstreetmap.org https://overpass-api.de https://router.project-osrm.org; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <title>Supplier Scout</title>
-<meta name="description" content="Find new suppliers, including the ones with no website, and compare them by real order cost, fair ratings, distance and trust.">
+<meta name="description" content="Type what you need, a product or a service, and find real businesses near you on OpenStreetMap, including the ones with no website. Shortlist, request quotes and compare.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Supplier Scout · find suppliers, including the ones that are not online">
-<meta property="og:description" content="Live demo: compare suppliers by real order cost, fair ratings, distance and trust. 23 countries, 4 languages, optional Claude agent.">
+<meta property="og:description" content="Live demo: find real suppliers of goods and services on the map, with driving times, a shortlist, quote requests over WhatsApp and a comparison table. Latin America, 4 languages.">
 <meta property="og:url" content="https://dsergio909.github.io/supplier-scout/">
 <meta property="og:image" content="https://dsergio909.github.io/supplier-scout/demo/og.png">
 <meta property="og:image:width" content="1200">
@@ -84,10 +84,6 @@
           <legend data-i18n="priority"></legend>
           <div id="presets" class="preset-row"></div>
         </fieldset>
-        <details class="full weights">
-          <summary data-i18n="weights"></summary>
-          <div id="weightSliders"></div>
-        </details>
         <p class="full hint" data-i18n="noQtyHint"></p>
       </form>
 

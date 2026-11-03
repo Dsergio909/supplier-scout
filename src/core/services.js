@@ -28,7 +28,7 @@
       id: 'hvac', category: 'maintenance',
       label: { es: 'Aire acondicionado y refrigeración', en: 'Air conditioning & refrigeration', pt: 'Ar-condicionado e refrigeração', fr: 'Climatisation et froid' },
       keywords: ['aire acondicionado', 'aires acondicionado', 'acondicionado', 'climatizacion', 'refrigeracion', 'refrigeracion industrial', 'cuarto frio', 'minisplit', 'mini split', 'ventilacion', 'hvac', 'air conditioning', 'air conditioner', 'refrigeration', 'ar condicionado', 'refrigeracao', 'climatizacao', 'climatisation', 'frigoriste'],
-      osm: [['craft', 'hvac'], ['shop', 'hvac'], ['craft', 'refrigeration']],
+      osm: [['craft', 'hvac'], ['shop', 'hvac']],
       nameHint: 'refrigera|climatiza|acondicionad|ventilaci|minisplit|hvac|climatisation'
     },
     {
@@ -92,20 +92,20 @@
       label: { es: 'Jardinería', en: 'Gardening', pt: 'Jardinagem', fr: 'Jardinage' },
       keywords: ['jardin', 'jardineria', 'jardinero', 'poda', 'paisajismo', 'vivero', 'zona verde', 'gardener', 'gardening', 'landscaping', 'jardinagem', 'paisagismo', 'jardinier', 'jardinage', 'paysagiste'],
       osm: [['craft', 'gardener'], ['shop', 'garden_centre'], ['landuse', 'plant_nursery']],
-      nameHint: 'jardin|vivero|paisaj|paisag|paysag'
+      nameHint: 'jardiner|vivero|paisaj|paisag|paysag|poda'
     },
     {
       id: 'pest', category: 'maintenance',
       label: { es: 'Fumigación y control de plagas', en: 'Pest control', pt: 'Dedetização', fr: 'Désinsectisation' },
       keywords: ['fumigadora', 'dedetizadora', 'control de plagas urbanas', 'fumigacion', 'fumigador', 'control de plaga', 'plaga', 'desratizacion', 'pest control', 'fumigation', 'dedetizacao', 'desratizacao', 'desinsectisation', 'deratisation'],
-      osm: [['craft', 'pest_control'], ['shop', 'pest_control']],
+      osm: [['craft', 'pest_control'], ['office', 'pest_control'], ['shop', 'pest_control']],
       nameHint: 'fumiga|plaga|dedetiz|desratiz|desinsect|derat'
     },
     {
       id: 'cleaningService', category: 'cleaning',
       label: { es: 'Servicio de aseo y limpieza', en: 'Cleaning services', pt: 'Serviços de limpeza', fr: 'Services de nettoyage' },
       keywords: ['lavado de tinaco', 'limpieza de cisterna', 'servicio de aseo', 'aseo de oficina', 'limpieza de oficina', 'servicio de limpieza', 'empresa de aseo', 'lavado de tapete', 'lavado de mueble', 'lavado de tanque', 'cleaning service', 'janitorial service', 'servico de limpeza', 'faxina', 'societe de nettoyage'],
-      osm: [['craft', 'cleaning'], ['office', 'cleaning']],
+      osm: [['craft', 'cleaning']],
       nameHint: 'aseo|limpieza|cleaning|limpeza|nettoyage'
     },
     {
@@ -119,7 +119,7 @@
       id: 'machining', category: 'maintenance',
       label: { es: 'Tornería y mecanizado', en: 'Machining & turning', pt: 'Tornearia e usinagem', fr: 'Usinage et tournage' },
       keywords: ['torno', 'tornero', 'torneria', 'mecanizado', 'rectificadora', 'fresadora', 'cnc', 'corte laser', 'machining', 'machine shop', 'tornearia', 'usinagem', 'usinage', 'tournage'],
-      osm: [['craft', 'machinist'], ['craft', 'turner']],
+      osm: [], // OSM has no settled tag for machine shops: searched by name
       nameHint: 'torner|tornos|mecaniz|rectific|fresad|cnc|usinag|tornear'
     },
     {
@@ -134,7 +134,7 @@
       label: { es: 'Computadores y soporte técnico', en: 'Computers & IT support', pt: 'Informática e suporte', fr: 'Informatique et support' },
       keywords: ['computador', 'computadora', 'portatil', 'soporte tecnico', 'sistemas', 'red de datos', 'cableado estructurado', 'informatica', 'impresora', 'computer', 'it support', 'laptop', 'printer repair', 'suporte tecnico', 'informatique', 'ordinateur'],
       osm: [['shop', 'computer'], ['craft', 'electronics_repair'], ['office', 'it']],
-      nameHint: 'computad|sistemas|informatic|soporte|tecnolog|informatiq'
+      nameHint: 'computad|informatic|informatiq|sistemas y comp|soporte tecnico'
     },
     {
       id: 'appliances', category: 'electronics',
@@ -176,13 +176,13 @@
       label: { es: 'Seguridad, cámaras y alarmas', en: 'Security, cameras & alarms', pt: 'Segurança, câmeras e alarmes', fr: 'Sécurité, caméras et alarmes' },
       keywords: ['vigilancia', 'seguridad privada', 'camara de seguridad', 'camara', 'alarma', 'cctv', 'control de acceso', 'security', 'alarm', 'seguranca', 'alarme', 'securite', 'videosurveillance'],
       osm: [['office', 'security'], ['shop', 'security']],
-      nameHint: 'segurid|vigilan|alarm|cctv|seguranc|securit'
+      nameHint: 'seguridad privada|vigilan|alarma|cctv|camaras de seguridad|seguranca|securite'
     },
     {
       id: 'fireSafety', category: 'maintenance',
       label: { es: 'Extintores y seguridad industrial', en: 'Fire extinguishers & safety', pt: 'Extintores e segurança do trabalho', fr: 'Extincteurs et sécurité' },
       keywords: ['extintor', 'recarga de extintor', 'seguridad industrial', 'dotacion de seguridad', 'epp', 'fire extinguisher', 'safety equipment', 'seguranca do trabalho', 'extincteur'],
-      osm: [['shop', 'fire_extinguisher'], ['shop', 'safety_equipment']],
+      osm: [['shop', 'safety_equipment'], ['shop', 'security']],
       nameHint: 'extintor|extinguish|seguridad industrial|extincteur'
     },
     {

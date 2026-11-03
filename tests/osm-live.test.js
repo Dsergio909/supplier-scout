@@ -148,3 +148,17 @@ test('live search: alternatives, a place found in another country, and a chosen 
   assert.equal(again.point.label, 'Barranquilla, Otro');
   await assert.rejects(Live.search({ what: 'plomero', point: { lat: 'x', lng: 2 } }), { code: 'place-not-found' });
 });
+
+test('live search: Nominatim gets at most one request per second, even across fast searches', async () => {
+  const times = [];
+  const Live = loadLive((url) => {
+    if (url.startsWith(Osm.GEOCODE_ENDPOINT)) { times.push(Date.now()); return response(200, [{ lat: '4.6', lon: '-74.1' }]); }
+    return response(200, { elements: [] });
+  });
+  await Promise.all([
+    Live.search({ what: 'plomero', place: 'A', country: 'CO' }),
+    Live.search({ what: 'plomero', place: 'B', country: 'CO' })
+  ]);
+  assert.equal(times.length, 2);
+  assert.ok(times[1] - times[0] >= 1000, `second geocoding waited ${times[1] - times[0]} ms`);
+});

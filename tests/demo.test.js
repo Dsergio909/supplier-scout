@@ -76,3 +76,20 @@ test('every interface text exists in Spanish, English, Portuguese and French', (
   const buttons = [...html.matchAll(/data-lang="(\w+)"/g)].map((m) => m[1]);
   assert.deepEqual(buttons, ['es', 'en', 'pt', 'fr'], 'one button per language');
 });
+
+test('hardening: Trusted Types on, no HTML-string sinks, every new tab opened without opener or referrer', () => {
+  const csp = /http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html)[1];
+  assert.match(csp, /require-trusted-types-for 'script'/);
+  assert.match(csp, /trusted-types 'none'/);
+  for (const file of ['app.js', 'live.js', 'map.js', 'i18n.js']) {
+    const code = fs.readFileSync(path.join(root, 'demo', file), 'utf8');
+    assert.doesNotMatch(code, /innerHTML|outerHTML|insertAdjacentHTML|document\.write|\beval\(|new Function/, file);
+  }
+  const app = fs.readFileSync(path.join(root, 'demo', 'app.js'), 'utf8');
+  assert.match(app, /a\.target = '_blank';\s*a\.rel = 'noopener noreferrer';/, 'the one link helper sets rel');
+  assert.match(app, /Math\.round\(x \* 1000\) \/ 1000/, 'the browser location is coarsened before it is sent');
+  for (const wf of ['ci.yml', 'pages.yml']) {
+    const text = fs.readFileSync(path.join(root, '.github', 'workflows', wf), 'utf8');
+    for (const use of text.match(/uses: \S+/g)) assert.match(use, /@[0-9a-f]{40}$/, `${wf}: ${use} is pinned to a commit`);
+  }
+});

@@ -62,16 +62,33 @@
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
 
+  // Nominatim and the OSRM demo server allow at most one request per second.
+  // Calls to each service are queued so that holds across searches too,
+  // even if someone clicks fast or picks alternatives one after another.
+  var queues = {};
+  function politely(service, task) {
+    var q = queues[service] || (queues[service] = { last: 0, chain: Promise.resolve() });
+    var run = q.chain.then(function () {
+      var gap = q.last + NOMINATIM_GAP_MS - Date.now();
+      return (gap > 0 ? wait(gap) : Promise.resolve()).then(function () {
+        q.last = Date.now();
+        return task();
+      });
+    });
+    q.chain = run.catch(function () {});
+    return run;
+  }
+
   /**
    * Place name -> { places, movedFrom }. Looks in the chosen country first; if the
    * place is not there ("Lima" with Colombia selected), asks once more without a
    * country, one second later, and says which country it was found in.
    */
   function locate(place, country) {
-    return fetchJson(Osm.geocodeUrl(place, country, { limit: ALTERNATIVES })).then(function (results) {
+    return politely('nominatim', function () { return fetchJson(Osm.geocodeUrl(place, country, { limit: ALTERNATIVES })); }).then(function (results) {
       var places = Osm.parsePlaces(results);
       if (places.length || !country) return { places: places, movedFrom: null };
-      return wait(NOMINATIM_GAP_MS).then(function () {
+      return politely('nominatim', function () {
         return fetchJson(Osm.geocodeUrl(place, null, { limit: ALTERNATIVES }));
       }).then(function (world) {
         return { places: Osm.parsePlaces(world), movedFrom: country };
@@ -97,7 +114,9 @@
       .slice(0, MAX_ROUTED);
     if (!placed.length) return Promise.resolve(null);
     var coords = [point].concat(placed).map(function (p) { return Number(p.lng).toFixed(6) + ',' + Number(p.lat).toFixed(6); }).join(';');
-    return fetchJson(ROUTES_ENDPOINT + coords + '?sources=0&annotations=duration,distance', null, ROUTES_TIMEOUT_MS).then(function (json) {
+    return politely('osrm', function () {
+      return fetchJson(ROUTES_ENDPOINT + coords + '?sources=0&annotations=duration,distance', null, ROUTES_TIMEOUT_MS);
+    }).then(function (json) {
       if (!json || json.code !== 'Ok' || !Array.isArray(json.durations) || !Array.isArray(json.durations[0])) return null;
       var out = {};
       placed.forEach(function (s, i) {

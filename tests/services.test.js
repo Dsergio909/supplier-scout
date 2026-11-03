@@ -92,3 +92,49 @@ test('regional words from across the region are understood', () => {
     assert.deepEqual(Services.interpret(text).categories, ['hardware'], text);
   }
 });
+
+// The map search also matches words inside business names, so a stem that is too
+// broad brings real but unrelated places (a kindergarten for "jardinería").
+test('name words are specific enough not to catch unrelated businesses', () => {
+  const Categories = require('../src/core/categories');
+  const matcher = (hint) => new RegExp(Osm.safeRegex(hint), 'i');
+  const wrong = {
+    gardening: ['Jardín Infantil Pequeños Genios'],
+    security: ['EPS Seguridad Social', 'Secretaría de Seguridad'],
+    it: ['Universidad Tecnológica de Bolívar', 'Soporte Vital Básico SAS']
+  };
+  for (const [id, names] of Object.entries(wrong)) {
+    const m = matcher(Services.byId(id).nameHint);
+    for (const n of names) assert.doesNotMatch(n, m, `${id} must not match "${n}"`);
+  }
+  const cat = (id) => matcher(Categories.byId(id).nameHint);
+  assert.doesNotMatch('Banco Caja Social', cat('packaging'));
+  assert.doesNotMatch('Caja de Compensación Familiar', cat('packaging'));
+  assert.doesNotMatch('Oficina de Correos', cat('office'));
+  assert.doesNotMatch('Cine 3D Imax', cat('3dprint'));
+  // ...while the real trades are still found by name.
+  assert.match('Jardinería y Paisajismo El Edén', matcher(Services.byId('gardening').nameHint));
+  assert.match('Corrugados La Sabana', cat('packaging'));
+  assert.match('Papelería El Lápiz', cat('office'));
+  assert.match('Vigilancia Andina Ltda', matcher(Services.byId('security').nameHint));
+});
+
+// Standard OSM tags; the doubtful ones (hvac, refrigeration, machinist, cleaning, pest control, fire
+// extinguishers, 3D printing, office supplies) were checked on the OSM wiki in November 2026 and fixed.
+test('every map tag the search uses is a known OpenStreetMap tag', () => {
+  const Categories = require('../src/core/categories');
+  const documented = new Set(('amenity=car_wash amenity=marketplace amenity=post_office craft=blacksmith craft=builder craft=cabinet_maker ' +
+    'craft=carpenter craft=caterer craft=cleaning craft=dressmaker craft=electrician craft=electronics_repair craft=floorer craft=gardener ' +
+    'craft=glaziery craft=hvac craft=insulation craft=key_cutter craft=locksmith craft=metal_construction craft=painter craft=pest_control ' +
+    'craft=plasterer craft=plumber craft=printer craft=roofer craft=signmaker craft=tailor craft=tiler craft=upholsterer craft=welder ' +
+    'craft=window_construction landuse=plant_nursery office=accountant office=courier office=it office=lawyer office=logistics ' +
+    'office=moving_company office=pest_control office=security shop=3d_printing shop=appliance shop=bakery shop=car_repair shop=chemist ' +
+    'shop=cleaning_supplies shop=computer shop=copyshop shop=doityourself shop=dry_cleaning shop=electrical shop=electronics shop=fabric ' +
+    'shop=furniture shop=garden_centre shop=greengrocer shop=hardware shop=hvac shop=laundry shop=lighting shop=locksmith ' +
+    'shop=motorcycle_repair shop=office_supplies shop=pest_control shop=printing shop=safety_equipment shop=security shop=sewing ' +
+    'shop=stationery shop=trade shop=tyres shop=wholesale').split(' '));
+  // Not found on the wiki; kept because a tag nobody uses only returns nothing.
+  const lowUse = new Set(['shop=packaging', 'craft=packaging']);
+  const used = [...Services.SERVICES, ...Categories.CATEGORIES].flatMap((x) => x.osm.map(([k, v]) => `${k}=${v}`));
+  for (const tag of used) assert.ok(documented.has(tag) || lowUse.has(tag), `${tag} is not a documented OSM tag`);
+});

@@ -16,7 +16,7 @@
     {
       id: 'packaging', label: { es: 'Empaques y cajas', en: 'Packaging', pt: 'Embalagens', fr: 'Emballages' },
       keywords: ['empaque', 'empaques', 'carton', 'corrugado', 'embalaje', 'embalajes', 'cajas de carton', 'bolsas plasticas', 'kraft', 'stretch', 'packaging', 'cardboard', 'embalagem', 'embalagens', 'papelao', 'caixas de papelao', 'emballage', 'emballages', 'cartons'],
-      osm: [['shop', 'packaging'], ['craft', 'packaging']], nameHint: 'empaque|carton|caja|embalaje|packaging|embalagem|papelao|emballage'
+      osm: [['shop', 'packaging'], ['craft', 'packaging']], nameHint: 'empaque|carton|embalaje|packaging|embalagem|papelao|emballage|corrugad'
     },
     {
       id: 'hardware', label: { es: 'Ferretería', en: 'Hardware', pt: 'Ferragens', fr: 'Quincaillerie' },
@@ -46,7 +46,7 @@
     {
       id: 'cleaning', label: { es: 'Aseo y limpieza', en: 'Cleaning supplies', pt: 'Produtos de limpeza', fr: 'Produits d\'entretien' },
       keywords: ['aseo', 'limpieza', 'productos de limpieza', 'desinfectante', 'detergente', 'quimicos', 'jabon', 'cleaning', 'janitorial', 'limpeza', 'produtos de limpeza', 'nettoyage', 'entretien'],
-      osm: [['shop', 'chemist'], ['shop', 'household'], ['shop', 'cleaning']], nameHint: 'aseo|limpieza|quimic'
+      osm: [['shop', 'cleaning_supplies'], ['shop', 'chemist']], nameHint: 'aseo|limpieza|quimicos de limpieza|productos de limpieza'
     },
     {
       id: 'transport', label: { es: 'Transporte y mensajería', en: 'Transport & courier', pt: 'Transporte e entregas', fr: 'Transport et coursiers' },
@@ -61,7 +61,7 @@
     {
       id: 'office', label: { es: 'Papelería y oficina', en: 'Office supplies', pt: 'Papelaria e escritório', fr: 'Fournitures de bureau' },
       keywords: ['papeleria', 'libreria', 'utiles', 'utiles escolares', 'oficina', 'resma', 'resmas', 'toner', 'cartucho', 'stationery', 'office supplies', 'papelaria', 'material de escritorio', 'papeterie', 'fournitures de bureau'],
-      osm: [['shop', 'stationery'], ['shop', 'office_supplies']], nameHint: 'papeler|utiles|oficina'
+      osm: [['shop', 'stationery'], ['shop', 'office_supplies']], nameHint: 'papeler|utiles de oficina|suministros de oficina|papelaria|papeterie'
     },
     {
       id: 'furniture', label: { es: 'Carpintería y muebles', en: 'Carpentry & furniture', pt: 'Marcenaria e móveis', fr: 'Menuiserie et meubles' },
@@ -71,7 +71,7 @@
     {
       id: '3dprint', label: { es: 'Impresión 3D y filamento', en: '3D printing & filament', pt: 'Impressão 3D e filamento', fr: 'Impression 3D et filament' },
       keywords: ['impresion 3d', 'filamento', 'filamentos', 'pla', 'petg', 'resina', '3d printing', 'filament', 'impressao 3d', 'impression 3d'],
-      osm: [['shop', 'electronics'], ['craft', '3d_printing']], nameHint: '3d|filament'
+      osm: [['shop', '3d_printing']], nameHint: 'impresion 3d|impresiones 3d|3d print|impressao 3d|filament'
     }
   ];
 

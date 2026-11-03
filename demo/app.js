@@ -241,10 +241,9 @@
       base.need.presetId = dataset().needs.some(function (n) { return n.id === need.presetId; }) ? need.presetId : '';
       base.need.quantity = Math.max(0.001, finiteOr(need.quantity, base.need.quantity));
       base.need.radiusKm = Math.min(25, Math.max(1, finiteOr(need.radiusKm, base.need.radiusKm)));
+      // Weights come only from the named priorities (manual sliders were removed).
       if (Score.PRESETS[saved.preset]) base.preset = saved.preset;
-      else if (saved.preset === null) base.preset = null;
-      var weights = plainObject(saved.weights);
-      Score.FACTORS.forEach(function (f) { base.weights[f] = Math.min(6, Math.max(0, finiteOr(weights[f], base.weights[f]))); });
+      base.weights = Object.assign({}, Score.PRESETS[base.preset]);
       var settings = plainObject(saved.settings);
       ['vat', 'monthlyRate', 'fxUsd'].forEach(function (k) { base.settings[k] = Math.max(0, finiteOr(settings[k], base.settings[k])); });
       if (TABS.indexOf(saved.tab) !== -1) base.tab = saved.tab;
@@ -439,26 +438,6 @@
       });
       b.setAttribute('aria-pressed', String(state.preset === id));
       presets.appendChild(b);
-    });
-    var sliders = clear($('weightSliders'));
-    Score.FACTORS.forEach(function (f) {
-      var label = el('label');
-      label.appendChild(el('span', null, t('factor')[f]));
-      var input = el('input');
-      input.type = 'range'; input.min = '0'; input.max = '6'; input.step = '1';
-      input.value = state.weights[f];
-      input.setAttribute('aria-label', t('factor')[f]);
-      var out = el('strong', null, String(state.weights[f]));
-      input.addEventListener('input', function () {
-        state.weights[f] = Number(input.value);
-        state.preset = null;
-        out.textContent = input.value;
-        renderResults();
-        saveState();
-      });
-      label.appendChild(input);
-      label.appendChild(out);
-      sliders.appendChild(label);
     });
   }
 
@@ -1396,7 +1375,10 @@
     navigator.geolocation.getCurrentPosition(function (pos) {
       live.status = '';
       $('livePlace').value = t('myLocation');
-      live.myPoint = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: t('myLocation'), name: t('myLocation'), country: null };
+      // About 100 m of precision is enough to find suppliers nearby; the exact
+      // position never leaves the browser.
+      var coarse = function (x) { return Math.round(x * 1000) / 1000; };
+      live.myPoint = { lat: coarse(pos.coords.latitude), lng: coarse(pos.coords.longitude), label: t('myLocation'), name: t('myLocation'), country: null };
       liveSearch(live.myPoint);
     }, function (err) {
       fail(err && err.code === 1 ? 'denied' : 'unavailable');

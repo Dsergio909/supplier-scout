@@ -114,6 +114,10 @@ Las prioridades (equilibrado, más barato, más confiable, más cerca, urgente) 
 - **Por qué no hay un servidor de mapas de respaldo:** los servidores alternativos de Overpass que revisé pueden entregar datos viejos sin avisar. Es preferible reintentar una vez y avisar a mostrar negocios desactualizados.
 - **Por qué no hay reseñas de Google dentro de la app:** mostrar datos de Google junto a un mapa que no es de Google va contra sus condiciones, y la clave quedaría expuesta en el navegador. Para ver reseñas y fotos, cada tarjeta tiene **Buscar en Google Maps**.
 - No hay cookies, cuentas ni analítica. Lo que capturas o importas se queda en tu navegador.
+- **Respeta los servicios gratuitos:** como mucho una consulta por segundo al buscador de lugares y al de rutas, aunque hagas varias búsquedas seguidas.
+- **Tu ubicación:** si usas *Usar mi ubicación*, se envía redondeada a unos 100 m; la posición exacta no sale del navegador.
+- **Protección del navegador:** la página activa Trusted Types y no construye HTML a partir de texto, así que un nombre de negocio malicioso en el mapa no puede ejecutar código.
+- **Resultados que no son lo que buscas:** la búsqueda también mira palabras dentro del nombre de los negocios. Las palabras se eligieron para no traer negocios reales pero ajenos (por ejemplo, "jardinería" no trae jardines infantiles ni "empaques" trae a "Banco Caja Social"), y hay pruebas automáticas que lo vigilan.
 - Las solicitudes de cotización y de recomendaciones son **borradores**: los revisas y los envías tú. Nada se envía solo.
 
 ## Para usuarios avanzados
