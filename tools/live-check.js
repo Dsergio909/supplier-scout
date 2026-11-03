@@ -112,7 +112,7 @@ async function main() {
         entry.verified.push(Object.assign({ name: s.name, ref: s.sources[0].ref }, await verifyOnOsm(s)));
       }
     } catch (err) {
-      entry.error = (err && (err.code || err.message)) || String(err);
+      entry.error = (err && [err.code, err.message].filter(Boolean).join(' · ')) || String(err);
     }
     entry.seconds = Math.round((Date.now() - started) / 100) / 10;
     report.push(entry);

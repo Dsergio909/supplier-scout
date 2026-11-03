@@ -36,10 +36,14 @@ async function run(browser, r) {
   await page.fill('#livePlace', r.place);
   await page.waitForTimeout(400);
   await page.click('#liveSearch');
-  await page.waitForFunction(() => {
-    const s = document.getElementById('liveStatus');
-    return s && /ok|warn|error/.test(s.className);
-  }, null, { timeout: 90000 }).catch(() => problems.push('no final status after 90 s'));
+  // Poll from outside the page: waitForFunction compiles code inside the page,
+  // which the page's Trusted Types policy rightly refuses.
+  let done = false;
+  for (let i = 0; i < 90 && !done; i++) {
+    await page.waitForTimeout(1000);
+    done = /\b(ok|warn|error)\b/.test(await page.locator('#liveStatus').getAttribute('class') || '');
+  }
+  if (!done) problems.push('no final status after 90 s');
   await page.waitForTimeout(3000); // let the map tiles arrive
   out.status = await page.locator('#liveStatus').textContent();
   out.understood = await page.locator('#understood').textContent();
