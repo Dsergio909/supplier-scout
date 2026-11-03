@@ -187,6 +187,22 @@ test('live search: when Overpass is slow, businesses come from Nominatim (real O
   assert.equal(res.dataset.suppliers[0].sources[0].ref, 'osm:node/11');
   assert.equal(res.dataset.suppliers[0].phones[0], '+573005550111');
   const asked = urls.filter((u) => u.includes('bounded=1')).map((u) => new URL(u).searchParams.get('q'));
-  assert.ok(asked.length >= 1 && asked.length <= 3, 'one request per tag, at most three');
-  assert.ok(asked.every((q) => /^\[[a-z_]+=[a-z_]+\]$/.test(q)), 'searches by exact OSM tag');
+  const byTag = asked.filter((q) => /^\[[a-z_]+=[a-z_]+\]$/.test(q));
+  assert.ok(byTag.length >= 1 && byTag.length <= 3, 'one request per tag, at most three');
+  assert.deepEqual(asked.filter((q) => !byTag.includes(q)), ['ferretería'], 'few results: one more search by the typed words');
+});
+
+test('places: Colombian municipalities that Nominatim calls "county" are searched as a whole', () => {
+  const [baq] = Osm.parsePlaces([town('Barranquilla', 'Atlántico', 'county', 10.98, -74.80, [10.90, 11.05, -74.86, -74.74])]);
+  assert.equal(baq.wholePlace, true);
+  assert.equal(Osm.searchRadius(baq, 3).scope, 'whole');
+});
+
+test('Nominatim fallback keeps only the exact business type asked for', () => {
+  const hits = [
+    { osm_type: 'node', osm_id: 1, category: 'shop', type: 'stationery', name: 'Papelería Mafalda', lat: '4.65', lon: '-74.06' },
+    { osm_type: 'node', osm_id: 2, category: 'shop', type: 'mobile_phone', name: 'Mobile Phones', lat: '4.65', lon: '-74.06' }
+  ];
+  assert.deepEqual(Osm.normalizePois(hits, { tag: ['shop', 'stationery'] }).suppliers.map((s) => s.name), ['Papelería Mafalda']);
+  assert.equal(Osm.normalizePois(hits, {}).suppliers.length, 2, 'a search by words keeps any business');
 });

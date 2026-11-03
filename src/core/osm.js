@@ -166,7 +166,8 @@
   }
 
   // Nominatim address types that name a whole town or city (search all of it, up to the cap).
-  var WHOLE_PLACE = ['city', 'town', 'village', 'municipality', 'hamlet'];
+  // Nominatim names Colombian municipalities such as Barranquilla or Cali "county" (seen in live tests).
+  var WHOLE_PLACE = ['city', 'town', 'village', 'municipality', 'hamlet', 'county'];
 
   function clean(text, max) {
     return String(text == null ? '' : text).replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -271,6 +272,8 @@
     var suppliers = [];
     (Array.isArray(results) ? results : []).forEach(function (hit) {
       if (!hit || POI_CATEGORIES.indexOf(hit.category) === -1 || !/^(node|way|relation)$/.test(hit.osm_type || '')) return;
+      // A tag search ("[shop=stationery]") sometimes returns neighbours of another type: keep the exact type only.
+      if (Array.isArray(opts.tag) && (hit.category !== opts.tag[0] || hit.type !== opts.tag[1])) return;
       var name = clean(hit.name, 120);
       var lat = Number(hit.lat);
       var lng = Number(hit.lon);

@@ -21,9 +21,14 @@
   // The public Overpass server can take 30 s or more to answer (measured from
   // GitHub's servers in November 2026). After this long the page stops waiting
   // and asks Nominatim instead: fast, and also OpenStreetMap data.
-  var OVERPASS_TIMEOUT_MS = 12000;
-  // Nominatim fallback: one request per tag, at most this many tags.
+  var OVERPASS_TIMEOUT_MS = 15000;
+  // After this long without an answer, Nominatim is asked in parallel; whichever
+  // gives a usable answer first is shown (Overpass preferred: it is more complete).
+  var FALLBACK_AFTER_MS = 5000;
+  // Nominatim fallback: one request per tag, at most this many tags, plus one
+  // search by the typed words when the tags found little.
   var FALLBACK_TAGS = 3;
+  var FALLBACK_TEXT_BELOW = 10;
   // Enough for a whole town; the ranking orders them by distance.
   var MAX_RESULTS = 150;
   // Driving times from the OSRM demo server (FOSSGIS): one table request per
@@ -166,36 +171,50 @@
         : Osm.buildQuery({ category: p.category, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000, limit: MAX_RESULTS, serverTimeout: 12 });
       var tags = wanted ? wanted.tags : ((root.ScoutCategories && root.ScoutCategories.byId(p.category) || {}).osm || []);
       var source = 'overpass';
-      var overpassError = null;
-      return fetchJson(Osm.ENDPOINT, {
+      var overpass = fetchJson(Osm.ENDPOINT, {
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'data=' + encodeURIComponent(query)
       }, OVERPASS_TIMEOUT_MS).then(function (json) {
-        return Osm.normalize(json, { country: country, category: category });
-      }, function (err) {
-        // Slow, busy or down: search businesses with Nominatim instead.
-        if (p.noFallback) throw err;
-        overpassError = err;
-        source = 'nominatim';
+        return { ok: true, found: Osm.normalize(json, { country: country, category: category }) };
+      }, function (err) { return { ok: false, err: err }; });
+
+      function nominatimSearch() {
         var asks = tags.slice(0, FALLBACK_TAGS).map(function (tag) { return { tag: tag }; });
-        if (!asks.length) asks = [{ text: (wanted && wanted.terms[0]) || what }];
         var merged = [];
         var seen = {};
-        return asks.reduce(function (chain, ask) {
-          return chain.then(function () {
-            return politely('nominatim', function () {
-              return fetchJson(Osm.poiSearchUrl({ tag: ask.tag, text: ask.text, lat: point.lat, lng: point.lng, radiusKm: radiusKm, country: country }));
-            }).then(function (results) {
-              Osm.normalizePois(results, { country: country, category: category, center: point, radiusKm: radiusKm }).suppliers.forEach(function (s) {
-                if (!seen[s.id]) { seen[s.id] = true; merged.push(s); }
-              });
+        function ask(a) {
+          return politely('nominatim', function () {
+            return fetchJson(Osm.poiSearchUrl({ tag: a.tag, text: a.text, lat: point.lat, lng: point.lng, radiusKm: radiusKm, country: country }));
+          }).then(function (results) {
+            Osm.normalizePois(results, { country: country, category: category, center: point, radiusKm: radiusKm, tag: a.tag }).suppliers.forEach(function (s) {
+              if (!seen[s.id]) { seen[s.id] = true; merged.push(s); }
             });
           });
-        }, Promise.resolve()).then(function () {
+        }
+        return asks.reduce(function (chain, a) { return chain.then(function () { return ask(a); }); }, Promise.resolve()).then(function () {
+          // Few businesses by type: also look for the typed words in names ("Cerrajería La 10").
+          if (merged.length < FALLBACK_TEXT_BELOW && what) return ask({ text: what });
+        }).then(function () {
           var withWebsite = merged.filter(function (s) { return s.websites.length; }).length;
           return { suppliers: merged, stats: { total: merged.length, withWebsite: withWebsite, withoutWebsite: merged.length - withWebsite, withPhone: merged.filter(function (s) { return s.phones.length; }).length } };
-        }, function () { throw overpassError; });
+        });
+      }
+
+      var late = wait(FALLBACK_AFTER_MS).then(function () { return { late: true }; });
+      return Promise.race([overpass, late]).then(function (first) {
+        if (first.ok) return first.found;
+        if (p.noFallback) return overpass.then(function (o) { if (o.ok) return o.found; throw o.err; });
+        // Overpass failed or is slow: ask Nominatim while Overpass keeps going.
+        return nominatimSearch().then(function (fromNominatim) {
+          return Promise.race([overpass, Promise.resolve({ pending: true })]).then(function (o) {
+            if (o.ok) return o.found;
+            source = 'nominatim';
+            return fromNominatim;
+          });
+        }, function () {
+          return overpass.then(function (o) { if (o.ok) return o.found; throw o.err; });
+        });
       }).then(function (found) {
         var short = (point.label || place).slice(0, 60);
         var routes = p.noRoutes ? Promise.resolve(null) : travelTimes(point, found.suppliers);
