@@ -56,7 +56,7 @@ The word *maintenance* alone decides nothing: *elevator maintenance* searches fo
 
 ### Checked with real data
 
-In November 2026 the app was run against the real OpenStreetMap services with 12 purchasing searches in Colombia, Peru, Mexico and Brazil (the manual `live-check.yml` workflow in GitHub Actions). All **46 businesses checked exist** on the official OpenStreetMap API with the name the app shows. Where the map is well covered it found 16 to 37 real businesses (hardware stores in Barranquilla and Coyoacán, stationers in Chapinero, garages in Pinheiros). For trades such as locksmiths, pest control or fire-extinguisher refills, San Gil, Cali, Medellín and Miraflores returned 0: those businesses are not on the map, which is what **Open in Google Maps** is for.
+In November 2026 the app was run against the real OpenStreetMap services with 12 purchasing searches in Colombia, Peru, Mexico and Brazil (the manual `live-check.yml` workflow in GitHub Actions). All **67 businesses checked in three runs exist** on the official OpenStreetMap API with the name the app shows. Where the map is well covered it found 16 to 37 real businesses (hardware stores in Barranquilla and Coyoacán, stationers in Chapinero, garages in Pinheiros). For trades such as locksmiths, pest control or fire-extinguisher refills, San Gil, Cali, Medellín and Miraflores returned 0: those businesses are not on the map, which is what **Open in Google Maps** is for.
 
 **When the main server is slow.** The public server that finds businesses (Overpass) sometimes takes 30 seconds or more. If it has not answered in 5 seconds, the app asks the OpenStreetMap search (Nominatim) in parallel, which answers in under a second, and says so: *Source: OpenStreetMap search*. That search returns up to 40 businesses per type.
 
@@ -84,6 +84,8 @@ Purchasing usually gathers several options, asks for **at least three quotes** a
 4. **Request quotes from the rest** prepares the message for everyone still *To contact*, each with their name: open it in WhatsApp (mobile numbers only) or copy it for email, and the supplier moves to *Contacted*. It is what tools such as Thomasnet do with their one-to-many request, but over WhatsApp, which is how the region buys.
 5. **Check:** next to each supplier are links to the official portals of its country to check it before registering it: RUES and DIAN in Colombia, SAT in Mexico (including the 69-B list of companies issuing simulated invoices), SUNAT in Peru, SII in Chile, ARCA in Argentina, SRI in Ecuador and Receita Federal in Brazil. They are home pages: search there by name or tax ID.
 6. **Download comparison table** creates a file that opens in Excel or Google Sheets, with columns for price, lead time, payment terms, warranty, notes and the map link.
+
+<img src="real-list.png" alt="My list with three real plumbing businesses in Kennedy, Bogotá, the quote request for all of them and the links to check them in RUES and DIAN" width="100%">
 
 The list is saved only in your browser and survives other searches and reloads. The app also remembers your last 5 places to repeat them with one tap.
 

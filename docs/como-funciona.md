@@ -56,7 +56,7 @@ La palabra *mantenimiento* sola no decide nada: en *mantenimiento de ascensores*
 
 ### Comprobado con datos reales
 
-En noviembre de 2026 la app se probó contra los servicios reales de OpenStreetMap con 12 búsquedas de compras en Colombia, Perú, México y Brasil (flujo manual `live-check.yml` en GitHub Actions). Los **46 negocios revisados existen** en la API oficial de OpenStreetMap con el mismo nombre que muestra la app. Donde el mapa está bien completo encontró entre 16 y 37 negocios reales (ferreterías en Barranquilla y Coyoacán, papelerías en Chapinero, talleres en Pinheiros). Para oficios como cerrajería, fumigación o recarga de extintores, en San Gil, Cali, Medellín o Miraflores encontró 0: esos negocios no están en el mapa, y para eso está **Ver en Google Maps**.
+En noviembre de 2026 la app se probó contra los servicios reales de OpenStreetMap con 12 búsquedas de compras en Colombia, Perú, México y Brasil (flujo manual `live-check.yml` en GitHub Actions). Los **67 negocios revisados en tres rondas existen** en la API oficial de OpenStreetMap con el mismo nombre que muestra la app. Donde el mapa está bien completo encontró entre 16 y 37 negocios reales (ferreterías en Barranquilla y Coyoacán, papelerías en Chapinero, talleres en Pinheiros). Para oficios como cerrajería, fumigación o recarga de extintores, en San Gil, Cali, Medellín o Miraflores encontró 0: esos negocios no están en el mapa, y para eso está **Ver en Google Maps**.
 
 **Si el servidor principal está lento.** El servidor público que busca negocios (Overpass) a veces tarda 30 segundos o más. Si en 5 segundos no responde, la app pregunta en paralelo al buscador de OpenStreetMap (Nominatim), que responde en menos de un segundo, y te lo dice: *Fuente: buscador de OpenStreetMap*. Ese buscador trae hasta 40 negocios por tipo.
 
@@ -84,6 +84,8 @@ En compras, la práctica habitual es reunir varias opciones, pedir **al menos tr
 4. **Pedir cotización a los que faltan** prepara el mensaje para todos los que están *Por contactar*, cada uno con su nombre: lo abres en WhatsApp (solo celulares) o lo copias para el correo, y el proveedor pasa a *Contactado*. Es lo que hacen herramientas como Thomasnet con su "solicitud a varios proveedores", pero por WhatsApp, que es como se compra en la región.
 5. **Verificar:** junto a cada proveedor hay enlaces a los portales oficiales de su país para revisarlo antes de inscribirlo: RUES y DIAN en Colombia, SAT en México (incluida la lista 69-B de empresas que facturan operaciones simuladas), SUNAT en Perú, SII en Chile, ARCA en Argentina, SRI en Ecuador y Receita Federal en Brasil. Son las páginas principales: ahí buscas por nombre o por número tributario.
 6. **Descargar cuadro comparativo** genera un archivo que se abre en Excel o Google Sheets, con columnas para precio, entrega, forma de pago, garantía, notas y el enlace a la ficha en el mapa.
+
+<img src="real-list.png" alt="Mi lista con tres proveedores reales de plomería en Kennedy, Bogotá, el mensaje de cotización para todos y los enlaces para verificar en RUES y DIAN" width="100%">
 
 La lista se guarda solo en tu navegador y se mantiene aunque hagas otras búsquedas o recargues la página. La app también recuerda tus últimos 5 lugares buscados para repetirlos con un toque.
 
