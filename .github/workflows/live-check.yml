@@ -5,6 +5,11 @@ name: Live check (real OpenStreetMap data)
 # Results and screenshots are pushed to the "live-check" branch.
 on:
   workflow_dispatch:
+    inputs:
+      probe_only:
+        description: Only probe the services (skip the searches and the browser)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -28,13 +33,16 @@ jobs:
         continue-on-error: true
         run: node tools/live-probe.js
       - name: Search the real services with the app's own code
+        if: ${{ !inputs.probe_only }}
         continue-on-error: true
         run: node tools/live-check.js
       - name: Install a browser
+        if: ${{ !inputs.probe_only }}
         run: |
           npm install --no-save --ignore-scripts playwright@1.49.1
           npx playwright install --with-deps chromium
       - name: Use the web app in a real browser
+        if: ${{ !inputs.probe_only }}
         continue-on-error: true
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 >/dev/null 2>&1 &
