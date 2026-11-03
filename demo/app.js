@@ -26,6 +26,7 @@
   var Live = window.ScoutLive;
   var Services = window.ScoutServices;
   var Text = window.ScoutText;
+  var Short = window.ScoutShortlist;
 
   var STORAGE = 'supplier-scout:v1:';
   var MAX_IMPORT_BYTES = 2 * 1024 * 1024;
@@ -37,12 +38,21 @@
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
   var I18N = window.ScoutI18n;
-  var TABS = ['search', 'quotes', 'offline', 'review', 'data'];
+  var TABS = ['search', 'list', 'quotes', 'offline', 'review', 'data'];
+  var MAX_RECENT = 5;
   var MAX_LISTED = 50;
 
   var state = null;
   var prefs = { lang: detectLanguage(), datasetId: 'bogota' };
   // Live search status. Live results are never saved: they are real data, shown fresh.
+  // The shortlist and recent places belong to the viewer, not to a dataset: they
+  // survive switching datasets and live searches. Read like an import.
+  var shortlist = Short.sanitize(readStorage('shortlist'));
+  var recentPlaces = (function () {
+    var list = readStorage('recentPlaces');
+    return (Array.isArray(list) ? list : []).filter(function (x) { return typeof x === 'string' && x.trim(); })
+      .map(function (x) { return x.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 120); }).slice(0, MAX_RECENT);
+  })();
   var live = { busy: false, status: '', kind: '', country: null, lastSampleId: 'bogota', alternatives: [], places: [] };
 
   /** The first browser language we speak (pt-BR -> pt), otherwise English. */
@@ -468,58 +478,43 @@
     });
   }
 
+  var map = null;
+
+  /** Scroll to a supplier's card from its map marker. */
+  function focusCard(id) {
+    var card = document.querySelector('#results .card[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('flash');
+    setTimeout(function () { card.classList.remove('flash'); }, 1600);
+  }
+
   function renderRadar(result) {
-    var box = clear($('radar'));
     var o = origin();
     var radius = Number(state.need.radiusKm) || 10;
-    var size = 320;
-    var c = size / 2;
-    var R = 140;
-    var scale = R / radius;
-    var desc = svg('desc', { id: 'radarDesc' });
-    desc.textContent = fmt(t('radarDesc'), { o: o.label });
-    box.appendChild(desc);
-    [1, 2, 3].forEach(function (i) {
-      box.appendChild(svg('circle', { cx: c, cy: c, r: (R * i) / 3, fill: 'none', stroke: 'var(--line)', 'stroke-width': 1 }));
-    });
-    box.appendChild(svg('line', { x1: c, y1: c - R - 8, x2: c, y2: c + R + 8, stroke: 'var(--line)', 'stroke-width': 1 }));
-    box.appendChild(svg('line', { x1: c - R - 8, y1: c, x2: c + R + 8, y2: c, stroke: 'var(--line)', 'stroke-width': 1 }));
-    var sweep = svg('g', { class: 'sweep' });
-    sweep.appendChild(svg('line', { x1: c, y1: c, x2: c, y2: c - R, stroke: 'var(--brand)', 'stroke-width': 1.5, opacity: 0.35 }));
-    box.appendChild(sweep);
-
+    if (dataset().live && live.searchedKm) radius = live.searchedKm;
+    if (!map) {
+      map = window.ScoutMap.create($('map'), { onSelect: focusCard });
+    }
+    map.setLabels({ zoomIn: t('zoomIn'), zoomOut: t('zoomOut') });
     var noCoords = 0;
-    var points = result.ranked.map(function (r) { return { r: r, excluded: false }; })
-      .concat(result.excluded.map(function (x) { return { r: { supplier: x.supplier }, excluded: true }; }));
-    points.forEach(function (p) {
-      var s = p.r.supplier;
-      var off = Geo.offsetKm(o, s);
-      if (!off) { noCoords++; return; }
-      var dx = off.x * scale;
-      var dy = -off.y * scale;
-      var len = Math.sqrt(dx * dx + dy * dy);
-      if (len > R + 6) { dx = (dx / len) * (R + 6); dy = (dy / len) * (R + 6); }
-      var x = Math.round(c + dx - 4);
-      var y = Math.round(c + dy - 4);
-      var color = SOURCE_COLORS[(s.sources[0] || {}).type] || 'var(--muted)';
-      var g = svg('g', {});
-      var title = svg('title', {});
-      var km = Geo.distanceKm(o, s);
-      title.textContent = s.name + ' · ' + M.formatKm(km, prefs.lang) + (p.r.rank ? ' · #' + p.r.rank : '');
-      g.appendChild(title);
-      g.appendChild(svg('circle', p.excluded
-        ? { cx: x + 4, cy: y + 4, r: 4, fill: 'none', stroke: color, 'stroke-width': 1.5, opacity: 0.6 }
-        : { cx: x + 4, cy: y + 4, r: 4.5, fill: color }));
-      if (p.r.rank && p.r.rank <= 3) {
-        var label = svg('text', { x: x + 11, y: y + 8, fill: 'var(--text)', 'font-family': 'Plex Sans, sans-serif', 'font-size': 11, 'font-weight': 600 });
-        label.textContent = String(p.r.rank);
-        g.appendChild(label);
-      }
-      box.appendChild(g);
+    var points = [];
+    result.ranked.forEach(function (r) {
+      var s = r.supplier;
+      if (s.lat == null || s.lng == null) { noCoords++; return; }
+      points.push({
+        id: s.id, lat: s.lat, lng: s.lng, rank: r.rank,
+        color: r.rank <= 3 ? 'var(--brand)' : (SOURCE_COLORS[(s.sources[0] || {}).type] || 'var(--muted)'),
+        title: '#' + r.rank + ' ' + s.name + (r.km != null ? ' · ' + M.formatKm(r.km, prefs.lang) : '')
+      });
     });
-    box.appendChild(svg('circle', { cx: c, cy: c, r: 6, fill: 'var(--surface)', stroke: 'var(--text)', 'stroke-width': 2 }));
-    box.appendChild(svg('circle', { cx: c, cy: c, r: 2, fill: 'var(--text)' }));
-    var hint = fmt(t('radarHint'), { n: Math.round((radius / 3) * 10) / 10 });
+    result.excluded.forEach(function (x) {
+      var s = x.supplier;
+      if (s.lat == null || s.lng == null) return;
+      points.push({ id: s.id, lat: s.lat, lng: s.lng, faded: true, color: 'var(--muted)', title: s.name + ' — ' + explain(x.reason) });
+    });
+    map.show({ center: { lat: o.lat, lng: o.lng }, radiusKm: radius, points: points, label: fmt(t('radarDesc'), { o: o.label }) });
+    var hint = fmt(t('radarHint'), { n: radius });
     $('radarHint').textContent = noCoords ? hint + ' · ' + fmt(t('radarNoCoords'), { n: noCoords }) : hint;
 
     var legend = clear($('sourceLegend'));
@@ -558,9 +553,17 @@
     var what = w.kind === 'empty' ? state.need.item : state.need.query;
     var category = w.categories[0] || state.need.category;
     // Asking for a quote never needs a quantity: it is negotiated afterwards.
-    var text = Out.rfqMessage({ category: category, item: what, deliveryZone: origin().label, service: w.kind === 'service' && w.services.some(isService) }, s.name, prefs.lang, country());
+    var text = Out.rfqMessage({ category: category, item: what, deliveryZone: origin().label, service: w.kind === 'service' && w.services.some(isService), documents: !!prefs.rfqDocs }, s.name, prefs.lang, s.country || country());
     var box = el('div', 'outreach');
     box.appendChild(el('p', 'hint', t('rfqHint')));
+    var docs = el('label', 'check');
+    var docsBox = el('input');
+    docsBox.type = 'checkbox';
+    docsBox.checked = !!prefs.rfqDocs;
+    docsBox.addEventListener('change', function () { prefs.rfqDocs = docsBox.checked; saveState(); renderResults(); });
+    docs.appendChild(docsBox);
+    docs.appendChild(el('span', null, t('rfqDocs')));
+    box.appendChild(docs);
     var pre = el('pre', 'message', text);
     box.appendChild(pre);
     var actions = el('div', 'actions');
@@ -582,6 +585,7 @@
   function resultCard(r) {
     var s = r.supplier;
     var li = el('li', 'card' + (r.rank <= 3 ? ' podium' : ''));
+    li.setAttribute('data-id', s.id);
     var head = el('div', 'card-head');
     var title = el('div', 'card-title');
     title.appendChild(el('span', 'rank', '#' + r.rank));
@@ -613,7 +617,10 @@
     }
     fact(t('quotedPrice'), r.cost ? fmt(t('perUnitOf'), { price: money(r.cost.unitPrice), unit: t('unitOne')[r.cost.unit === 'unit' ? 'unidad' : r.cost.unit] || r.cost.unit }) : t('noQuote'));
     fact(t('phone'), s.phones && s.phones[0] ? s.phones[0] : t('none'));
-    fact(t('distance'), r.km === null ? t('none') : M.formatKm(r.km, prefs.lang));
+    var trip = dataset().live && live.travel ? live.travel[s.id] : null;
+    fact(t('distance'), trip
+      ? fmt(t('travelFact'), { min: trip.minutes, km: trip.km != null ? M.formatKm(trip.km, prefs.lang) : M.formatKm(r.km, prefs.lang) })
+      : (r.km === null ? t('none') : M.formatKm(r.km, prefs.lang)));
     // A neutral prior is not a review: say so instead of showing a made-up average.
     var reviewed = r.rating.externalCount || r.rating.internalCount;
     fact(t('rating'), reviewed ? M.formatDecimal(r.rating.value.toFixed(1), prefs.lang) + ' / 5' : t('ratingNone'));
@@ -641,6 +648,10 @@
     li.appendChild(why);
 
     var actions = el('div', 'actions');
+    var listed = inList(s.id);
+    var listBtn = button(listed ? t('listAdded') : t('listAdd'), 'btn small' + (listed ? ' on' : ''), function () { toggleList(s); });
+    listBtn.setAttribute('aria-pressed', String(listed));
+    actions.appendChild(listBtn);
     actions.appendChild(button(t('rfq'), 'btn small', function () {
       state.openRfq = state.openRfq === s.id ? null : s.id;
       renderResults();
@@ -684,6 +695,129 @@
   }
 
   // ---------- 2 · quotes ----------
+
+  // ---------- 2 · shortlist ----------
+
+  function inList(id) {
+    return shortlist.some(function (e) { return e.id === id; });
+  }
+
+  function saveShortlist() {
+    writeStorage('shortlist', shortlist);
+  }
+
+  function toggleList(s) {
+    if (inList(s.id)) {
+      shortlist = shortlist.filter(function (e) { return e.id !== s.id; });
+    } else if (shortlist.length < Short.MAX_ENTRIES) {
+      var entry = Short.fromSupplier(s, {
+        need: state.need.query || state.need.item || catLabel(state.need.category),
+        place: origin().label, sample: !dataset().live, today: today()
+      });
+      if (entry) shortlist.push(entry);
+    }
+    saveShortlist();
+    renderResults();
+    renderShortlist();
+  }
+
+  function renderShortlist() {
+    $('listBadge').textContent = shortlist.length ? String(shortlist.length) : '';
+    var sum = Short.summary(shortlist);
+    var goal = clear($('listGoal'));
+    goal.className = 'goal' + (sum.goalReached ? ' done' : '');
+    goal.hidden = !shortlist.length;
+    goal.appendChild(el('div', 'goal-text', sum.goalReached
+      ? fmt(t('listGoalDone'), { q: sum.quoted })
+      : fmt(t('listGoal'), { q: sum.quoted, goal: sum.goal })));
+    var bar = el('div', 'goal-bar');
+    var fill = el('i');
+    fill.style.width = Math.min(100, Math.round(sum.quoted / sum.goal * 100)) + '%';
+    bar.appendChild(fill);
+    goal.appendChild(bar);
+
+    var table = clear($('listTable'));
+    $('listCsv').disabled = !shortlist.length;
+    $('listClear').disabled = !shortlist.length;
+    if (!shortlist.length) {
+      var tr0 = el('tr');
+      var td0 = el('td', 'empty', t('listEmpty'));
+      tr0.appendChild(td0);
+      table.appendChild(tr0);
+      return;
+    }
+    var cols = t('listCols');
+    var thead = el('thead');
+    var hr = el('tr');
+    ['supplier', 'contact', 'status', 'price', 'lead', 'payment', 'notes', ''].forEach(function (k) { hr.appendChild(el('th', null, k ? cols[k] : '')); });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+    var tbody = el('tbody');
+    shortlist.forEach(function (e) {
+      var tr = el('tr', e.status === 'discarded' ? 'invalid' : (e.status === 'chosen' ? 'best' : ''));
+      var who = el('td', 'who');
+      who.appendChild(el('strong', null, e.name));
+      who.appendChild(el('small', null, [e.need, e.place].filter(Boolean).join(' · ') + (e.sample ? ' (' + t('listSample') + ')' : '')));
+      if (e.address || e.city) who.appendChild(el('small', null, [e.address, e.city].filter(Boolean).join(', ')));
+      tr.appendChild(who);
+      var contact = el('td');
+      if (e.phone) {
+        var tel = el('a', null, e.phone);
+        tel.href = 'tel:' + e.phone;
+        contact.appendChild(tel);
+      } else {
+        contact.textContent = t('none');
+      }
+      tr.appendChild(contact);
+      var stTd = el('td');
+      var sel = el('select');
+      sel.setAttribute('aria-label', cols.status + ' · ' + e.name);
+      Short.STATUSES.forEach(function (st) { sel.appendChild(option(st, t('listStatus')[st], st === e.status)); });
+      sel.addEventListener('change', function () { e.status = sel.value; saveShortlist(); renderShortlist(); });
+      stTd.appendChild(sel);
+      tr.appendChild(stTd);
+      ['price', 'lead', 'payment', 'notes'].forEach(function (field) {
+        var td = el('td', field === 'notes' ? 'wide' : null);
+        var input = el('input');
+        input.type = 'text';
+        input.maxLength = field === 'notes' ? 300 : 60;
+        input.value = e[field] || '';
+        input.setAttribute('aria-label', cols[field] + ' · ' + e.name);
+        input.addEventListener('change', function () { e[field] = input.value.slice(0, input.maxLength); saveShortlist(); });
+        td.appendChild(input);
+        tr.appendChild(td);
+      });
+      var rm = el('td');
+      rm.appendChild(button(t('listRemove'), 'btn small', function () {
+        shortlist = shortlist.filter(function (x) { return x.id !== e.id; });
+        saveShortlist();
+        renderShortlist();
+        renderResults();
+      }));
+      tr.appendChild(rm);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+  }
+
+  function rememberPlace(label) {
+    var clean = String(label || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 120);
+    if (!clean) return;
+    recentPlaces = [clean].concat(recentPlaces.filter(function (x) { return x !== clean; })).slice(0, MAX_RECENT);
+    writeStorage('recentPlaces', recentPlaces);
+  }
+
+  function renderRecent() {
+    var box = clear($('recentChips'));
+    $('recentRow').hidden = !recentPlaces.length;
+    recentPlaces.forEach(function (label) {
+      box.appendChild(button(label, '', function () {
+        $('livePlace').value = label;
+        updateMapsLink();
+        liveSearch();
+      }));
+    });
+  }
 
   function renderQuotes() {
     $('vat').value = state.settings.vat;
@@ -1066,6 +1200,7 @@
     if (document.activeElement !== what) what.value = state.need.query || '';
     renderUnderstood();
     renderTryChips();
+    renderRecent();
     renderAlternatives();
     var codes = Object.keys(C.PROFILES).filter(function (code) { return code !== 'XX'; })
       .sort(function (a, b) { return countryName(a).localeCompare(countryName(b), prefs.lang); });
@@ -1079,6 +1214,7 @@
     status.textContent = live.status;
     status.className = 'status-line' + (live.kind ? ' ' + live.kind : '');
     $('liveBackWrap').hidden = !dataset().live;
+    $('routesCredit').hidden = !(dataset().live && live.travel);
     var fine = document.querySelector('[data-i18n="fictional"]');
     if (fine && dataset().live) fine.textContent = t('liveNote');
     var badge = $('envBadge');
@@ -1139,9 +1275,12 @@
       // Keep every candidate place so the buyer can switch between homonyms.
       if (!point) live.places = [res.point].concat(res.alternatives || []);
       else if (!live.places.some(function (x) { return x === point; })) live.places = [];
+      live.travel = res.travel || null;
+      live.searchedKm = res.radiusKm;
       live.alternatives = live.places.filter(function (x) { return x !== res.point && !(x.lat === res.point.lat && x.lng === res.point.lng); });
       var where = res.point.label || place;
       if (!point) $('livePlace').value = where;
+      if (!point || point !== live.myPoint) rememberPlace(where);
       var st = res.stats;
       var notes = [];
       if (res.movedFrom) notes.push(fmt(t('placeMoved'), { from: countryName(res.movedFrom), to: countryName(res.country), place: where }));
@@ -1205,6 +1344,7 @@
     renderTabs();
     renderNeedForm();
     renderResults();
+    renderShortlist();
     renderQuotes();
     renderOffline();
     renderReview();
@@ -1247,6 +1387,17 @@
       queryTimer = setTimeout(function () { onQueryChange(value); }, 200);
     });
     $('nearMe').addEventListener('click', nearMe);
+    $('listCsv').addEventListener('click', function () {
+      var text = Short.toCsv(shortlist, { headers: t('csvHeaders'), status: t('listStatus') });
+      download('supplier-scout-lista-' + today() + '.csv', '\uFEFF' + text, 'text/csv;charset=utf-8');
+    });
+    $('listClear').addEventListener('click', function () {
+      if (!window.confirm(t('listClearConfirm'))) return;
+      shortlist = [];
+      saveShortlist();
+      renderShortlist();
+      renderResults();
+    });
     $('liveCountry').addEventListener('change', function () { live.country = $('liveCountry').value; updateMapsLink(); });
     $('livePlace').addEventListener('input', updateMapsLink);
     $('liveBack').addEventListener('click', function () {
@@ -1255,6 +1406,8 @@
       live.kind = '';
       live.alternatives = [];
       live.places = [];
+      live.travel = null;
+      live.searchedKm = null;
       $('livePlace').value = '';
       loadState();
       render();
@@ -1375,6 +1528,7 @@
   var savedPrefs = readStorage('prefs');
   if (savedPrefs && I18N[savedPrefs.lang]) prefs.lang = savedPrefs.lang;
   if (savedPrefs && Sample.DATASETS[savedPrefs.datasetId]) prefs.datasetId = savedPrefs.datasetId;
+  if (savedPrefs && savedPrefs.rfqDocs === true) prefs.rfqDocs = true;
   loadState();
   bind();
   render();

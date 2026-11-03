@@ -62,15 +62,34 @@ La palabra *mantenimiento* sola no decide nada: en *mantenimiento de ascensores*
 - Un negocio solo aparece si alguien lo registró en OpenStreetMap con la etiqueta o el nombre adecuados. Si no sale lo que buscas, prueba otras palabras ("refrigeración" en vez de "aires") o ábrelo en Google Maps.
 - La búsqueda real no se guarda en el navegador: si recargas la página, vuelves a los datos de ejemplo. Para conservarla, usa **Exportar** en la pestaña **Datos**.
 
-## Las cinco pestañas
+## El mapa y los tiempos en carro
+
+- Al lado de los filtros hay un **mapa real de OpenStreetMap**. El círculo punteado es tu radio de búsqueda y cada número es el puesto del proveedor en el ranking. Arrastra para moverte, usa **+** y **−** para acercar o alejar y toca un número para ir a su tarjeta.
+- En una búsqueda real, la app calcula **cuánto se tarda en carro** hasta cada negocio y la distancia por vía (servicio OSRM, sobre datos de OpenStreetMap). Son tiempos aproximados, sin tráfico. Si ese servicio no responde, muestra la distancia en línea recta.
+
+## Mi lista corta: de las opciones a la decisión
+
+En compras, la práctica habitual es reunir varias opciones, pedir **al menos tres cotizaciones** y compararlas en un **cuadro comparativo** (precio, tiempo de entrega, forma de pago, garantía) antes de elegir. La pestaña **Mi lista** sigue ese proceso:
+
+1. En cada tarjeta, **Agregar a mi lista** guarda el proveedor, con su teléfono, dirección y lo que estabas buscando.
+2. En **Mi lista** marcas cómo va cada uno: *Por contactar*, *Contactado*, *Cotizó*, *Elegido* o *Descartado*, y anotas el precio cotizado, el tiempo de entrega, la forma de pago y tus notas.
+3. Arriba ves el avance: **2 de 3 cotizaciones recomendadas**.
+4. **Descargar cuadro comparativo** genera un archivo que se abre en Excel o Google Sheets, con columnas para precio, entrega, forma de pago, garantía, notas y el enlace a la ficha en el mapa.
+
+La lista se guarda solo en tu navegador y se mantiene aunque hagas otras búsquedas o recargues la página. La app también recuerda tus últimos 5 lugares buscados para repetirlos con un toque.
+
+**Documentos para inscribir al proveedor.** En **Pedir cotización** puedes marcar *Incluir los documentos para inscribirlo como proveedor*. En Colombia el mensaje pide lo que suelen exigir las empresas: RUT actualizado, certificado de existencia y representación legal de la Cámara de Comercio reciente, certificación bancaria y copia de la cédula del representante legal. En otros países usa el nombre de su identificación tributaria (RUC, RFC, CNPJ...). Cada empresa tiene su propia lista: ajusta el mensaje si la tuya pide algo más, como el formato SAGRILAFT.
+
+## Las seis pestañas
 
 | Pestaña | Para qué sirve |
 |---|---|
 | **1 Buscar** | Escribe qué necesitas y dónde, ajusta el radio y la prioridad, y mira el ranking. Cada proveedor muestra su teléfono, el precio por unidad si ya cotizó, explica **por qué** quedó en ese puesto y tiene un borrador de solicitud de cotización |
-| **2 Cotizaciones** | Cuando ya tienes precios: escribe la cantidad y convierte cada cotización al costo real del pedido (paquetes completos, compra mínima, impuesto, envío, moneda y el valor de pagar a plazo) |
-| **3 Fuera de internet** | Dónde buscar proveedores formales en tu país (compras públicas, registro de empresas), un lector de tarjetas, volantes y mensajes de WhatsApp que funciona sin IA, y un mensaje para pedir recomendaciones |
-| **4 Revisión** | Los proveedores nuevos y los posibles duplicados esperan a que una persona los apruebe. El sistema no adivina |
-| **5 Datos** | De dónde vienen tus proveedores, importar CSV o JSON (listas de ferias, cámaras de comercio, tu hoja actual) y exportar a CSV para Google Sheets |
+| **2 Mi lista** | Los proveedores que vas a contactar, su estado y el cuadro comparativo para descargar |
+| **3 Cotizaciones** | Cuando ya tienes precios: escribe la cantidad y convierte cada cotización al costo real del pedido (paquetes completos, compra mínima, impuesto, envío, moneda y el valor de pagar a plazo) |
+| **4 Fuera de internet** | Dónde buscar proveedores formales en tu país (compras públicas, registro de empresas), un lector de tarjetas, volantes y mensajes de WhatsApp que funciona sin IA, y un mensaje para pedir recomendaciones |
+| **5 Revisión** | Los proveedores nuevos y los posibles duplicados esperan a que una persona los apruebe. El sistema no adivina |
+| **6 Datos** | De dónde vienen tus proveedores, importar CSV o JSON (listas de ferias, cámaras de comercio, tu hoja actual) y exportar a CSV para Google Sheets |
 
 ## Cómo arma el ranking
 
@@ -88,7 +107,9 @@ Las prioridades (equilibrado, más barato, más confiable, más cerca, urgente) 
 
 ## Privacidad y seguridad
 
-- La página solo se conecta a los dos servicios de OpenStreetMap, y únicamente cuando pulsas **Buscar en el mapa**. Lo bloquea una política de seguridad (CSP) en la propia página: no puede hablar con ningún otro servidor.
+- La página solo se conecta a servicios basados en OpenStreetMap: el buscador de lugares (Nominatim), los datos del mapa (Overpass) y los tiempos en carro (OSRM), y únicamente cuando pulsas **Buscar en el mapa**. Las imágenes del mapa vienen de los servidores de OpenStreetMap. Lo garantiza una política de seguridad (CSP) en la propia página: no puede hablar con ningún otro servidor.
+- **Por qué no hay un servidor de mapas de respaldo:** los servidores alternativos de Overpass que revisé pueden entregar datos viejos sin avisar. Es preferible reintentar una vez y avisar a mostrar negocios desactualizados.
+- **Por qué no hay reseñas de Google dentro de la app:** mostrar datos de Google junto a un mapa que no es de Google va contra sus condiciones, y la clave quedaría expuesta en el navegador. Para ver reseñas y fotos, cada tarjeta tiene **Buscar en Google Maps**.
 - No hay cookies, cuentas ni analítica. Lo que capturas o importas se queda en tu navegador.
 - Las solicitudes de cotización y de recomendaciones son **borradores**: los revisas y los envías tú. Nada se envía solo.
 

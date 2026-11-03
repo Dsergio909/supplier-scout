@@ -35,11 +35,13 @@ The full walkthrough, from the live map search to how the ranking decides, is in
 2. **Searches by location.** Distance from your delivery point, a search radius, and suppliers that deliver are kept even when they are far.
 3. **No quantities to find options.** Purchasing starts by gathering several options and negotiates amounts later, so the search ranks by quoted unit price (when there is one), distance, ratings, trust and speed. Quote requests for a service ask for the price of the job, what it includes and the response time. Once quotes arrive, the Quotes tab turns each one into the real cost of an order: whole packs, the minimum order, tax, shipping, your currency (at a rate you set) and, optionally, the value of paying later.
 4. **Rates fairly.** A Bayesian average of online reviews and your own team's reviews. No reviews means "unknown", not "bad".
-5. **Finds and records offline suppliers.** Community maps and public registries (connectors), fair and chamber-of-commerce lists (CSV), business cards and WhatsApp messages (a parser that runs in the browser), and referrals from people you trust.
-6. **Keeps a human in the loop.** New captures and ambiguous duplicates go to a review queue. Quote requests and referral requests are drafted for you to send; nothing is sent automatically.
-7. **Explains every position.** Each result says why: order total, adjusted rating, distance, trust, lead time, and warnings (no quote yet, misses the deadline, over budget, unverified).
-8. **Optional Claude agent.** Describe what you need in plain language; the agent searches your list, the map and the registry, ranks the candidates and drafts the messages.
-9. **Works across Latin America and beyond.** Spanish-speaking Latin America, Brazil, Spain, Portugal, France and the US have country profiles, and the whole app speaks Spanish, English, Portuguese and French. [Details](docs/countries.md).
+5. **Shows them on a real map, with driving times.** An OpenStreetMap map (no library, tiles only for the area in view) with the search radius and numbered markers that jump to each card; in a live search, one OSRM request adds the approximate driving time and road distance to every business. Each card has Call, its address and opening hours, its map entry and a Google Maps search.
+6. **Follows how purchasing actually decides.** A shortlist (*My list*) keeps the suppliers to contact with their status (to contact, contacted, quoted, chosen, discarded), shows progress towards the usual three quotes, and downloads a comparison table (*cuadro comparativo*) for Excel or Sheets with price, lead time, payment terms, warranty and notes. Quote requests can include the documents needed to register a supplier (in Colombia: RUT, Chamber of Commerce certificate, bank certificate, legal representative's ID).
+7. **Finds and records offline suppliers.** Community maps and public registries (connectors), fair and chamber-of-commerce lists (CSV), business cards and WhatsApp messages (a parser that runs in the browser), and referrals from people you trust.
+8. **Keeps a human in the loop.** New captures and ambiguous duplicates go to a review queue. Quote requests and referral requests are drafted for you to send; nothing is sent automatically.
+9. **Explains every position.** Each result says why: order total, adjusted rating, distance, trust, lead time, and warnings (no quote yet, misses the deadline, over budget, unverified).
+10. **Optional Claude agent.** Describe what you need in plain language; the agent searches your list, the map and the registry, ranks the candidates and drafts the messages.
+11. **Works across Latin America and beyond.** Spanish-speaking Latin America, Brazil, Spain, Portugal, France and the US have country profiles, and the whole app speaks Spanish, English, Portuguese and French. [Details](docs/countries.md).
 
 ## Finding suppliers that are not online
 
@@ -109,11 +111,11 @@ Built in Colombia, meant for Latin America, usable anywhere. The full table is i
 | Malicious import file (XSS, `javascript:` links, huge files) | One sanitising gate for all external data (also applied to what the browser saved, since storage is shared by every page on the same GitHub Pages domain); http(s) links only; 2 MB limit; the page renders with `textContent` only |
 | Huge or hostile inputs (availability) | Capture text capped at 5,000 characters and tested against regex backtracking; imports capped at 2,000 suppliers; duplicate search and ranking tested to stay fast at those limits; connector responses capped at 5 MB while streaming |
 | Spreadsheet formula injection in the CSV export | Cells starting with `=`, `+`, `-`, `@` are exported as text (tested) |
-| Demo page | Strict CSP: scripts, styles and fonts (IBM Plex, self-hosted, SIL Open Font License) come from the site itself, and `connect-src` allows only OpenStreetMap's Nominatim and Overpass, used only when you press *Search the map* (tested). No cookies or trackers. Map results go through the same sanitising gate as any import |
+| Demo page | Strict CSP: scripts, styles and fonts (IBM Plex, self-hosted, SIL Open Font License) come from the site itself; `connect-src` allows only Nominatim, Overpass and the OSRM routing server, used only when you press *Search the map*, and `img-src` only OpenStreetMap's tiles (tested). Marker colours are set through the CSSOM because inline style attributes are blocked. No cookies or trackers. Map results go through the same sanitising gate as any import; the shortlist and recent places read back from storage are checked the same way |
 | Personal data of sole traders (Colombia: Law 1581 of 2012; LGPD in Brazil and similar laws across the region) | Consent checkbox on capture that names the selected country's law, warning in the ranking when consent was refused, never sent to the AI agent when refused, data stays in the browser unless exported. The OCDS connector imports the business, never the contact person's name (tested) |
 | Leaking real data from this public repo | All data is fictional: `.example` domains, phones in unassigned ranges (Colombia `999`, Mexico `55 0000`, Brazil `(11) 0000`, or ranges reserved for fiction), tax IDs generated with a correct check digit. Tests enforce it |
 | CI supply chain | Read-only permissions, no persisted credentials, `npm ci --ignore-scripts`, one runtime dependency (the official SDK, used only by the agent), Dependabot for security updates |
-| Terms of the data sources | OSM and Nominatim: attribution, one geocoding call per search, a 10 km radius cap and the button disabled while a search runs (the CLI also sends an identifying User-Agent); Google Maps: only an official search link, nothing is copied (scraping Maps is against Google's terms); Google Places (CLI, your own key): records are flagged for refresh or deletion per Google's terms |
+| Terms of the data sources | OSM and Nominatim: attribution, one geocoding call per search (a second one a second later only when the place is not in the chosen country), no search-as-you-type, a 10 km radius cap and the button disabled while a search runs (the CLI also sends an identifying User-Agent); OSM tiles: attribution on the map, a Referer on every tile request (the page otherwise sends none), only the tiles in view; OSRM demo server: one table request per search, at most 100 places, non-commercial use, credited; Overpass: one retry after 3 s when busy, no unverified mirrors (some serve stale data silently); Google Maps: only an official search link, nothing is copied and no Google data is shown on the OSM map (against Google's terms); Google Places (CLI, your own key): records are flagged for refresh or deletion per Google's terms |
 
 ## Architecture
 
@@ -150,7 +152,8 @@ flowchart LR
 ```
 src/core/          shared logic, no dependencies (browser + Node)
   services.js        what the buyer typed -> trades, categories, map tags and name words (rules, ES/EN/PT/FR)
-  osm.js             OpenStreetMap query and parsing, Google Maps search link (shared by the web app and the CLI)
+  osm.js             OpenStreetMap query and parsing, place disambiguation and search radius, Google Maps search link
+  shortlist.js       the buyer's shortlist: statuses, three-quote progress, comparison table (CSV)
   countries.js       23 country profiles: currency, tax, tax-ID check digits, phone habits, registries
   capture.js         business card / flyer / WhatsApp text -> draft supplier
   quotes.js          units, packs, minimum order, tax, shipping, FX, payment terms
@@ -164,8 +167,9 @@ src/connectors/    OpenStreetMap, Socrata/SECOP, OCDS, Google Places, Nominatim 
 src/data/          fictional demo data (Bogotá, Mexico City and São Paulo)
 cli/scout.js       connectors, CSV import, merge and rank from the terminal (args.js: shared parser)
 agent/             Claude agent: tools, loop, system prompt, CLI
-demo/              the web app (GitHub Pages): app.js, live.js (the only file that uses the network), i18n.js (ES/EN/PT/FR texts), self-hosted IBM Plex fonts
-tests/             164 tests: core, regional formats, connectors against API-shaped fixtures,
+demo/              the web app (GitHub Pages): app.js, live.js (the only file that uses the network), map.js (OSM tiles + markers,
+                   no library), i18n.js (ES/EN/PT/FR texts), self-hosted IBM Plex fonts
+tests/             169 tests: core, regional formats, connectors against API-shaped fixtures,
                    CLI, agent loop with a scripted model, demo security guards
 docs/              how it works (ES/EN), screenshots, the offline playbook and the country coverage table
 ```
@@ -211,10 +215,10 @@ npm run agent -- --dry-run --db data/all.json --category packaging --qty 500 --l
 
 Being explicit, because this matters more than the feature list:
 
-- **Tested (164 automated tests in CI):** all core logic; every country profile; check digits with fictional numbers that pass and fail; cards and WhatsApp messages written the way suppliers write in Mexico, the Dominican Republic, Brazil, Ecuador, Chile, Peru, Costa Rica and France; the connectors against fictional fixtures shaped like each API's documented responses (OCDS included); the CLI end to end; the agent loop against a scripted stand-in for the Claude API (tool calls, parallel results, errors, refusals, step limit, append-only history, no invented suppliers, no phones sent to the model); that every interface text exists in the four languages; how typed requests are understood in four languages; the live map search with simulated OpenStreetMap responses (geocoding, results, errors, size and time limits); the demo's CSP and rendering guards; speed at the import limits. The web app was checked in Chromium in the four languages, in light and dark mode, on desktop and on a 390 px phone viewport.
+- **Tested (169 automated tests in CI):** all core logic; every country profile; check digits with fictional numbers that pass and fail; cards and WhatsApp messages written the way suppliers write in Mexico, the Dominican Republic, Brazil, Ecuador, Chile, Peru, Costa Rica and France; the connectors against fictional fixtures shaped like each API's documented responses (OCDS included); the CLI end to end; the agent loop against a scripted stand-in for the Claude API (tool calls, parallel results, errors, refusals, step limit, append-only history, no invented suppliers, no phones sent to the model); that every interface text exists in the four languages; how typed requests are understood in four languages; place disambiguation and the city-wide radius; the shortlist and its CSV; the live map search, driving times and retries with simulated OpenStreetMap and OSRM responses (geocoding, results, errors, size and time limits); the demo's CSP and rendering guards; speed at the import limits. The web app was checked in Chromium in the four languages, in light and dark mode, on desktop and on a 390 px phone viewport.
 - **Checked against official sources, not against live systems:** the check-digit algorithms were compared with examples published by each tax authority (those real numbers are not kept in the repository). Tax rates, portal names and law names are as of 2026 and are editable defaults, not tax or legal advice.
 - **Not yet run against the live services:** the development environment could not reach OpenStreetMap (so the in-browser search was tested end to end with simulated responses shaped like the real ones), datos.gov.co, OCDS publishers, Google or the Claude API. The request formats follow each service's documentation, but the first real run may need small adjustments. The SECOP connector reads the dataset's columns at run time (`--describe` shows the mapping) precisely because I could not verify their names.
-- **Known limits:** GitHub Pages cannot send security headers, so the CSP is a `<meta>` tag and cannot forbid framing (the page has no sensitive actions to hijack); distance is a straight line, not travel time; tax rates are editable defaults and import duties are not included; the capture parser handles common formats and anything unusual needs a manual fix, which is why every capture goes to review.
+- **Known limits:** GitHub Pages cannot send security headers, so the CSP is a `<meta>` tag and cannot forbid framing (the page has no sensitive actions to hijack); driving times come from the OSRM demo server, ignore traffic and fall back to straight-line distance when it is unavailable; tax rates are editable defaults and import duties are not included; the capture parser handles common formats and anything unusual needs a manual fix, which is why every capture goes to review.
 
 ## Roadmap
 
@@ -222,7 +226,7 @@ Being explicit, because this matters more than the feature list:
 - **Photo of a business card:** OCR (a local model such as Qwen, or Claude vision) feeding the same rule-based parser.
 - **WhatsApp inbox to review queue** with an n8n flow.
 - Run the agent with a local model for zero API cost.
-- Travel time instead of straight-line distance; landed cost for imports (duties, freight).
+- Landed cost
 - An agent tool for OCDS publishers; check digits for Mexico's RFC homoclave and Venezuela's RIF.
 
 ## About
@@ -242,6 +246,7 @@ Companion project: [Supplier Radar](https://github.com/Dsergio909/supplier-radar
 - **Entiende lo que necesitas y busca negocios reales en el mapa:** escribes *mantenimiento de aires acondicionados*, *plomero*, *recarga de extintores* o *cajas de cartón*, más la ciudad, el pueblo o el barrio (o usas tu ubicación). Si hay varios pueblos con el mismo nombre, te muestra cuál eligió y te ofrece los otros. Unas reglas (sin IA) lo convierten en etiquetas de OpenStreetMap y palabras del nombre del negocio, y la app te dice qué entendió. Busca en OpenStreetMap, donde aparecen muchos talleres y locales sin página web, dice cuántos no tienen web, enlaza cada resultado a su ficha y con un clic abre la misma búsqueda en Google Maps (enlace oficial: sin claves y sin copiar datos).
 - **Busca por ubicación:** distancia desde tu punto de entrega, radio de búsqueda y proveedores que hacen envíos.
 - **Sin cantidades para buscar:** en compras primero se buscan opciones y la cantidad se negocia después. El ranking usa el precio por unidad cotizado (si lo hay), la distancia, las reseñas, la confianza y la rapidez. Cuando ya tienes cotizaciones, la pestaña Cotizaciones calcula el costo real del pedido: paquetes completos, compra mínima, IVA, envío, moneda y el valor de pagar a plazo.
+- **Mapa real y lista corta:** los resultados aparecen en un mapa de OpenStreetMap con el tiempo aproximado en carro a cada negocio. *Mi lista* guarda los que vas a contactar, su estado y el avance hacia las tres cotizaciones que se suelen pedir, y descarga el cuadro comparativo para Excel o Sheets. La solicitud de cotización puede pedir los documentos para inscribir al proveedor (RUT, Cámara de Comercio, certificación bancaria, cédula).
 - **Reseñas justas:** un 5.0 con 2 reseñas no le gana a un 4.7 con 300, y "sin reseñas" cuenta como neutro, no como malo. Las reseñas de tu equipo pesan más.
 - **Proveedores fuera de internet:** conectores a OpenStreetMap (cualquier país) y a SECOP II (Colombia), importación de CSV (ferias, cámaras de comercio), lector de tarjetas, volantes y mensajes de WhatsApp (funciona sin IA y sin internet) y una red de recomendaciones donde solo cuentan las independientes.
 - **Revisión humana:** lo capturado y los posibles duplicados pasan a una cola de revisión. Las solicitudes de cotización y de recomendaciones se redactan para que **tú** las envíes.

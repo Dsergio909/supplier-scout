@@ -22,6 +22,12 @@
   var OVERPASS_RETRY_MS = 3000;
   // Enough for a whole town; the ranking orders them by distance.
   var MAX_RESULTS = 150;
+  // Driving times from the OSRM demo server (FOSSGIS): one table request per
+  // search, at most 100 places, non-commercial use. If it fails, the page
+  // falls back to straight-line distance.
+  var ROUTES_ENDPOINT = 'https://router.project-osrm.org/table/v1/driving/';
+  var MAX_ROUTED = 99;
+  var ROUTES_TIMEOUT_MS = 12000;
   var TIMEOUT_MS = 30000;
 
   function LiveError(code, detail) {
@@ -30,9 +36,9 @@
     return err;
   }
 
-  function fetchJson(url, init) {
+  function fetchJson(url, init, timeoutMs) {
     var controller = new AbortController();
-    var timer = setTimeout(function () { controller.abort(); }, TIMEOUT_MS);
+    var timer = setTimeout(function () { controller.abort(); }, timeoutMs || TIMEOUT_MS);
     var options = Object.assign({
       headers: { Accept: 'application/json' },
       // The page sets no-referrer for its links; OSM's policy asks API callers for one.
@@ -71,6 +77,38 @@
         return { places: Osm.parsePlaces(world), movedFrom: country };
       });
     });
+  }
+
+  function distanceKm(a, b) {
+    var rad = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * rad;
+    var dLng = (b.lng - a.lng) * rad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  /**
+   * Driving time and road distance from `point` to the nearest suppliers.
+   * Resolves { [supplierId]: { minutes, km } }, or null when the service fails.
+   */
+  function travelTimes(point, suppliers) {
+    var placed = suppliers.filter(function (s) { return s.lat != null && s.lng != null; })
+      .sort(function (a, b) { return distanceKm(point, a) - distanceKm(point, b); })
+      .slice(0, MAX_ROUTED);
+    if (!placed.length) return Promise.resolve(null);
+    var coords = [point].concat(placed).map(function (p) { return Number(p.lng).toFixed(6) + ',' + Number(p.lat).toFixed(6); }).join(';');
+    return fetchJson(ROUTES_ENDPOINT + coords + '?sources=0&annotations=duration,distance', null, ROUTES_TIMEOUT_MS).then(function (json) {
+      if (!json || json.code !== 'Ok' || !Array.isArray(json.durations) || !Array.isArray(json.durations[0])) return null;
+      var out = {};
+      placed.forEach(function (s, i) {
+        var sec = json.durations[0][i + 1];
+        var m = json.distances && json.distances[0] ? json.distances[0][i + 1] : null;
+        if (typeof sec === 'number' && isFinite(sec) && sec >= 0) {
+          out[s.id] = { minutes: Math.max(1, Math.round(sec / 60)), km: typeof m === 'number' && isFinite(m) ? Math.round(m / 100) / 10 : null };
+        }
+      });
+      return out;
+    }, function () { return null; });
   }
 
   /**
@@ -116,7 +154,9 @@
       }).then(function (json) {
         var found = Osm.normalize(json, { country: country, category: category });
         var short = (point.label || place).slice(0, 60);
-        return {
+        var routes = p.noRoutes ? Promise.resolve(null) : travelTimes(point, found.suppliers);
+        return routes.then(function (travel) { return {
+          travel: travel,
           point: point,
           alternatives: loc.given ? [] : loc.places.slice(1),
           movedFrom: loc.movedFrom && country !== loc.movedFrom ? loc.movedFrom : null,
@@ -140,7 +180,7 @@
             quotes: [],
             referrals: []
           }
-        };
+        }; });
       });
     });
   }

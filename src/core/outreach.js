@@ -79,7 +79,33 @@
   };
 
   /**
-   * need: { category, item, quantity, unit, neededInDays, deliveryZone, service }.
+   * What purchasing usually asks for before registering a new supplier. Colombia
+   * has a well-known list (RUT, Cámara de Comercio, bank certificate, ID); other
+   * countries get the same idea named with their own tax ID.
+   */
+  function documentsLine(country, lang) {
+    var profile = Countries.getProfile(country);
+    var taxId = profile.code !== 'XX' && profile.taxIdName ? profile.taxIdName : null;
+    if (profile.code === 'CO') {
+      return {
+        es: 'Si avanzamos, para inscribirlos como proveedor les pediremos: RUT actualizado, certificado de existencia y representación legal de la Cámara de Comercio reciente, certificación bancaria y copia de la cédula del representante legal.',
+        en: 'If we go ahead, to register you as a supplier we will ask for: an up-to-date RUT, a recent Chamber of Commerce certificate of existence and legal representation, a bank certificate and a copy of the legal representative\'s ID.',
+        pt: 'Se avançarmos, para cadastrá-los como fornecedor pediremos: RUT atualizado, certidão recente da Câmara de Comércio, declaração bancária e cópia do documento do representante legal.',
+        fr: 'Si nous avançons, pour vous référencer comme fournisseur nous demanderons : RUT à jour, extrait récent de la Chambre de commerce, attestation bancaire et copie de la pièce d\'identité du représentant légal.'
+      }[language(lang)];
+    }
+    var tax = taxId || { es: 'su identificación tributaria', en: 'your tax ID', pt: 'sua identificação fiscal', fr: 'votre identifiant fiscal' }[language(lang)];
+    return {
+      es: 'Si avanzamos, para inscribirlos como proveedor les pediremos: ' + tax + ', el registro de la empresa, una certificación bancaria y el documento del representante legal.',
+      en: 'If we go ahead, to register you as a supplier we will ask for: ' + tax + ', the company registration, a bank certificate and the legal representative\'s ID.',
+      pt: 'Se avançarmos, para cadastrá-los como fornecedor pediremos: ' + tax + ', o registro da empresa, uma declaração bancária e o documento do representante legal.',
+      fr: 'Si nous avançons, pour vous référencer comme fournisseur nous demanderons : ' + tax + ', l\'immatriculation de l\'entreprise, une attestation bancaire et la pièce d\'identité du représentant légal.'
+    }[language(lang)];
+  }
+
+  /**
+   * need: { category, item, quantity, unit, neededInDays, deliveryZone, service, documents }.
+   * documents: true adds the papers needed to register the supplier.
    * service: true asks for the price of a service instead of unit price and pack size.
    * country (optional) names the local sales tax: "si incluye IGV" in Peru, "ITBIS" in the Dominican Republic.
    */
@@ -88,7 +114,9 @@
     var what = need.item || categoryLabel(need.category, l).toLowerCase();
     var unit = UNIT_LABEL[l][need.unit] || need.unit || '';
     var qty = need.quantity ? need.quantity + ' ' + unit + ' ' : '';
-    return RFQ[l](supplierName ? ' ' + supplierName : '', qty, what, need.deliveryZone, need.neededInDays, taxName(country, l), !!need.service).join('\n');
+    var lines = RFQ[l](supplierName ? ' ' + supplierName : '', qty, what, need.deliveryZone, need.neededInDays, taxName(country, l), !!need.service);
+    if (need.documents) lines.splice(lines.length - 1, 0, documentsLine(country, l));
+    return lines.join('\n');
   }
 
   var REFERRAL = {

@@ -18,14 +18,15 @@ test('every script the page loads exists and is one Pages deploys (demo/, src/co
   }
 });
 
-test('strict Content-Security-Policy: own scripts only, network only to OpenStreetMap, no inline code', () => {
+test('strict Content-Security-Policy: own scripts only, network only to OpenStreetMap services, no inline code', () => {
   const csp = /http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html)[1];
   assert.match(csp, /default-src 'none'/);
   const directives = Object.fromEntries(csp.split(';').map((d) => d.trim().split(/\s+/)).map(([k, ...v]) => [k, v]));
-  assert.deepEqual(directives['connect-src'], ['https://nominatim.openstreetmap.org', 'https://overpass-api.de'],
-    'the live search may reach the two OpenStreetMap services and nothing else');
+  assert.deepEqual(directives['connect-src'], ['https://nominatim.openstreetmap.org', 'https://overpass-api.de', 'https://router.project-osrm.org'],
+    'the live search may reach place search, map data and driving times (all OpenStreetMap-based) and nothing else');
+  assert.deepEqual(directives['img-src'], ["'self'", 'https://tile.openstreetmap.org'], 'map tiles come only from OpenStreetMap');
   for (const [name, values] of Object.entries(directives)) {
-    if (name !== 'connect-src') assert.ok(!values.some((v) => /^https?:/.test(v)), `${name} allows no other site (fonts are self-hosted)`);
+    if (name !== 'connect-src' && name !== 'img-src') assert.ok(!values.some((v) => /^https?:/.test(v)), `${name} allows no other site (fonts are self-hosted)`);
   }
   assert.doesNotMatch(html, /<link[^>]+href="https?:/, 'no stylesheet or font from another site');
   assert.match(csp, /script-src 'self'(;|$)/);

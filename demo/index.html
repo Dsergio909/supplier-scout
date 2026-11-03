@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src https://nominatim.openstreetmap.org https://overpass-api.de; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' https://tile.openstreetmap.org; connect-src https://nominatim.openstreetmap.org https://overpass-api.de https://router.project-osrm.org; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <title>Supplier Scout</title>
@@ -51,10 +51,11 @@
 
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button type="button" role="tab" id="tab-search" aria-controls="panel-search" data-tab="search"><span>1</span> <span data-i18n="tabSearch"></span></button>
-    <button type="button" role="tab" id="tab-quotes" aria-controls="panel-quotes" data-tab="quotes"><span>2</span> <span data-i18n="tabQuotes"></span></button>
-    <button type="button" role="tab" id="tab-offline" aria-controls="panel-offline" data-tab="offline"><span>3</span> <span data-i18n="tabOffline"></span></button>
-    <button type="button" role="tab" id="tab-review" aria-controls="panel-review" data-tab="review"><span>4</span> <span data-i18n="tabReview"></span> <span id="reviewBadge" class="badge"></span></button>
-    <button type="button" role="tab" id="tab-data" aria-controls="panel-data" data-tab="data"><span>5</span> <span data-i18n="tabData"></span></button>
+    <button type="button" role="tab" id="tab-list" aria-controls="panel-list" data-tab="list"><span>2</span> <span data-i18n="tabList"></span> <span id="listBadge" class="badge"></span></button>
+    <button type="button" role="tab" id="tab-quotes" aria-controls="panel-quotes" data-tab="quotes"><span>3</span> <span data-i18n="tabQuotes"></span></button>
+    <button type="button" role="tab" id="tab-offline" aria-controls="panel-offline" data-tab="offline"><span>4</span> <span data-i18n="tabOffline"></span></button>
+    <button type="button" role="tab" id="tab-review" aria-controls="panel-review" data-tab="review"><span>5</span> <span data-i18n="tabReview"></span> <span id="reviewBadge" class="badge"></span></button>
+    <button type="button" role="tab" id="tab-data" aria-controls="panel-data" data-tab="data"><span>6</span> <span data-i18n="tabData"></span></button>
   </nav>
 
   <!-- 1 · SEARCH -->
@@ -75,9 +76,10 @@
       </form>
       <p class="understood" id="understood" aria-live="polite"></p>
       <div class="try-row"><span data-i18n="tryLabel"></span><span id="tryChips" class="try-chips"></span></div>
+      <div class="try-row" id="recentRow" hidden><span data-i18n="recentLabel"></span><span id="recentChips" class="try-chips"></span></div>
       <p id="liveStatus" class="status-line" role="status" aria-live="polite"></p>
       <div class="alt-row" id="altRow" hidden><span data-i18n="altLabel"></span><span id="altChips" class="try-chips"></span></div>
-      <p class="fine"><span data-i18n="mapsHint"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span id="liveBackWrap" hidden> · <button type="button" class="linkish" id="liveBack" data-i18n="liveBack"></button></span></p>
+      <p class="fine"><span data-i18n="mapsHint"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span id="routesCredit" hidden> · <span data-i18n="routesCredit"></span></span><span id="liveBackWrap" hidden> · <button type="button" class="linkish" id="liveBack" data-i18n="liveBack"></button></span></p>
     </section>
 
     <div class="grid search-grid">
@@ -98,7 +100,7 @@
 
       <section class="panel radar-panel">
         <div class="panel-head"><h2 data-i18n="radarTitle"></h2><span class="hint-inline" id="radarHint"></span></div>
-        <svg id="radar" viewBox="0 0 320 320" role="img" aria-labelledby="radarDesc"><desc id="radarDesc"></desc></svg>
+        <div id="map" class="map"></div>
         <ul class="legend-row" id="sourceLegend"></ul>
       </section>
     </div>
@@ -112,7 +114,21 @@
     </section>
   </section>
 
-  <!-- 2 · QUOTES -->
+  <!-- 2 · SHORTLIST -->
+  <section id="panel-list" role="tabpanel" aria-labelledby="tab-list" class="tabpanel" hidden>
+    <section class="panel">
+      <div class="panel-head"><div><h2 data-i18n="listTitle"></h2><p class="meta" data-i18n="listHint"></p></div></div>
+      <div class="goal" id="listGoal"></div>
+      <div class="table-wrap"><table id="listTable" class="list-table"></table></div>
+      <div class="actions list-actions">
+        <button type="button" id="listCsv" class="btn primary" data-i18n="listCsv"></button>
+        <button type="button" id="listClear" class="btn" data-i18n="listClear"></button>
+      </div>
+      <p class="fine" data-i18n="listPrivacy"></p>
+    </section>
+  </section>
+
+  <!-- 3 · QUOTES -->
   <section id="panel-quotes" role="tabpanel" aria-labelledby="tab-quotes" class="tabpanel" hidden>
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="quotesTitle"></h2></div>
@@ -276,11 +292,13 @@ npm run agent -- "Necesito 500 cajas de cartón cerca de Fontibón, Bogotá, en 
 <script src="../src/core/score.js"></script>
 <script src="../src/core/capture.js"></script>
 <script src="../src/core/csv.js"></script>
+<script src="../src/core/shortlist.js"></script>
 <script src="../src/core/messages.js"></script>
 <script src="../src/core/outreach.js"></script>
 <script src="../src/data/sample.js"></script>
 <script src="i18n.js"></script>
 <script src="live.js"></script>
+<script src="map.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

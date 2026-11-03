@@ -51,6 +51,9 @@ test('live search: geocodes, queries Overpass and returns a dataset the demo can
   const Live = loadLive((url, init) => {
     calls.push({ url, init });
     if (url.startsWith(Osm.GEOCODE_ENDPOINT)) return response(200, [{ lat: '4.628', lon: '-74.151', display_name: 'Kennedy, Bogotá' }]);
+    if (url.startsWith('https://router.project-osrm.org/')) {
+      return response(200, { code: 'Ok', durations: [[0, 420, 900]], distances: [[0, 2150, 6400]] });
+    }
     return response(200, { elements: [
       { type: 'node', id: 1, lat: 4.63, lon: -74.15, tags: { name: 'Ferretería El Tornillo', shop: 'hardware', phone: '601 555 1234' } },
       { type: 'way', id: 2, center: { lat: 4.62, lon: -74.16 }, tags: { name: 'Depósito La 38', shop: 'hardware', website: 'https://deposito.example' } },
@@ -58,7 +61,11 @@ test('live search: geocodes, queries Overpass and returns a dataset the demo can
     ] });
   });
   const res = await Live.search({ place: 'Kennedy, Bogotá', country: 'CO', category: 'hardware', radiusKm: 25, fx: { USD: 3900 } });
-  assert.equal(calls.length, 2, 'one geocoding call and one Overpass call');
+  assert.equal(calls.length, 3, 'one geocoding call, one Overpass call and one driving-times call');
+  const route = new URL(calls[2].url);
+  assert.equal(route.searchParams.get('sources'), '0');
+  assert.equal(route.pathname.split(';').length, 3, 'origin plus the two named places, in one table request');
+  assert.deepEqual(plain(res.travel), { 'osm-node-1': { minutes: 7, km: 2.2 }, 'osm-way-2': { minutes: 15, km: 6.4 } });
   assert.equal(calls[0].init.referrerPolicy, 'strict-origin-when-cross-origin', 'Nominatim asks browser apps for a Referer');
   assert.equal(calls[1].init.method, 'POST');
   assert.match(decodeURIComponent(calls[1].init.body), /around:10000,4\.628,-74\.151/, 'radius capped at 10 km');
@@ -86,6 +93,7 @@ test('live search: what the buyer typed decides the map query, with no quantity'
   let body = '';
   const Live = loadLive((url, init) => {
     if (url.startsWith(Osm.GEOCODE_ENDPOINT)) return response(200, [{ lat: '4.628', lon: '-74.151' }]);
+    if (url.startsWith('https://router.project-osrm.org/')) return response(503, {});
     body = decodeURIComponent(init.body);
     return response(200, { elements: [{ type: 'node', id: 9, lat: 4.63, lon: -74.15, tags: { name: 'Refrigeración Polar', craft: 'hvac' } }] });
   });
@@ -95,6 +103,7 @@ test('live search: what the buyer typed decides the map query, with no quantity'
   assert.equal(res.dataset.needs[0].item, 'mantenimiento de aires acondicionados');
   assert.equal(res.dataset.needs[0].quantity, null);
   assert.equal(res.dataset.suppliers[0].name, 'Refrigeración Polar');
+  assert.equal(res.travel, null, 'if driving times fail, the search still works with straight-line distance');
   await assert.rejects(Live.search({ what: 'de la', place: 'X', country: 'CO' }), { code: 'nothing-to-search' });
 });
 
