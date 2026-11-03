@@ -62,30 +62,25 @@
     <section class="panel live" id="livePanel">
       <div class="panel-head"><div><h2 data-i18n="liveTitle"></h2><p class="meta" data-i18n="liveHint"></p></div></div>
       <form class="live-form" id="liveForm" autocomplete="off">
-        <label><span data-i18n="liveCategory"></span><select id="liveCategory"></select></label>
-        <label><span data-i18n="liveCountry"></span><select id="liveCountry"></select></label>
+        <label class="what"><span data-i18n="whatLabel"></span><input id="liveWhat" type="search" maxlength="120" required></label>
         <label class="grow"><span data-i18n="livePlace"></span><input id="livePlace" type="text" maxlength="120" required></label>
+        <label><span data-i18n="liveCountry"></span><select id="liveCountry"></select></label>
         <div class="live-actions">
           <button type="submit" class="btn primary" id="liveSearch" data-i18n="liveButton"></button>
           <a class="btn" id="mapsLink" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer"><span data-i18n="mapsButton"></span> ↗</a>
         </div>
       </form>
+      <p class="understood" id="understood" aria-live="polite"></p>
+      <div class="try-row"><span data-i18n="tryLabel"></span><span id="tryChips" class="try-chips"></span></div>
       <p id="liveStatus" class="status-line" role="status" aria-live="polite"></p>
       <p class="fine"><span data-i18n="mapsHint"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span id="liveBackWrap" hidden> · <button type="button" class="linkish" id="liveBack" data-i18n="liveBack"></button></span></p>
     </section>
 
     <div class="grid search-grid">
       <form class="panel need" id="needForm" autocomplete="off">
-        <div class="panel-head"><h2 data-i18n="needTitle"></h2></div>
-        <label class="full"><span data-i18n="example"></span><select id="needPreset"></select></label>
-        <label><span data-i18n="category"></span><select id="category"></select></label>
-        <label><span data-i18n="item"></span><input id="item" type="text" maxlength="120"></label>
-        <label><span data-i18n="quantity"></span><input id="quantity" type="number" min="0" step="any"></label>
-        <label><span data-i18n="unit"></span><select id="unit"></select></label>
-        <label><span data-i18n="origin"></span><select id="origin"></select></label>
-        <label><span data-i18n="days"></span><input id="days" type="number" min="0" step="1"></label>
+        <div class="panel-head"><h2 data-i18n="filtersTitle"></h2></div>
+        <label class="full" id="originField"><span data-i18n="origin"></span><select id="origin"></select></label>
         <label class="full"><span><span data-i18n="radius"></span> <strong id="radiusOut"></strong></span><input id="radius" type="range" min="1" max="25" step="1"></label>
-        <label class="full"><span data-i18n="budget"></span><input id="budget" type="number" min="0" step="any"></label>
         <fieldset class="full priorities">
           <legend data-i18n="priority"></legend>
           <div id="presets" class="preset-row"></div>
@@ -94,6 +89,7 @@
           <summary data-i18n="weights"></summary>
           <div id="weightSliders"></div>
         </details>
+        <p class="full hint" data-i18n="noQtyHint"></p>
       </form>
 
       <section class="panel radar-panel">
@@ -117,6 +113,12 @@
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="quotesTitle"></h2></div>
       <p class="hint" data-i18n="quotesHint"></p>
+      <div class="settings order">
+        <label><span data-i18n="category"></span><select id="category"></select></label>
+        <label><span data-i18n="item"></span><input id="item" type="text" maxlength="120"></label>
+        <label><span data-i18n="quantity"></span><input id="quantity" type="number" min="0" step="any"></label>
+        <label><span data-i18n="unit"></span><select id="unit"></select></label>
+      </div>
       <div class="settings">
         <label><span data-i18n="vat"></span><input id="vat" type="number" min="0" max="100" step="0.5"></label>
         <label><span data-i18n="monthlyRate"></span><input id="monthlyRate" type="number" min="0" max="20" step="0.1"></label>
@@ -260,6 +262,7 @@ npm run agent -- "Necesito 500 cajas de cartón cerca de Fontibón, Bogotá, en 
 <script src="../src/core/countries.js"></script>
 <script src="../src/core/categories.js"></script>
 <script src="../src/core/osm.js"></script>
+<script src="../src/core/services.js"></script>
 <script src="../src/core/geo.js"></script>
 <script src="../src/core/quotes.js"></script>
 <script src="../src/core/schema.js"></script>

@@ -50,11 +50,41 @@
 
   /**
    * db:   { suppliers, quotes, referrals }
-   * need: { category, quantity, unit, origin: { lat, lng }, radiusKm, neededInDays, budget, weights }
+   * need: { category | categories, quantity, unit, origin: { lat, lng }, radiusKm, neededInDays, budget, weights }
+   *
+   * Without a quantity (the usual case when you are still looking for options
+   * and will negotiate amounts later) quotes are compared by unit price with
+   * tax, for the smallest amount each supplier sells; shipping is left out.
    * settings: quote settings (country, vatRate, fx, monthlyRate) — see quotes.landedCost
    *
    * Returns { ranked: [...], excluded: [...] }, ranked best first.
    */
+  /**
+   * Price per unit with tax for the smallest amount the supplier sells (one
+   * pack, or the minimum order), in the base currency. presentValue is that
+   * unit price discounted by the payment term, so quotes compare like totals do.
+   */
+  function unitPrice(quote, settings) {
+    var per = quote.per || {};
+    var probe = Quotes.landedCost(quote, { quantity: per.qty, unit: per.unit }, settings);
+    if (!probe.ok) return probe;
+    var moq = quote.minOrder ? Quotes.toBase(quote.minOrder.qty, quote.minOrder.unit, settings.country) : null;
+    var pack = Quotes.toBase(per.qty, per.unit, settings.country);
+    var min = moq && pack && moq.unit === probe.unit && moq.qty > pack.qty ? moq.qty : null;
+    var price = (probe.subtotal + probe.tax) / probe.purchased;
+    var months = (Number(quote.paymentDays) || 0) / 30;
+    var monthlyRate = Number(settings.monthlyRate) || 0;
+    return {
+      ok: true,
+      unitPrice: Math.round(price * 100) / 100,
+      unit: probe.unit,
+      minOrder: min,
+      currency: probe.currency,
+      presentValue: price / Math.pow(1 + monthlyRate, months),
+      warnings: probe.warnings.filter(function (w) { return w.code === 'fx_manual' || w.code === 'regional_unit'; })
+    };
+  }
+
   function rankSuppliers(db, need, settings) {
     var weights = Object.assign({}, PRESETS.balanced, need.weights || {});
     var radius = Number(need.radiusKm) > 0 ? Number(need.radiusKm) : 10;
@@ -67,17 +97,19 @@
     });
     var candidates = [];
     var excluded = [];
+    var wantedCats = (Array.isArray(need.categories) ? need.categories : [need.category]).filter(Boolean);
+    var byUnit = !(Number(need.quantity) > 0);
 
     db.suppliers.forEach(function (supplier) {
-      if (need.category && (supplier.categories || []).indexOf(need.category) === -1) return;
+      if (wantedCats.length && !(supplier.categories || []).some(function (c) { return wantedCats.indexOf(c) !== -1; })) return;
       var km = Geo.distanceKm(need.origin, supplier);
       if (km !== null && km > radius && !supplier.ships) {
         excluded.push({ supplier: supplier, reason: { code: 'out_of_radius', km: round2(km) } });
         return;
       }
       var costs = (quotesBySupplier.get(supplier.id) || [])
-        .filter(function (q) { return !need.category || !q.category || q.category === need.category; })
-        .map(function (q) { return { quote: q, cost: Quotes.landedCost(q, need, settings) }; });
+        .filter(function (q) { return !wantedCats.length || !q.category || wantedCats.indexOf(q.category) !== -1; })
+        .map(function (q) { return { quote: q, cost: byUnit ? unitPrice(q, settings) : Quotes.landedCost(q, need, settings) }; });
       var valid = costs.filter(function (c) { return c.cost.ok; });
       valid.sort(function (x, y) { return x.cost.presentValue - y.cost.presentValue; });
       candidates.push({
@@ -100,7 +132,11 @@
       var warnings = [];
 
       // price
-      if (c.best) {
+      if (c.best && byUnit) {
+        factors.price = cheapest > 0 ? clamp01(cheapest / c.best.cost.presentValue) : 1;
+        evidence.push({ code: 'unit_price', unitPrice: c.best.cost.unitPrice, unit: c.best.cost.unit, minOrder: c.best.cost.minOrder, paymentDays: c.best.quote.paymentDays || 0 });
+        c.best.cost.warnings.forEach(function (w) { (w.code === 'fx_manual' ? evidence : warnings).push(w); });
+      } else if (c.best) {
         factors.price = cheapest > 0 ? clamp01(cheapest / c.best.cost.presentValue) : 1;
         evidence.push({ code: 'price', total: c.best.cost.total, unitCost: c.best.cost.unitCost, currency: c.best.cost.currency, paymentDays: c.best.quote.paymentDays || 0 });
         c.best.cost.warnings.forEach(function (w) { (w.code === 'fx_manual' ? evidence : warnings).push(w); });

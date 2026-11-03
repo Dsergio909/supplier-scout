@@ -108,7 +108,15 @@ main.shell { display: grid; gap: var(--s4); padding-top: var(--s4); padding-bott
 
 /* ---------- live search ---------- */
 .live { border-top: 3px solid var(--brand); }
-.live-form { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(140px, .8fr) minmax(220px, 1.6fr) auto; gap: var(--s3); align-items: end; }
+.live-form { display: grid; grid-template-columns: minmax(240px, 2fr) minmax(180px, 1.3fr) minmax(130px, .8fr) auto; gap: var(--s3); align-items: end; }
+.live-form .what input { font-size: 16px; }
+.understood { margin: var(--s3) 0 0; color: var(--muted); display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; min-height: 20px; }
+.understood:empty { display: none; }
+.understood .tag-ok { background: var(--brand-tint); color: var(--brand); border-radius: 2px; padding: 2px var(--s2); font-size: 13px; font-weight: 500; }
+.try-row { margin-top: var(--s3); display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; color: var(--faint); font-size: 12px; letter-spacing: .32px; }
+.try-chips { display: contents; }
+.try-chips button { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; height: 28px; padding: 0 var(--s3); font-size: 13px; letter-spacing: 0; color: var(--text); cursor: pointer; }
+.try-chips button:hover { border-color: var(--brand); color: var(--brand); }
 .live-actions { display: flex; gap: var(--s2); flex-wrap: wrap; }
 .live .status-line { margin-top: var(--s3); }
 .linkish { border: 0; background: none; padding: 0; color: var(--brand); text-decoration: underline; text-underline-offset: 3px; font-size: inherit; }
@@ -140,7 +148,7 @@ main.shell { display: grid; gap: var(--s4); padding-top: var(--s4); padding-bott
 .need .panel-head { margin-bottom: 0; }
 label { display: grid; gap: var(--s1); font-size: 12px; line-height: 16px; letter-spacing: .32px; color: var(--muted); min-width: 0; }
 label.check { display: flex; gap: var(--s2); align-items: center; font-size: 14px; letter-spacing: .16px; color: var(--text); }
-input[type="text"], input[type="number"], select, textarea {
+input[type="text"], input[type="search"], input[type="number"], select, textarea {
   background: var(--surface); border: 1px solid var(--line); border-bottom-color: var(--faint); border-radius: 0; height: 36px; padding: 0 var(--s3);
   color: var(--text); width: 100%; min-width: 0; font-size: 14px; letter-spacing: .16px;
 }
@@ -159,6 +167,7 @@ details.weights summary { cursor: pointer; color: var(--brand); font-size: 13px;
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); margin: var(--s3) 0; }
 .form-grid .full { grid-column: 1 / -1; }
 .settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); margin-bottom: var(--s3); }
+.settings.order { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, .7fr) minmax(0, .8fr); }
 .stack { display: block; }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); background: var(--surface); border: 1px solid var(--line); color: var(--text); height: 36px; padding: 0 var(--s4); border-radius: 2px; font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; }
@@ -286,7 +295,7 @@ tr.invalid td { color: var(--faint); }
 /* ---------- responsive ---------- */
 @media (max-width: 960px) {
   .live-form { grid-template-columns: 1fr 1fr; }
-  .live-form .grow, .live-actions { grid-column: 1 / -1; }
+  .live-form .what, .live-actions { grid-column: 1 / -1; }
 }
 @media (max-width: 900px) {
   .grid, .search-grid, .pair, .ways-list, .country-info { grid-template-columns: 1fr; }
@@ -295,7 +304,7 @@ tr.invalid td { color: var(--faint); }
   .kpi:nth-child(3) { border-left: 0; }
   .kpi:nth-child(n+3) { border-top: 1px solid var(--line-soft); }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .settings { grid-template-columns: 1fr; }
+  .settings, .settings.order { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .module, .controls .link { display: none; }

@@ -19,6 +19,14 @@
   }
 
   // Base units from quotes.js, in each language ("1000 unit" -> "1000 unidades").
+  // One unit: "por unidad", "per unit".
+  var UNIT_ONE = {
+    es: { unit: 'unidad', kg: 'kg', m: 'metro', l: 'litro' },
+    en: { unit: 'unit', kg: 'kg', m: 'metre', l: 'litre' },
+    pt: { unit: 'unidade', kg: 'kg', m: 'metro', l: 'litro' },
+    fr: { unit: 'unité', kg: 'kg', m: 'mètre', l: 'litre' }
+  };
+
   var UNIT_WORDS = {
     es: { unit: 'unidades', kg: 'kg', m: 'metros', l: 'litros' },
     en: { unit: 'units', kg: 'kg', m: 'metres', l: 'litres' },
@@ -26,8 +34,9 @@
     fr: { unit: 'unités', kg: 'kg', m: 'mètres', l: 'litres' }
   };
 
-  function unitWord(unit, lang) {
-    var words = UNIT_WORDS[lang] || UNIT_WORDS.en;
+  function unitWord(unit, lang, one) {
+    var table = one === 1 ? UNIT_ONE : UNIT_WORDS;
+    var words = table[lang] || table.en;
     return Object.prototype.hasOwnProperty.call(words, unit) ? words[unit] : unit;
   }
 
@@ -58,6 +67,7 @@
 
   var TEXT = {
     es: {
+      unit_price: function (p, c) { return 'Cotizó ' + c.money(p.unitPrice) + ' por ' + unitWord(p.unit, 'es', 1) + ' con impuestos, sin envío' + (p.minOrder ? '; compra mínima ' + p.minOrder + ' ' + unitWord(p.unit, 'es') : '') + (p.paymentDays ? '; paga a ' + p.paymentDays + ' días' : '') + '. La cantidad y el total se negocian después.'; },
       price: function (p, c) { return 'Tu pedido cuesta ' + c.money(p.total) + ' en total (' + c.money(p.unitCost) + ' por unidad, con impuestos y envío)' + (p.paymentDays ? '; paga a ' + p.paymentDays + ' días' : '') + '.'; },
       rating: function (p) {
         var parts = [p.external ? p.external + ' en línea' : null, p.internal ? p.internal + ' de tu equipo' : null].filter(Boolean);
@@ -101,6 +111,7 @@
       ambiguous: function () { return 'Coincide con más de un registro: decide tú.'; }
     },
     en: {
+      unit_price: function (p, c) { return 'Quoted ' + c.money(p.unitPrice) + ' per ' + unitWord(p.unit, 'en', 1) + ' with tax, before shipping' + (p.minOrder ? '; minimum order ' + p.minOrder + ' ' + unitWord(p.unit, 'en') : '') + (p.paymentDays ? '; pay in ' + p.paymentDays + ' days' : '') + '. Quantity and total are negotiated later.'; },
       price: function (p, c) { return 'Your order costs ' + c.money(p.total) + ' in total (' + c.money(p.unitCost) + ' per unit, tax and shipping included)' + (p.paymentDays ? '; pay in ' + p.paymentDays + ' days' : '') + '.'; },
       rating: function (p) {
         var parts = [p.external ? p.external + ' online' : null, p.internal ? p.internal + ' from your team' : null].filter(Boolean);
@@ -144,6 +155,7 @@
       ambiguous: function () { return 'Matches more than one record: you decide.'; }
     },
     pt: {
+      unit_price: function (p, c) { return 'Orçou ' + c.money(p.unitPrice) + ' por ' + unitWord(p.unit, 'pt', 1) + ' com impostos, sem frete' + (p.minOrder ? '; pedido mínimo ' + p.minOrder + ' ' + unitWord(p.unit, 'pt') : '') + (p.paymentDays ? '; pagamento em ' + p.paymentDays + ' dias' : '') + '. Quantidade e total se negociam depois.'; },
       price: function (p, c) { return 'Seu pedido custa ' + c.money(p.total) + ' no total (' + c.money(p.unitCost) + ' por unidade, com impostos e frete)' + (p.paymentDays ? '; pagamento em ' + p.paymentDays + ' dias' : '') + '.'; },
       rating: function (p) {
         var parts = [p.external ? p.external + ' online' : null, p.internal ? p.internal + ' da sua equipe' : null].filter(Boolean);
@@ -187,6 +199,7 @@
       ambiguous: function () { return 'Coincide com mais de um registro: decida você.'; }
     },
     fr: {
+      unit_price: function (p, c) { return 'Devis de ' + c.money(p.unitPrice) + ' par ' + unitWord(p.unit, 'fr', 1) + ' taxes comprises, hors livraison' + (p.minOrder ? ' ; commande minimum ' + p.minOrder + ' ' + unitWord(p.unit, 'fr') : '') + (p.paymentDays ? ' ; paiement à ' + p.paymentDays + ' jours' : '') + '. La quantité et le total se négocient ensuite.'; },
       price: function (p, c) { return 'Votre commande coûte ' + c.money(p.total) + ' au total (' + c.money(p.unitCost) + ' par unité, taxes et livraison comprises)' + (p.paymentDays ? ' ; paiement à ' + p.paymentDays + ' jours' : '') + '.'; },
       rating: function (p) {
         var parts = [p.external ? p.external + ' en ligne' : null, p.internal ? p.internal + ' de votre équipe' : null].filter(Boolean);

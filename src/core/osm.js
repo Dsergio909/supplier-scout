@@ -42,7 +42,8 @@
    */
   function safeRegex(text) {
     var plain = String(text || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-      .replace(/[^a-z0-9| ]/g, '').replace(/\|{2,}/g, '|').replace(/^\||\|$/g, '').trim().slice(0, 80);
+      .replace(/[^a-z0-9| ]/g, '').replace(/\|{2,}/g, '|').replace(/^\||\|$/g, '').trim();
+    if (plain.length > 200) plain = plain.slice(0, 200).replace(/\|[^|]*$/, '');
     return plain.replace(/[aeiounc]/g, function (ch) { return ACCENTS[ch]; });
   }
 
@@ -62,12 +63,14 @@
     var r = Math.round(Math.min(MAX_RADIUS_M, Math.max(MIN_RADIUS_M, Number(p.radiusM) || 3000)));
     var cat = Categories.byId(p.category);
     var around = '(around:' + r + ',' + coords[0] + ',' + coords[1] + ')';
-    var lines = (cat ? cat.osm : [])
-      .filter(function (kv) { return /^[a-z0-9_:]+$/.test(kv[0]) && /^[a-z0-9_]+$/.test(kv[1]); })
+    var tags = Array.isArray(p.tags) ? p.tags : (cat ? cat.osm : []);
+    var lines = tags
+      .filter(function (kv) { return Array.isArray(kv) && /^[a-z0-9_:]+$/.test(kv[0]) && /^[a-z0-9_]+$/.test(kv[1]); })
+      .slice(0, 12)
       .map(function (kv) { return '  nwr["' + kv[0] + '"="' + kv[1] + '"]' + around + ';'; });
     var hint = safeRegex(p.nameHint != null ? p.nameHint : cat && cat.nameHint);
     if (hint) lines.push('  nwr["name"~"' + hint + '",i]' + around + ';');
-    if (!lines.length) throw new Error('Unknown category and no name hint: nothing to search for');
+    if (!lines.length) throw new Error('There is nothing to search for: give a category, map tags or a name hint');
     var max = Math.min(200, Math.max(1, Number(p.limit) || 60));
     return '[out:json][timeout:25];\n(\n' + lines.join('\n') + '\n);\nout center tags ' + max + ';';
   }

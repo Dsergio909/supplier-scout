@@ -33,6 +33,8 @@ function loadLive(fakeFetch) {
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'src', 'core', 'osm.js'), 'utf8'), ctx);
+  ctx.ScoutText = require('../src/core/text');
+  ctx.ScoutServices = require('../src/core/services');
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'demo', 'live.js'), 'utf8'), ctx);
   return ctx.ScoutLive;
 }
@@ -76,4 +78,20 @@ test('live search: clear error codes for the cases the page explains', async () 
   await assert.rejects(busy.search({ place: 'X', country: 'CO', category: 'hardware' }), { code: 'busy' });
   const offline = loadLive(() => Promise.reject(new TypeError('Failed to fetch')));
   await assert.rejects(offline.search({ place: 'X', country: 'CO', category: 'hardware' }), { code: 'network' });
+});
+
+test('live search: what the buyer typed decides the map query, with no quantity', async () => {
+  let body = '';
+  const Live = loadLive((url, init) => {
+    if (url.startsWith(Osm.GEOCODE_ENDPOINT)) return response(200, [{ lat: '4.628', lon: '-74.151' }]);
+    body = decodeURIComponent(init.body);
+    return response(200, { elements: [{ type: 'node', id: 9, lat: 4.63, lon: -74.15, tags: { name: 'Refrigeración Polar', craft: 'hvac' } }] });
+  });
+  const res = await Live.search({ what: 'mantenimiento de aires acondicionados', place: 'Kennedy, Bogotá', country: 'CO', radiusKm: 5 });
+  assert.match(body, /nwr\["craft"="hvac"\]/);
+  assert.doesNotMatch(body, /plumber/);
+  assert.equal(res.dataset.needs[0].item, 'mantenimiento de aires acondicionados');
+  assert.equal(res.dataset.needs[0].quantity, null);
+  assert.equal(res.dataset.suppliers[0].name, 'Refrigeración Polar');
+  await assert.rejects(Live.search({ what: 'de la', place: 'X', country: 'CO' }), { code: 'nothing-to-search' });
 });

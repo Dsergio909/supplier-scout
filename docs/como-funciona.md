@@ -2,7 +2,7 @@
 
 **Español** · [English](how-it-works.md)
 
-Supplier Scout sirve para encontrar proveedores nuevos, **incluidos los que no tienen página web**, y compararlos por lo que realmente cuesta tu pedido. La [demo](https://dsergio909.github.io/supplier-scout/) funciona en el navegador, sin instalar nada y sin crear cuenta.
+Supplier Scout sirve para encontrar proveedores nuevos de productos **y de servicios**, **incluidos los que no tienen página web**, y compararlos para decidir a quién pedirle cotización. La [demo](https://dsergio909.github.io/supplier-scout/) funciona en el navegador, sin instalar nada y sin crear cuenta.
 
 ## El problema
 
@@ -12,15 +12,29 @@ Buscar un proveedor nuevo suele ser una búsqueda en Google, una hoja de cálcul
 2. **El precio de lista más bajo casi nunca es el pedido más barato.** Paquetes completos, compra mínima, impuesto, envío y plazo de pago cambian la cuenta.
 3. **Las estrellas engañan.** Un 5,0 con 2 reseñas no vale más que un 4,7 con 300, y "sin reseñas" no significa "malo".
 
-## Buscar negocios reales cerca de ti
+## Buscar proveedores cerca de ti
 
-Arriba de la pestaña **Buscar** está el panel **Buscar negocios reales**:
+Arriba de la pestaña **Buscar** está el buscador:
 
-1. Elige **qué buscas** (ferretería, empaques, impresión, textiles, aseo, etc.), el **país** y escribe **la zona o barrio y la ciudad**, por ejemplo *Kennedy, Bogotá*.
-2. Pulsa **Buscar en el mapa**. En unos segundos aparecen en el ranking los negocios que existen de verdad en esa zona, con su teléfono, dirección y horario cuando el mapa los tiene.
-3. El mensaje de resultado dice cuántos encontró, **cuántos no tienen página web** y cuántos tienen teléfono.
-4. Pulsa **Ver en Google Maps** para abrir la misma búsqueda en Google Maps. Google suele tener más negocios; desde ahí puedes llamar, ver fotos y leer reseñas.
-5. **Volver a los datos de ejemplo** regresa a la demo con proveedores ficticios.
+1. En **¿Qué necesitas?** escribe con tus palabras un producto o un servicio: *mantenimiento de aires acondicionados*, *plomero*, *recarga de extintores*, *fumigación*, *cajas de cartón*, *tornillería*. Debajo aparece lo que la app entendió, por ejemplo **Entendí: Aire acondicionado y refrigeración**.
+2. Escribe **la zona o barrio y la ciudad**, por ejemplo *Kennedy, Bogotá*, y elige el **país**.
+3. Pulsa **Buscar en el mapa**. En unos segundos aparecen en el ranking los negocios que existen de verdad en esa zona, con su teléfono, dirección y horario cuando el mapa los tiene.
+4. El mensaje de resultado dice cuántos encontró, **cuántos no tienen página web** y cuántos tienen teléfono.
+5. Pulsa **Ver en Google Maps** para abrir la misma búsqueda en Google Maps. Google suele tener más negocios; desde ahí puedes llamar, ver fotos y leer reseñas.
+6. Cada negocio tiene **Ver en OpenStreetMap** (su ficha en el mapa) y **Buscar en Google Maps** (para ver fotos, reseñas y llamar). **Pedir cotización** arma un mensaje listo para WhatsApp o correo; si es un servicio, pide el valor del servicio, qué incluye y el tiempo de respuesta.
+7. **Volver a los datos de ejemplo** regresa a la demo con proveedores ficticios.
+
+**No necesitas poner cantidades.** En compras primero se buscan varias opciones y la cantidad se negocia con cada proveedor. Las cantidades solo aparecen en la pestaña **Cotizaciones**, cuando ya tienes precios y quieres comparar el costo real de un pedido.
+
+### Cómo entiende lo que escribes
+
+No usa inteligencia artificial: usa reglas, así que siempre se puede explicar qué buscó.
+
+1. **Oficios y servicios** que reconoce en español, inglés, portugués y francés, con plurales y sin importar tildes: aire acondicionado y refrigeración, plomería, electricista, cerrajería, soldadura y estructuras metálicas, pintores, vidrios y ventanas, obras y remodelaciones (también *reparaciones locativas*), techos e impermeabilización, jardinería, fumigación, servicio de aseo, talleres de vehículos, computadores y soporte técnico, electrodomésticos, tapicería, avisos, catering, mudanzas, seguridad y cámaras, extintores y seguridad industrial, ascensores, plantas eléctricas y motobombas, contabilidad y abogados. Cada uno sabe qué etiquetas usa OpenStreetMap (por ejemplo `craft=hvac` para aire acondicionado) y qué palabras suelen ir en el nombre del negocio (*refrigeración*, *climatización*).
+2. Si no es un oficio, busca en las **categorías de compra**: empaques, ferretería, impresión, textiles, electrónica, alimentos, aseo, transporte, mantenimiento, papelería, muebles e impresión 3D.
+3. Si no reconoce nada, busca negocios que tengan **esas palabras en el nombre** y te lo dice: *Buscaré negocios que tengan en su nombre: arepa*.
+
+La palabra *mantenimiento* sola no decide nada: en *mantenimiento de ascensores* busca empresas de ascensores, no plomeros.
 
 ### De dónde salen los datos
 
@@ -35,15 +49,16 @@ Arriba de la pestaña **Buscar** está el panel **Buscar negocios reales**:
 
 - El radio máximo es de **10 km**, para no saturar el servicio gratuito de OpenStreetMap. Si pides más, la app busca 10 km y te avisa.
 - Los datos del mapa pueden estar incompletos o desactualizados: **confirma por teléfono antes de comprar**.
-- Los negocios encontrados no traen precios ni reseñas. Aparecen con reseñas "sin reseñas" (neutro) y "sin cotización", y el ranking te dice qué preguntar.
+- Los negocios encontrados no traen precios ni reseñas. Aparecen con "sin reseñas" (neutro) y "sin cotización", y el ranking te dice qué preguntar.
+- Un negocio solo aparece si alguien lo registró en OpenStreetMap con la etiqueta o el nombre adecuados. Si no sale lo que buscas, prueba otras palabras ("refrigeración" en vez de "aires") o ábrelo en Google Maps.
 - La búsqueda real no se guarda en el navegador: si recargas la página, vuelves a los datos de ejemplo. Para conservarla, usa **Exportar** en la pestaña **Datos**.
 
 ## Las cinco pestañas
 
 | Pestaña | Para qué sirve |
 |---|---|
-| **1 Buscar** | Describe tu necesidad (categoría, cantidad, desde dónde, en cuántos días, radio y presupuesto), elige una prioridad y mira el ranking. Cada proveedor explica **por qué** quedó en ese puesto y tiene un borrador de solicitud de cotización |
-| **2 Cotizaciones** | Convierte cada cotización al costo real de **tu** pedido: paquetes completos, compra mínima, impuesto, envío, moneda y el valor de pagar a plazo |
+| **1 Buscar** | Escribe qué necesitas y dónde, ajusta el radio y la prioridad, y mira el ranking. Cada proveedor muestra su teléfono, el precio por unidad si ya cotizó, explica **por qué** quedó en ese puesto y tiene un borrador de solicitud de cotización |
+| **2 Cotizaciones** | Cuando ya tienes precios: escribe la cantidad y convierte cada cotización al costo real del pedido (paquetes completos, compra mínima, impuesto, envío, moneda y el valor de pagar a plazo) |
 | **3 Fuera de internet** | Dónde buscar proveedores formales en tu país (compras públicas, registro de empresas), un lector de tarjetas, volantes y mensajes de WhatsApp que funciona sin IA, y un mensaje para pedir recomendaciones |
 | **4 Revisión** | Los proveedores nuevos y los posibles duplicados esperan a que una persona los apruebe. El sistema no adivina |
 | **5 Datos** | De dónde vienen tus proveedores, importar CSV o JSON (listas de ferias, cámaras de comercio, tu hoja actual) y exportar a CSV para Google Sheets |
@@ -52,7 +67,7 @@ Arriba de la pestaña **Buscar** está el panel **Buscar negocios reales**:
 
 | Factor | Qué mide | Si falta el dato |
 |---|---|---|
-| Precio | El total de **tu** pedido comparado con la opción más barata | Neutro, con el aviso "pide cotización" |
+| Precio | El precio por unidad con impuesto que cotizó, comparado con el más barato (sin cantidad: la cantidad se negocia después). Avisa si tiene compra mínima | Neutro, con el aviso "pide cotización" |
 | Reseñas | Promedio bayesiano: las reseñas en línea pesan menos cuando son pocas y las de tu equipo pesan el triple | Neutro |
 | Distancia | Dentro de tu radio; quien hace envíos no queda por fuera aunque esté lejos | Neutro |
 | Confianza | Nivel de verificación (contactado, formal, visitado, ya le compramos) y recomendaciones independientes | Nivel más bajo |
@@ -74,4 +89,4 @@ Fuera del navegador, el mismo código tiene conectores para la línea de comando
 
 ## Cómo explicarlo en 2 minutos
 
-> Cuando buscas proveedores en Google solo encuentras a los que tienen página web, y en Latinoamérica muchos de los mejores no la tienen: son talleres y locales que venden por teléfono o WhatsApp. Supplier Scout busca en OpenStreetMap, un mapa comunitario donde esos negocios sí aparecen porque los registran personas que caminan la calle, y te dice cuántos no tienen web. Con un clic abres la misma búsqueda en Google Maps, sin copiar sus datos. Después no ordena por el precio de lista, sino por lo que realmente cuesta tu pedido, con compra mínima, impuesto y envío, y trata las reseñas con cuidado: pocas reseñas pesan poco y "sin reseñas" es neutro, no malo. Todo lo nuevo pasa por revisión humana y los mensajes son borradores que envías tú.
+> Escribes lo que necesitas como lo dirías en voz alta, por ejemplo "mantenimiento de aires acondicionados", y la zona. Cuando buscas proveedores en Google solo encuentras a los que tienen página web, y en Latinoamérica muchos de los mejores no la tienen: son talleres y locales que venden por teléfono o WhatsApp. Supplier Scout busca en OpenStreetMap, un mapa comunitario donde esos negocios sí aparecen porque los registran personas que caminan la calle, y te dice cuántos no tienen web. Con un clic abres la misma búsqueda en Google Maps, sin copiar sus datos. No te pide cantidades, porque en compras primero se buscan opciones y la cantidad se negocia después; cuando ya tienes cotizaciones, compara el costo real del pedido con compra mínima, impuesto y envío. Y trata las reseñas con cuidado: pocas reseñas pesan poco y "sin reseñas" es neutro, no malo. Todo lo nuevo pasa por revisión humana y los mensajes son borradores que envías tú.

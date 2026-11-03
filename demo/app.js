@@ -24,6 +24,8 @@
   var Sample = window.ScoutSample;
   var Osm = window.ScoutOsm;
   var Live = window.ScoutLive;
+  var Services = window.ScoutServices;
+  var Text = window.ScoutText;
 
   var STORAGE = 'supplier-scout:v1:';
   var MAX_IMPORT_BYTES = 2 * 1024 * 1024;
@@ -166,7 +168,10 @@
 
   function defaultNeed(ds) {
     var n = ds.needs[0];
-    return { presetId: n.id, category: n.category, item: n.item, quantity: n.quantity, unit: n.unit, originId: n.originId, radiusKm: n.radiusKm, neededInDays: n.neededInDays, budget: null };
+    return {
+      query: n.item || catLabel(n.category), presetId: n.id, category: n.category, item: n.item,
+      quantity: n.quantity || 1, unit: n.unit, originId: n.originId, radiusKm: n.radiusKm, neededInDays: null, budget: null
+    };
   }
 
   function freshState() {
@@ -222,11 +227,10 @@
       if (UNITS.indexOf(need.unit) !== -1) base.need.unit = need.unit;
       if (dataset().origins.some(function (o) { return o.id === need.originId; })) base.need.originId = need.originId;
       if (typeof need.item === 'string') base.need.item = need.item.slice(0, 120);
+      if (typeof need.query === 'string') base.need.query = need.query.slice(0, 120);
       base.need.presetId = dataset().needs.some(function (n) { return n.id === need.presetId; }) ? need.presetId : '';
       base.need.quantity = Math.max(0.001, finiteOr(need.quantity, base.need.quantity));
       base.need.radiusKm = Math.min(25, Math.max(1, finiteOr(need.radiusKm, base.need.radiusKm)));
-      base.need.neededInDays = Math.max(0, finiteOr(need.neededInDays, 0)) || null;
-      base.need.budget = Math.max(0, finiteOr(need.budget, 0)) || null;
       if (Score.PRESETS[saved.preset]) base.preset = saved.preset;
       else if (saved.preset === null) base.preset = null;
       var weights = plainObject(saved.weights);
@@ -262,6 +266,7 @@
     return list[0];
   }
 
+  /** The order typed in the Quotes tab: only there do quantities matter. */
   function currentNeed() {
     return {
       category: state.need.category,
@@ -270,10 +275,43 @@
       unit: state.need.unit,
       origin: origin(),
       radiusKm: Number(state.need.radiusKm) || 10,
-      neededInDays: Number(state.need.neededInDays) || null,
-      budget: Number(state.need.budget) || null,
       weights: state.weights
     };
+  }
+
+  var wantedCache = { text: null, value: null };
+  /** What the buyer typed, read by ScoutServices (map tags, categories, words in names). */
+  function wanted() {
+    var text = state.need.query || '';
+    if (wantedCache.text !== text) wantedCache = { text: text, value: Services.interpret(text) };
+    return wantedCache.value;
+  }
+
+  /**
+   * The Search tab ranks options without a quantity: amounts are negotiated
+   * later. Live results already match the search; sample data is filtered by
+   * what was typed (categories, or words in the name).
+   */
+  function searchNeed() {
+    var need = { origin: origin(), radiusKm: Number(state.need.radiusKm) || 10, weights: state.weights, quantity: null };
+    var w = wanted();
+    if (!dataset().live && w.kind === 'category') need.categories = w.categories;
+    return need;
+  }
+
+  /**
+   * Sample data only: a specific trade ("aire acondicionado") or plain words are
+   * matched against names and notes; a broad category is filtered by searchNeed.
+   */
+  function searchDb() {
+    var w = wanted();
+    if (dataset().live || w.kind === 'empty' || w.kind === 'category') return state.db;
+    var stems = w.nameHint.split('|').map(function (x) { return Text.normalize(x); }).filter(function (x) { return x.length >= 3; });
+    var suppliers = state.db.suppliers.filter(function (sup) {
+      var hay = Text.normalize([sup.name, sup.notes].join(' '));
+      return stems.some(function (st) { return hay.indexOf(st) !== -1; });
+    });
+    return { suppliers: suppliers, quotes: state.db.quotes, referrals: state.db.referrals };
   }
 
   // Finding duplicates compares every pair of suppliers, so it runs only when the list changes.
@@ -385,9 +423,6 @@
   function renderNeedForm() {
     var ds = dataset();
     var n = state.need;
-    fillSelect($('needPreset'), [{ value: '', label: t('custom') }].concat(ds.needs.map(function (x) {
-      return { value: x.id, label: x.quantity + ' ' + (t('units')[x.unit] || x.unit) + (x.item ? ' · ' + x.item : ' · ' + catLabel(x.category)) };
-    })), n.presetId || '');
     var cats = Cat.CATEGORIES.map(function (c) { return { value: c.id, label: c.label[prefs.lang] }; });
     fillSelect($('category'), cats, n.category);
     fillSelect($('referralCategory'), cats, $('referralCategory').value || n.category);
@@ -395,12 +430,11 @@
     fillSelect($('unit'), units, n.unit);
     fillSelect($('qUnit'), units, n.unit);
     fillSelect($('origin'), ds.origins.map(function (o) { return { value: o.id, label: o.label }; }), n.originId);
+    $('originField').hidden = ds.origins.length < 2;
     $('item').value = n.item || '';
     $('quantity').value = n.quantity;
-    $('days').value = n.neededInDays || '';
     $('radius').value = n.radiusKm;
     $('radiusOut').textContent = n.radiusKm + ' km';
-    $('budget').value = n.budget || '';
 
     var presets = clear($('presets'));
     Object.keys(Score.PRESETS).forEach(function (id) {
@@ -515,9 +549,16 @@
     return wrap;
   }
 
+  // Trades and services (not goods): the quote request asks for the price of the job.
+  var GOODS_SERVICES = ['upholstery', 'signs', 'appliances', 'fireSafety'];
+  function isService(id) { return GOODS_SERVICES.indexOf(id) === -1; }
+
   function outreachBlock(s) {
-    var need = currentNeed();
-    var text = Out.rfqMessage({ category: need.category, item: need.item, quantity: need.quantity, unit: need.unit, neededInDays: need.neededInDays, deliveryZone: origin().label }, s.name, prefs.lang, country());
+    var w = wanted();
+    var what = w.kind === 'empty' ? state.need.item : state.need.query;
+    var category = w.categories[0] || state.need.category;
+    // Asking for a quote never needs a quantity: it is negotiated afterwards.
+    var text = Out.rfqMessage({ category: category, item: what, deliveryZone: origin().label, service: w.kind === 'service' && w.services.some(isService) }, s.name, prefs.lang, country());
     var box = el('div', 'outreach');
     box.appendChild(el('p', 'hint', t('rfqHint')));
     var pre = el('pre', 'message', text);
@@ -565,8 +606,8 @@
       d.appendChild(el('strong', null, value));
       facts.appendChild(d);
     }
-    fact(t('orderTotal'), r.cost ? money(r.cost.total) : t('noQuote'));
-    fact(t('perUnit'), r.cost ? money(r.cost.unitCost) : t('none'));
+    fact(t('quotedPrice'), r.cost ? fmt(t('perUnitOf'), { price: money(r.cost.unitPrice), unit: t('unitOne')[r.cost.unit === 'unit' ? 'unidad' : r.cost.unit] || r.cost.unit }) : t('noQuote'));
+    fact(t('phone'), s.phones && s.phones[0] ? s.phones[0] : t('none'));
     fact(t('distance'), r.km === null ? t('none') : M.formatKm(r.km, prefs.lang));
     // A neutral prior is not a review: say so instead of showing a made-up average.
     var reviewed = r.rating.externalCount || r.rating.internalCount;
@@ -610,10 +651,13 @@
   }
 
   function renderResults() {
-    var result = Score.rankSuppliers(state.db, currentNeed(), settings());
+    var result = Score.rankSuppliers(searchDb(), searchNeed(), settings());
     var list = clear($('results'));
     $('resultCount').textContent = result.ranked.length ? '(' + result.ranked.length + ')' : '';
-    if (!result.ranked.length) list.appendChild(el('li', 'empty', t('noResults')));
+    if (!result.ranked.length) {
+      var w = wanted();
+      list.appendChild(el('li', 'empty', !dataset().live && w.kind !== 'empty' ? fmt(t('noMatchSample'), { q: state.need.query }) : t('noResults')));
+    }
     result.ranked.slice(0, MAX_LISTED).forEach(function (r) { list.appendChild(resultCard(r)); });
     if (result.ranked.length > MAX_LISTED) list.appendChild(el('li', 'hint', fmt(t('showingFirst'), { n: MAX_LISTED, total: result.ranked.length })));
     var ex = clear($('excluded'));
@@ -976,12 +1020,40 @@
   function updateMapsLink() {
     var place = $('livePlace').value.trim() || defaultPlace();
     var where = place + ', ' + countryName($('liveCountry').value || country());
-    try { $('mapsLink').href = Osm.mapsSearchUrl(catLabel(state.need.category), where); } catch (err) { /* keep the previous link */ }
+    var what = (state.need.query || '').trim() || catLabel(state.need.category);
+    try { $('mapsLink').href = Osm.mapsSearchUrl(what, where); } catch (err) { /* keep the previous link */ }
+  }
+
+  function renderUnderstood() {
+    var box = clear($('understood'));
+    var w = wanted();
+    if (!(state.need.query || '').trim()) return;
+    if (w.kind === 'service' || w.kind === 'category') {
+      box.appendChild(el('span', null, t('understood')));
+      Services.describe(w, prefs.lang).forEach(function (label) { box.appendChild(el('span', 'tag-ok', label)); });
+    } else if (w.kind === 'name') {
+      box.appendChild(el('span', null, fmt(t('understoodName'), { terms: w.terms.slice(0, 6).join(', ') })));
+    } else {
+      box.appendChild(el('span', null, t('understoodEmpty')));
+    }
+  }
+
+  function renderTryChips() {
+    var box = clear($('tryChips'));
+    t('tryExamples').forEach(function (text) {
+      box.appendChild(button(text, '', function () {
+        $('liveWhat').value = text;
+        onQueryChange(text);
+      }));
+    });
   }
 
   function renderLive() {
-    var cats = Cat.CATEGORIES.map(function (c) { return { value: c.id, label: c.label[prefs.lang] }; });
-    fillSelect($('liveCategory'), cats, state.need.category);
+    var what = $('liveWhat');
+    what.placeholder = t('whatPh');
+    if (document.activeElement !== what) what.value = state.need.query || '';
+    renderUnderstood();
+    renderTryChips();
     var codes = Object.keys(C.PROFILES).filter(function (code) { return code !== 'XX'; })
       .sort(function (a, b) { return countryName(a).localeCompare(countryName(b), prefs.lang); });
     fillSelect($('liveCountry'), codes.map(function (code) { return { value: code, label: countryName(code) }; }), live.country || country());
@@ -1017,16 +1089,23 @@
     if (live.busy) return;
     var place = $('livePlace').value.trim();
     if (!place) { $('livePlace').focus(); return; }
+    var what = $('liveWhat').value.trim().slice(0, 120);
+    if (!what || Services.interpret(what).kind === 'empty') {
+      live.kind = 'error';
+      live.status = t('liveError')['nothing-to-search'];
+      renderLive();
+      $('liveWhat').focus();
+      return;
+    }
     var code = $('liveCountry').value || country();
-    var category = state.need.category;
+    var radiusKm = state.need.radiusKm;
     live.busy = true;
     live.country = code;
     live.kind = 'busy';
-    live.status = fmt(t('liveSearching'), { cat: catLabel(category), place: place });
+    live.status = fmt(t('liveSearching'), { cat: what, place: place });
     renderLive();
     Live.search({
-      place: place, country: code, category: category, radiusKm: state.need.radiusKm, fx: fxFor(code),
-      item: state.need.item, quantity: state.need.quantity, unit: state.need.unit, neededInDays: state.need.neededInDays
+      what: what, place: place, country: code, radiusKm: radiusKm, fx: fxFor(code), unit: state.need.unit
     }).then(function (res) {
       if (!dataset().live) live.lastSampleId = prefs.datasetId;
       saveState();
@@ -1039,8 +1118,8 @@
       live.kind = st.total ? 'ok' : 'warn';
       live.status = st.total
         ? fmt(t('liveFound'), { n: st.total, place: place, offline: st.withoutWebsite, phone: st.withPhone })
-        : fmt(t('liveNone'), { cat: catLabel(category), place: place });
-      if (Number(state.need.radiusKm) > res.radiusKm) live.status += ' ' + fmt(t('liveCapped'), { km: res.radiusKm });
+        : fmt(t('liveNone'), { cat: what, place: place });
+      if (Number(radiusKm) > res.radiusKm) live.status += ' ' + fmt(t('liveCapped'), { km: res.radiusKm });
       render();
     }, function (err) {
       live.busy = false;
@@ -1070,15 +1149,34 @@
     render();
   }
 
-  /** A preset's item ("cajas de cartón") makes no sense once the category changes. */
-  function changeCategory(value) {
-    if (state.need.presetId && value !== state.need.category) state.need.item = '';
-    onNeedChange('category', value);
+  /**
+   * The buyer typed what they need. The ranking of the sample data follows it;
+   * the Quotes tab follows its category, so quotes match what is being sought.
+   */
+  function onQueryChange(value) {
+    state.need.query = String(value || '').slice(0, 120);
+    var w = wanted();
+    if (w.categories.length && w.categories[0] !== state.need.category) {
+      state.need.category = w.categories[0];
+      state.need.item = '';
+    }
+    state.need.presetId = '';
+    state.openRfq = null;
+    renderLive();
+    renderNeedForm();
+    renderResults();
+    renderQuotes();
+    saveState();
   }
 
   function bind() {
     $('liveForm').addEventListener('submit', function (e) { e.preventDefault(); liveSearch(); });
-    $('liveCategory').addEventListener('change', function () { changeCategory($('liveCategory').value); });
+    var queryTimer = null;
+    $('liveWhat').addEventListener('input', function () {
+      var value = $('liveWhat').value.slice(0, 120);
+      clearTimeout(queryTimer);
+      queryTimer = setTimeout(function () { onQueryChange(value); }, 200);
+    });
     $('liveCountry').addEventListener('change', function () { live.country = $('liveCountry').value; updateMapsLink(); });
     $('livePlace').addEventListener('input', updateMapsLink);
     $('liveBack').addEventListener('click', function () {
@@ -1118,19 +1216,11 @@
       });
     });
 
-    $('needPreset').addEventListener('change', function () {
-      var id = $('needPreset').value;
-      var n = dataset().needs.filter(function (x) { return x.id === id; })[0];
-      if (n) state.need = { presetId: n.id, category: n.category, item: n.item, quantity: n.quantity, unit: n.unit, originId: n.originId, radiusKm: n.radiusKm, neededInDays: n.neededInDays, budget: null };
-      render();
-    });
-    $('category').addEventListener('change', function () { changeCategory($('category').value); });
+    $('category').addEventListener('change', function () { onNeedChange('category', $('category').value); });
     $('item').addEventListener('change', function () { onNeedChange('item', $('item').value.slice(0, 120)); });
     $('quantity').addEventListener('change', function () { onNeedChange('quantity', Math.max(0, Number($('quantity').value) || 1)); });
     $('unit').addEventListener('change', function () { onNeedChange('unit', $('unit').value); });
     $('origin').addEventListener('change', function () { onNeedChange('originId', $('origin').value); });
-    $('days').addEventListener('change', function () { onNeedChange('neededInDays', Number($('days').value) || null); });
-    $('budget').addEventListener('change', function () { onNeedChange('budget', Number($('budget').value) || null); });
     $('radius').addEventListener('input', function () {
       state.need.radiusKm = Number($('radius').value);
       $('radiusOut').textContent = state.need.radiusKm + ' km';

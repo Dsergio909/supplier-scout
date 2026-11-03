@@ -44,42 +44,43 @@
   }
 
   var RFQ = {
-    es: function (who, qty, what, zone, days, tax) {
+    es: function (who, qty, what, zone, days, tax, service) {
       return [
         'Hola' + who + ', le escribe [tu nombre] de [tu empresa].',
-        'Estamos cotizando ' + qty + 'de ' + what + (zone ? ', con entrega en ' + zone : '') + (days ? ', para dentro de ' + days + ' días' : '') + '.',
-        '¿Nos podría enviar: precio unitario y presentación (caja, paquete...), si incluye ' + tax + ', costo de envío, pedido mínimo, tiempo de entrega y forma de pago?',
+        'Estamos cotizando ' + (qty ? qty + 'de ' : '') + what + (zone ? (service ? ', en ' : ', con entrega en ') + zone : '') + (days ? ', para dentro de ' + days + ' días' : '') + '.',
+        service ? '¿Nos podría enviar una cotización con: valor del servicio, qué incluye, si incluye ' + tax + ', tiempo de respuesta y forma de pago?' : '¿Nos podría enviar: precio unitario y presentación (caja, paquete...), si incluye ' + tax + ', costo de envío, pedido mínimo, tiempo de entrega y forma de pago?',
         '¡Muchas gracias!'
       ];
     },
-    en: function (who, qty, what, zone, days, tax) {
+    en: function (who, qty, what, zone, days, tax, service) {
       return [
         'Hello' + who + ', this is [your name] from [your company].',
-        'We are requesting quotes for ' + qty + 'of ' + what + (zone ? ', delivered to ' + zone : '') + (days ? ', needed within ' + days + ' days' : '') + '.',
-        'Could you send us: unit price and pack size, whether ' + tax + ' is included, shipping cost, minimum order, lead time and payment terms?',
+        'We are requesting quotes for ' + (qty ? qty + 'of ' : '') + what + (zone ? (service ? ', in ' : ', delivered to ') + zone : '') + (days ? ', needed within ' + days + ' days' : '') + '.',
+        service ? 'Could you send us a quote with: the price of the service, what it includes, whether ' + tax + ' is included, response time and payment terms?' : 'Could you send us: unit price and pack size, whether ' + tax + ' is included, shipping cost, minimum order, lead time and payment terms?',
         'Thank you!'
       ];
     },
-    pt: function (who, qty, what, zone, days, tax) {
+    pt: function (who, qty, what, zone, days, tax, service) {
       return [
         'Olá' + who + ', aqui é [seu nome] da [sua empresa].',
-        'Estamos cotando ' + qty + 'de ' + what + (zone ? ', com entrega em ' + zone : '') + (days ? ', para daqui a ' + days + ' dias' : '') + '.',
-        'Poderia nos enviar: preço unitário e embalagem (caixa, pacote...), se inclui ' + tax + ', valor do frete, pedido mínimo, prazo de entrega e forma de pagamento?',
+        'Estamos cotando ' + (qty ? qty + 'de ' : '') + what + (zone ? (service ? ', em ' : ', com entrega em ') + zone : '') + (days ? ', para daqui a ' + days + ' dias' : '') + '.',
+        service ? 'Poderia nos enviar um orçamento com: valor do serviço, o que inclui, se inclui ' + tax + ', prazo de atendimento e forma de pagamento?' : 'Poderia nos enviar: preço unitário e embalagem (caixa, pacote...), se inclui ' + tax + ', valor do frete, pedido mínimo, prazo de entrega e forma de pagamento?',
         'Muito obrigado!'
       ];
     },
-    fr: function (who, qty, what, zone, days, tax) {
+    fr: function (who, qty, what, zone, days, tax, service) {
       return [
         'Bonjour' + who + ', je suis [votre nom] de [votre entreprise].',
-        'Nous demandons des devis pour ' + qty + 'de ' + what + (zone ? ', livraison à ' + zone : '') + (days ? ', sous ' + days + ' jours' : '') + '.',
-        'Pourriez-vous nous indiquer : prix unitaire et conditionnement (boîte, paquet...), si la ' + tax + ' est comprise, frais de livraison, commande minimum, délai de livraison et conditions de paiement ?',
+        'Nous demandons des devis pour ' + (qty ? qty + 'de ' : '') + what + (zone ? (service ? ', à ' : ', livraison à ') + zone : '') + (days ? ', sous ' + days + ' jours' : '') + '.',
+        service ? 'Pourriez-vous nous envoyer un devis avec : le prix de la prestation, ce qu\'elle comprend, si la ' + tax + ' est comprise, le délai d\'intervention et les conditions de paiement ?' : 'Pourriez-vous nous indiquer : prix unitaire et conditionnement (boîte, paquet...), si la ' + tax + ' est comprise, frais de livraison, commande minimum, délai de livraison et conditions de paiement ?',
         'Merci beaucoup !'
       ];
     }
   };
 
   /**
-   * need: { category, item, quantity, unit, neededInDays, deliveryZone }.
+   * need: { category, item, quantity, unit, neededInDays, deliveryZone, service }.
+   * service: true asks for the price of a service instead of unit price and pack size.
    * country (optional) names the local sales tax: "si incluye IGV" in Peru, "ITBIS" in the Dominican Republic.
    */
   function rfqMessage(need, supplierName, lang, country) {
@@ -87,7 +88,7 @@
     var what = need.item || categoryLabel(need.category, l).toLowerCase();
     var unit = UNIT_LABEL[l][need.unit] || need.unit || '';
     var qty = need.quantity ? need.quantity + ' ' + unit + ' ' : '';
-    return RFQ[l](supplierName ? ' ' + supplierName : '', qty, what, need.deliveryZone, need.neededInDays, taxName(country, l)).join('\n');
+    return RFQ[l](supplierName ? ' ' + supplierName : '', qty, what, need.deliveryZone, need.neededInDays, taxName(country, l), !!need.service).join('\n');
   }
 
   var REFERRAL = {

@@ -2,7 +2,7 @@
 
 # 🔭 Supplier Scout
 
-**Find new suppliers, including the ones that are not online, and compare them by what your order really costs.**<br>
+**Find suppliers of goods and services, including the ones that are not online, by typing what you need in your own words.**<br>
 Live map search · real order cost · fair ratings · trust from referrals · human review · optional Claude agent.
 
 [![CI](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml/badge.svg)](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml)
@@ -31,9 +31,9 @@ The full walkthrough, from the live map search to how the ranking decides, is in
 
 ## What it does
 
-1. **Finds real businesses on the map, in the browser.** Type a neighbourhood and a city, pick what you need, and the demo searches OpenStreetMap, the community map where many shops and workshops with no website are listed. It reports how many have no website, links every result to its map entry, and opens the same search in Google Maps with one click (an official link: no key, no scraping).
+1. **Understands what you need, in your own words, and finds real businesses on the map.** Type *air conditioning maintenance*, *plumber*, *fire extinguisher refill* or *cardboard boxes* plus a neighbourhood and a city. Rules (no AI) turn the request into OpenStreetMap tags and words found in business names, for 25 trades and services and 12 purchase categories in four languages, and the app says what it understood. The demo searches OpenStreetMap, the community map where many shops and workshops with no website are listed, reports how many have no website, links every result to its map entry, and opens the same search in Google Maps with one click (an official link: no key, no scraping).
 2. **Searches by location.** Distance from your delivery point, a search radius, and suppliers that deliver are kept even when they are far.
-3. **Compares the real cost of your order.** Every quote becomes whole packs, the minimum order, tax, shipping, your currency (at a rate you set) and, optionally, the value of paying later.
+3. **No quantities to find options.** Purchasing starts by gathering several options and negotiates amounts later, so the search ranks by quoted unit price (when there is one), distance, ratings, trust and speed. Quote requests for a service ask for the price of the job, what it includes and the response time. Once quotes arrive, the Quotes tab turns each one into the real cost of an order: whole packs, the minimum order, tax, shipping, your currency (at a rate you set) and, optionally, the value of paying later.
 4. **Rates fairly.** A Bayesian average of online reviews and your own team's reviews. No reviews means "unknown", not "bad".
 5. **Finds and records offline suppliers.** Community maps and public registries (connectors), fair and chamber-of-commerce lists (CSV), business cards and WhatsApp messages (a parser that runs in the browser), and referrals from people you trust.
 6. **Keeps a human in the loop.** New captures and ambiguous duplicates go to a review queue. Quote requests and referral requests are drafted for you to send; nothing is sent automatically.
@@ -58,7 +58,7 @@ This is the core of the project. The full guide is in the [playbook](docs/offlin
 
 | Factor | What it measures | When data is missing |
 |---|---|---|
-| Price | Total cost of *your* order (packs, minimum, tax, shipping, currency, payment term) relative to the cheapest option | Neutral + "ask for a quote" |
+| Price | Quoted unit price with tax relative to the cheapest option; in the Quotes tab, the total cost of an order (packs, minimum, tax, shipping, currency, payment term) | Neutral + "ask for a quote" |
 | Rating | Bayesian blend: a neutral prior worth 5 reviews, online reviews (capped at 100), team reviews ×3 | Neutral |
 | Distance | Inside your radius; suppliers that deliver keep a floor | Neutral |
 | Trust | Verification level + independent referrals (self and same-group referrals ignored, mutual ones count half) | Lowest level |
@@ -149,6 +149,7 @@ flowchart LR
 
 ```
 src/core/          shared logic, no dependencies (browser + Node)
+  services.js        what the buyer typed -> trades, categories, map tags and name words (rules, ES/EN/PT/FR)
   osm.js             OpenStreetMap query and parsing, Google Maps search link (shared by the web app and the CLI)
   countries.js       23 country profiles: currency, tax, tax-ID check digits, phone habits, registries
   capture.js         business card / flyer / WhatsApp text -> draft supplier
@@ -164,7 +165,7 @@ src/data/          fictional demo data (Bogotá, Mexico City and São Paulo)
 cli/scout.js       connectors, CSV import, merge and rank from the terminal (args.js: shared parser)
 agent/             Claude agent: tools, loop, system prompt, CLI
 demo/              the web app (GitHub Pages): app.js, live.js (the only file that uses the network), i18n.js (ES/EN/PT/FR texts), self-hosted IBM Plex fonts
-tests/             154 tests: core, regional formats, connectors against API-shaped fixtures,
+tests/             162 tests: core, regional formats, connectors against API-shaped fixtures,
                    CLI, agent loop with a scripted model, demo security guards
 docs/              how it works (ES/EN), screenshots, the offline playbook and the country coverage table
 ```
@@ -210,7 +211,7 @@ npm run agent -- --dry-run --db data/all.json --category packaging --qty 500 --l
 
 Being explicit, because this matters more than the feature list:
 
-- **Tested (154 automated tests in CI):** all core logic; every country profile; check digits with fictional numbers that pass and fail; cards and WhatsApp messages written the way suppliers write in Mexico, the Dominican Republic, Brazil, Ecuador, Chile, Peru, Costa Rica and France; the connectors against fictional fixtures shaped like each API's documented responses (OCDS included); the CLI end to end; the agent loop against a scripted stand-in for the Claude API (tool calls, parallel results, errors, refusals, step limit, append-only history, no invented suppliers, no phones sent to the model); that every interface text exists in the four languages; the live map search with simulated OpenStreetMap responses (geocoding, results, errors, size and time limits); the demo's CSP and rendering guards; speed at the import limits. The web app was checked in Chromium in the four languages, in light and dark mode, on desktop and on a 390 px phone viewport.
+- **Tested (162 automated tests in CI):** all core logic; every country profile; check digits with fictional numbers that pass and fail; cards and WhatsApp messages written the way suppliers write in Mexico, the Dominican Republic, Brazil, Ecuador, Chile, Peru, Costa Rica and France; the connectors against fictional fixtures shaped like each API's documented responses (OCDS included); the CLI end to end; the agent loop against a scripted stand-in for the Claude API (tool calls, parallel results, errors, refusals, step limit, append-only history, no invented suppliers, no phones sent to the model); that every interface text exists in the four languages; how typed requests are understood in four languages; the live map search with simulated OpenStreetMap responses (geocoding, results, errors, size and time limits); the demo's CSP and rendering guards; speed at the import limits. The web app was checked in Chromium in the four languages, in light and dark mode, on desktop and on a 390 px phone viewport.
 - **Checked against official sources, not against live systems:** the check-digit algorithms were compared with examples published by each tax authority (those real numbers are not kept in the repository). Tax rates, portal names and law names are as of 2026 and are editable defaults, not tax or legal advice.
 - **Not yet run against the live services:** the development environment could not reach OpenStreetMap (so the in-browser search was tested end to end with simulated responses shaped like the real ones), datos.gov.co, OCDS publishers, Google or the Claude API. The request formats follow each service's documentation, but the first real run may need small adjustments. The SECOP connector reads the dataset's columns at run time (`--describe` shows the mapping) precisely because I could not verify their names.
 - **Known limits:** GitHub Pages cannot send security headers, so the CSP is a `<meta>` tag and cannot forbid framing (the page has no sensitive actions to hijack); distance is a straight line, not travel time; tax rates are editable defaults and import duties are not included; the capture parser handles common formats and anything unusual needs a manual fix, which is why every capture goes to review.
@@ -236,11 +237,11 @@ Companion project: [Supplier Radar](https://github.com/Dsergio909/supplier-radar
 
 ## 🇪🇸 Resumen en español
 
-**Supplier Scout** sirve para encontrar proveedores nuevos, **incluidos los que no aparecen en internet**, y compararlos por lo que realmente cuesta tu pedido.
+**Supplier Scout** sirve para encontrar proveedores nuevos de productos y servicios, **incluidos los que no aparecen en internet**, escribiendo lo que necesitas con tus palabras.
 
-- **Busca negocios reales en el mapa, desde el navegador:** escribes barrio y ciudad, eliges qué necesitas y la demo busca en OpenStreetMap, donde aparecen muchos talleres y locales sin página web. Dice cuántos no tienen web, enlaza cada resultado a su ficha en el mapa y con un clic abre la misma búsqueda en Google Maps (enlace oficial: sin claves y sin copiar datos).
+- **Entiende lo que necesitas y busca negocios reales en el mapa:** escribes *mantenimiento de aires acondicionados*, *plomero*, *recarga de extintores* o *cajas de cartón*, más el barrio y la ciudad. Unas reglas (sin IA) lo convierten en etiquetas de OpenStreetMap y palabras del nombre del negocio, y la app te dice qué entendió. Busca en OpenStreetMap, donde aparecen muchos talleres y locales sin página web, dice cuántos no tienen web, enlaza cada resultado a su ficha y con un clic abre la misma búsqueda en Google Maps (enlace oficial: sin claves y sin copiar datos).
 - **Busca por ubicación:** distancia desde tu punto de entrega, radio de búsqueda y proveedores que hacen envíos.
-- **Compara el costo real del pedido**, no el precio de lista: paquetes completos, compra mínima, IVA, envío, moneda (con tu tasa) y el valor de pagar a plazo.
+- **Sin cantidades para buscar:** en compras primero se buscan opciones y la cantidad se negocia después. El ranking usa el precio por unidad cotizado (si lo hay), la distancia, las reseñas, la confianza y la rapidez. Cuando ya tienes cotizaciones, la pestaña Cotizaciones calcula el costo real del pedido: paquetes completos, compra mínima, IVA, envío, moneda y el valor de pagar a plazo.
 - **Reseñas justas:** un 5.0 con 2 reseñas no le gana a un 4.7 con 300, y "sin reseñas" cuenta como neutro, no como malo. Las reseñas de tu equipo pesan más.
 - **Proveedores fuera de internet:** conectores a OpenStreetMap (cualquier país) y a SECOP II (Colombia), importación de CSV (ferias, cámaras de comercio), lector de tarjetas, volantes y mensajes de WhatsApp (funciona sin IA y sin internet) y una red de recomendaciones donde solo cuentan las independientes.
 - **Revisión humana:** lo capturado y los posibles duplicados pasan a una cola de revisión. Las solicitudes de cotización y de recomendaciones se redactan para que **tú** las envíes.

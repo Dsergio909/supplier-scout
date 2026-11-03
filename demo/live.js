@@ -46,26 +46,36 @@
   }
 
   /**
-   * Geocode `place`, search `category` within `radiusKm` (capped at 10 km by
-   * Overpass etiquette) and return a dataset the demo can load like the samples.
+   * Geocode `place`, search what the buyer typed (`what`, read by
+   * ScoutServices.interpret: map tags + words in business names) within
+   * `radiusKm` (capped at 10 km by Overpass etiquette) and return a dataset the
+   * demo can load like the samples. A plain `category` still works.
    */
   function search(params) {
     var p = params || {};
     var radiusKm = Math.min(Osm.MAX_RADIUS_M / 1000, Math.max(1, Number(p.radiusKm) || 3));
     var place = String(p.place || '').trim();
+    var what = String(p.what || '').trim().slice(0, 120);
+    var wanted = what && root.ScoutServices ? root.ScoutServices.interpret(what) : null;
+    if (wanted && wanted.kind === 'empty') wanted = null;
+    var category = wanted ? wanted.categories[0] || '' : p.category;
+    if (!wanted && !p.category) return Promise.reject(LiveError('nothing-to-search'));
     return fetchJson(Osm.geocodeUrl(place, p.country)).then(function (results) {
       var point = Osm.parseGeocode(results, place);
       if (!point) throw LiveError('place-not-found');
-      var query = Osm.buildQuery({ category: p.category, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000 });
+      var query = wanted
+        ? Osm.buildQuery({ tags: wanted.tags, nameHint: wanted.nameHint, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000 })
+        : Osm.buildQuery({ category: p.category, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000 });
       return fetchJson(Osm.ENDPOINT, {
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'data=' + encodeURIComponent(query)
       }).then(function (json) {
-        var found = Osm.normalize(json, { country: p.country, category: p.category });
+        var found = Osm.normalize(json, { country: p.country, category: category });
         var short = place.slice(0, 60);
         return {
           point: point,
+          wanted: wanted,
           radiusKm: radiusKm,
           stats: found.stats,
           dataset: {
@@ -76,7 +86,7 @@
             fx: p.fx || { USD: 1 },
             origins: [{ id: 'live', label: short, lat: point.lat, lng: point.lng }],
             needs: [{
-              id: 'live', category: p.category, item: p.item || '', quantity: Number(p.quantity) || 1, unit: p.unit || 'unidad',
+              id: 'live', category: category || '', item: what || p.item || '', quantity: Number(p.quantity) || null, unit: p.unit || 'unidad',
               originId: 'live', radiusKm: radiusKm, neededInDays: Number(p.neededInDays) || null
             }],
             suppliers: found.suppliers,
