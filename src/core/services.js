@@ -34,9 +34,9 @@
     {
       id: 'plumbing', category: 'maintenance',
       label: { es: 'Plomería', en: 'Plumbing', pt: 'Encanamento', fr: 'Plomberie' },
-      keywords: ['plomero', 'plomeria', 'fontanero', 'fontaneria', 'gasfiter', 'gasfiteria', 'tuberia', 'destape', 'destapador', 'fuga de agua', 'plumber', 'plumbing', 'encanador', 'encanamento', 'bombeiro hidraulico', 'plombier', 'plomberie'],
+      keywords: ['gasfitero', 'desentupidora', 'desentupimento', 'destapacanos', 'plomero', 'plomeria', 'fontanero', 'fontaneria', 'gasfiter', 'gasfiteria', 'tuberia', 'destape', 'destapador', 'fuga de agua', 'plumber', 'plumbing', 'encanador', 'encanamento', 'bombeiro hidraulico', 'plombier', 'plomberie'],
       osm: [['craft', 'plumber']],
-      nameHint: 'plomer|fontaner|gasfit|hidraul|encanad|plomb|destape'
+      nameHint: 'plomer|fontaner|gasfit|hidraul|encanad|plomb|destape|desentup'
     },
     {
       id: 'electrical', category: 'maintenance',
@@ -69,14 +69,14 @@
     {
       id: 'glass', category: 'maintenance',
       label: { es: 'Vidrios y ventanas', en: 'Glass & windows', pt: 'Vidraçaria e janelas', fr: 'Vitrerie et fenêtres' },
-      keywords: ['vidrio', 'vidrieria', 'ventaneria', 'ventana', 'espejo', 'aluminio y vidrio', 'glazier', 'glass', 'vidracaria', 'vidraceiro', 'vitrier', 'vitrerie'],
+      keywords: ['cristalero', 'cristaleria', 'vidraceria', 'vidrio', 'vidrieria', 'ventaneria', 'ventana', 'espejo', 'aluminio y vidrio', 'glazier', 'glass', 'vidracaria', 'vidraceiro', 'vitrier', 'vitrerie'],
       osm: [['craft', 'glaziery'], ['craft', 'window_construction']],
-      nameHint: 'vidri|ventaner|vidrac|vitr'
+      nameHint: 'vidri|ventaner|vidrac|vitr|cristaler'
     },
     {
       id: 'building', category: 'maintenance',
       label: { es: 'Obras y remodelaciones', en: 'Building & renovation', pt: 'Obras e reformas', fr: 'Travaux et rénovation' },
-      keywords: ['reparacion locativa', 'locativa', 'obra civil', 'construccion', 'remodelacion', 'albanil', 'mamposteria', 'enchape', 'drywall', 'piso', 'builder', 'renovation', 'construction', 'pedreiro', 'reforma', 'macon', 'renovation'],
+      keywords: ['maestro de obra', 'constructora', 'reparacion locativa', 'locativa', 'obra civil', 'construccion', 'remodelacion', 'albanil', 'mamposteria', 'enchape', 'drywall', 'piso', 'builder', 'renovation', 'construction', 'pedreiro', 'reforma', 'macon', 'renovation'],
       osm: [['craft', 'builder'], ['craft', 'tiler'], ['craft', 'plasterer'], ['craft', 'floorer']],
       nameHint: 'construc|remodela|drywall|enchap|reformas'
     },
@@ -97,23 +97,23 @@
     {
       id: 'pest', category: 'maintenance',
       label: { es: 'Fumigación y control de plagas', en: 'Pest control', pt: 'Dedetização', fr: 'Désinsectisation' },
-      keywords: ['fumigacion', 'fumigador', 'control de plaga', 'plaga', 'desratizacion', 'pest control', 'fumigation', 'dedetizacao', 'desratizacao', 'desinsectisation', 'deratisation'],
+      keywords: ['fumigadora', 'dedetizadora', 'control de plagas urbanas', 'fumigacion', 'fumigador', 'control de plaga', 'plaga', 'desratizacion', 'pest control', 'fumigation', 'dedetizacao', 'desratizacao', 'desinsectisation', 'deratisation'],
       osm: [['craft', 'pest_control'], ['shop', 'pest_control']],
       nameHint: 'fumiga|plaga|dedetiz|desratiz|desinsect|derat'
     },
     {
       id: 'cleaningService', category: 'cleaning',
       label: { es: 'Servicio de aseo y limpieza', en: 'Cleaning services', pt: 'Serviços de limpeza', fr: 'Services de nettoyage' },
-      keywords: ['servicio de aseo', 'aseo de oficina', 'limpieza de oficina', 'servicio de limpieza', 'empresa de aseo', 'lavado de tapete', 'lavado de mueble', 'lavado de tanque', 'cleaning service', 'janitorial service', 'servico de limpeza', 'faxina', 'societe de nettoyage'],
+      keywords: ['lavado de tinaco', 'limpieza de cisterna', 'servicio de aseo', 'aseo de oficina', 'limpieza de oficina', 'servicio de limpieza', 'empresa de aseo', 'lavado de tapete', 'lavado de mueble', 'lavado de tanque', 'cleaning service', 'janitorial service', 'servico de limpeza', 'faxina', 'societe de nettoyage'],
       osm: [['craft', 'cleaning'], ['office', 'cleaning']],
       nameHint: 'aseo|limpieza|cleaning|limpeza|nettoyage'
     },
     {
       id: 'vehicles', category: 'maintenance',
       label: { es: 'Talleres de vehículos', en: 'Vehicle repair', pt: 'Oficinas mecânicas', fr: 'Garages automobiles' },
-      keywords: ['mecanico', 'taller mecanico', 'taller automotriz', 'vehiculo', 'carro', 'camion', 'moto', 'llanta', 'montallanta', 'vulcanizadora', 'gomeria', 'latoneria', 'lubricentro', 'lavadero de carro', 'car repair', 'mechanic', 'tyre', 'oficina mecanica', 'mecanica', 'pneu', 'garagiste'],
+      keywords: ['refaccionaria', 'borracharia', 'autopeca', 'repuesto automotriz', 'mecanico', 'taller mecanico', 'taller automotriz', 'vehiculo', 'carro', 'camion', 'moto', 'llanta', 'montallanta', 'vulcanizadora', 'gomeria', 'latoneria', 'lubricentro', 'lavadero de carro', 'car repair', 'mechanic', 'tyre', 'oficina mecanica', 'mecanica', 'pneu', 'garagiste'],
       osm: [['shop', 'car_repair'], ['shop', 'tyres'], ['shop', 'motorcycle_repair'], ['amenity', 'car_wash']],
-      nameHint: 'mecanic|automotr|llant|lubric|latoner|autopart|montallant|vulcaniz|gomeri'
+      nameHint: 'mecanic|automotr|llant|lubric|latoner|autopart|montallant|vulcaniz|gomeri|refaccion|borrachar'
     },
     {
       id: 'machining', category: 'maintenance',

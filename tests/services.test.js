@@ -74,8 +74,21 @@ test('without a quantity, quotes are compared by unit price and the minimum orde
 
 test('a quote request for a service asks for the price of the job, with no quantity', () => {
   const text = Out.rfqMessage({ item: 'mantenimiento de aires acondicionados', deliveryZone: 'Kennedy', service: true }, 'Frío Total', 'es', 'CO');
-  assert.match(text, /Estamos cotizando mantenimiento de aires acondicionados, en Kennedy\./);
+  assert.match(text, /Necesitamos mantenimiento de aires acondicionados en Kennedy\./);
   assert.match(text, /valor del servicio/);
   assert.doesNotMatch(text, /unidades|presentación/);
   for (const lang of ['en', 'pt', 'fr']) assert.doesNotMatch(Out.rfqMessage({ item: 'x', service: true }, 'Y', lang, 'CO'), /undefined/);
+});
+
+test('regional words from across the region are understood', () => {
+  const cases = {
+    'gasfitero en Miraflores': 'plumbing', 'desentupidora': 'plumbing', 'fontanero': 'plumbing',
+    'refaccionaria': 'vehicles', 'borracharia': 'vehicles', 'gomería': 'vehicles', 'montallantas': 'vehicles',
+    'cristalero': 'glass', 'dedetizadora': 'pest', 'lavado de tinacos': 'cleaningService',
+    'maestro de obra': 'building', 'chaveiro': 'locksmith', 'serralheria': 'metalwork'
+  };
+  for (const [text, id] of Object.entries(cases)) assert.deepEqual(Services.interpret(text).services, [id], text);
+  for (const text of ['tlapalería', 'pinturería', 'corralón', 'ferragens', 'quincaillerie']) {
+    assert.deepEqual(Services.interpret(text).categories, ['hardware'], text);
+  }
 });

@@ -398,24 +398,8 @@
 
   // ---------- KPIs & tabs ----------
 
-  function renderKpis() {
-    var s = state.db.suppliers;
-    var offline = s.filter(Schema.isOffline).length;
+  function renderBadges() {
     var toReview = Object.keys(state.pending).length + reviewPairs().length;
-    var items = [
-      [t('kpiTotal'), s.length, 'var(--blue)'],
-      [t('kpiOffline'), offline, 'var(--pink)'],
-      [t('kpiReferrals'), state.db.referrals.length, 'var(--green)'],
-      [t('kpiReview'), toReview, 'var(--amber)']
-    ];
-    var box = clear($('kpis'));
-    items.forEach(function (k) {
-      var d = el('div', 'kpi');
-      d.style.setProperty('--c', k[2]);
-      d.appendChild(el('span', 'l', k[0]));
-      d.appendChild(el('span', 'n', String(k[1])));
-      box.appendChild(d);
-    });
     $('reviewBadge').textContent = toReview ? String(toReview) : '';
   }
 
@@ -518,7 +502,11 @@
     $('radarHint').textContent = noCoords ? hint + ' · ' + fmt(t('radarNoCoords'), { n: noCoords }) : hint;
 
     var legend = clear($('sourceLegend'));
-    Object.keys(SOURCE_COLORS).forEach(function (type) {
+    var present = {};
+    result.ranked.forEach(function (r) { present[(r.supplier.sources[0] || {}).type] = true; });
+    var types = Object.keys(SOURCE_COLORS).filter(function (type) { return present[type]; });
+    legend.hidden = types.length < 2;
+    types.forEach(function (type) {
       var li = el('li');
       var dot = el('i', 'dot');
       dot.style.setProperty('--c', SOURCE_COLORS[type]);
@@ -601,10 +589,7 @@
     head.appendChild(title);
     var score = el('div', 'score');
     score.appendChild(el('span', 'n', String(r.score)));
-    var meter = el('div', 'meter');
-    meter.setAttribute('aria-hidden', 'true');
-    for (var i = 1; i <= 10; i++) meter.appendChild(el('i', i * 10 <= r.score + 5 ? 'on' : ''));
-    score.appendChild(meter);
+    score.appendChild(el('span', 'of', '/100'));
     head.appendChild(score);
     li.appendChild(head);
 
@@ -615,15 +600,19 @@
       d.appendChild(el('strong', null, value));
       facts.appendChild(d);
     }
-    fact(t('quotedPrice'), r.cost ? fmt(t('perUnitOf'), { price: money(r.cost.unitPrice), unit: t('unitOne')[r.cost.unit === 'unit' ? 'unidad' : r.cost.unit] || r.cost.unit }) : t('noQuote'));
-    fact(t('phone'), s.phones && s.phones[0] ? s.phones[0] : t('none'));
+    // Only facts that exist: an empty "no quote / no reviews" on every map result is noise
+    // (those gaps are still explained under "Why this position?").
     var trip = dataset().live && live.travel ? live.travel[s.id] : null;
-    fact(t('distance'), trip
-      ? fmt(t('travelFact'), { min: trip.minutes, km: trip.km != null ? M.formatKm(trip.km, prefs.lang) : M.formatKm(r.km, prefs.lang) })
-      : (r.km === null ? t('none') : M.formatKm(r.km, prefs.lang)));
-    // A neutral prior is not a review: say so instead of showing a made-up average.
+    if (trip || r.km !== null) {
+      fact(t('distance'), trip
+        ? fmt(t('travelFact'), { min: trip.minutes, km: trip.km != null ? M.formatKm(trip.km, prefs.lang) : M.formatKm(r.km, prefs.lang) })
+        : M.formatKm(r.km, prefs.lang));
+    }
+    fact(t('phone'), s.phones && s.phones[0] ? s.phones[0] : t('none'));
+    if (r.cost) fact(t('quotedPrice'), fmt(t('perUnitOf'), { price: money(r.cost.unitPrice), unit: t('unitOne')[r.cost.unit === 'unit' ? 'unidad' : r.cost.unit] || r.cost.unit }));
+    // A neutral prior is not a review: only real reviews are shown.
     var reviewed = r.rating.externalCount || r.rating.internalCount;
-    fact(t('rating'), reviewed ? M.formatDecimal(r.rating.value.toFixed(1), prefs.lang) + ' / 5' : t('ratingNone'));
+    if (reviewed) fact(t('rating'), M.formatDecimal(r.rating.value.toFixed(1), prefs.lang) + ' / 5');
     li.appendChild(facts);
 
     var bars = el('div', 'factor-bars');
@@ -637,10 +626,9 @@
       d.appendChild(b);
       bars.appendChild(d);
     });
-    li.appendChild(bars);
-
     var why = el('details', 'why');
     why.appendChild(el('summary', null, t('why') + (r.warnings.length ? ' (' + r.warnings.length + ' ⚠)' : '')));
+    why.appendChild(bars);
     var ul = el('ul');
     r.evidence.forEach(function (e) { ul.appendChild(el('li', null, explain(e))); });
     r.warnings.forEach(function (w) { ul.appendChild(el('li', 'warn', '⚠ ' + explain(w))); });
@@ -671,16 +659,54 @@
     return li;
   }
 
+  function filters() {
+    var f = prefs.filters || {};
+    return { phone: !!f.phone, offline: !!f.offline, sort: f.sort === 'distance' ? 'distance' : 'score' };
+  }
+
+  /** Filters and order chosen by the buyer, applied after scoring. Positions are renumbered. */
+  function viewOf(ranked) {
+    var f = filters();
+    var list = ranked.filter(function (r) {
+      var s = r.supplier;
+      if (f.phone && !(s.phones && s.phones.length)) return false;
+      if (f.offline && !Schema.isOffline(s)) return false;
+      return true;
+    });
+    if (f.sort === 'distance') {
+      var trips = dataset().live && live.travel ? live.travel : {};
+      var away = function (r) {
+        var trip = trips[r.supplier.id];
+        return trip ? trip.minutes * 1000 : (r.km === null ? Infinity : r.km * 1000 / 0.4);
+      };
+      list = list.slice().sort(function (a, b) { return away(a) - away(b); });
+    }
+    return list.map(function (r, i) { return Object.assign({}, r, { rank: i + 1 }); });
+  }
+
   function renderResults() {
     var result = Score.rankSuppliers(searchDb(), searchNeed(), settings());
+    var view = viewOf(result.ranked);
     var list = clear($('results'));
-    $('resultCount').textContent = result.ranked.length ? '(' + result.ranked.length + ')' : '';
+    $('resultCount').textContent = result.ranked.length ? '(' + (view.length === result.ranked.length ? view.length : view.length + '/' + result.ranked.length) + ')' : '';
+    var all = result.ranked.map(function (r) { return r.supplier; });
+    var meta = result.ranked.length ? fmt(t('resultsMeta'), {
+      offline: all.filter(Schema.isOffline).length,
+      phone: all.filter(function (s) { return s.phones && s.phones.length; }).length
+    }) : '';
+    $('resultsMeta').textContent = [meta, dataset().live ? t('liveNote') : t('sampleNote')].filter(Boolean).join(' · ');
+    var f = filters();
+    $('fPhone').checked = f.phone;
+    $('fOffline').checked = f.offline;
+    fillSelect($('sortBy'), [{ value: 'score', label: t('sort').score }, { value: 'distance', label: t('sort').distance }], f.sort);
     if (!result.ranked.length) {
       var w = wanted();
       list.appendChild(el('li', 'empty', !dataset().live && w.kind !== 'empty' ? fmt(t('noMatchSample'), { q: state.need.query }) : t('noResults')));
+    } else if (!view.length) {
+      list.appendChild(el('li', 'empty', t('filteredOut')));
     }
-    result.ranked.slice(0, MAX_LISTED).forEach(function (r) { list.appendChild(resultCard(r)); });
-    if (result.ranked.length > MAX_LISTED) list.appendChild(el('li', 'hint', fmt(t('showingFirst'), { n: MAX_LISTED, total: result.ranked.length })));
+    view.slice(0, MAX_LISTED).forEach(function (r) { list.appendChild(resultCard(r)); });
+    if (view.length > MAX_LISTED) list.appendChild(el('li', 'hint', fmt(t('showingFirst'), { n: MAX_LISTED, total: view.length })));
     var ex = clear($('excluded'));
     if (result.excluded.length) {
       var box = el('div', 'excluded');
@@ -690,7 +716,7 @@
       box.appendChild(ul);
       ex.appendChild(box);
     }
-    renderRadar(result);
+    renderRadar({ ranked: view, excluded: result.excluded });
     return result;
   }
 
@@ -737,6 +763,7 @@
     goal.appendChild(bar);
 
     var table = clear($('listTable'));
+    renderBulk();
     $('listCsv').disabled = !shortlist.length;
     $('listClear').disabled = !shortlist.length;
     if (!shortlist.length) {
@@ -759,6 +786,12 @@
       who.appendChild(el('strong', null, e.name));
       who.appendChild(el('small', null, [e.need, e.place].filter(Boolean).join(' · ') + (e.sample ? ' (' + t('listSample') + ')' : '')));
       if (e.address || e.city) who.appendChild(el('small', null, [e.address, e.city].filter(Boolean).join(', ')));
+      var checks = C.verifyLinks(e.country);
+      if (checks.length && !e.sample) {
+        var v = el('span', 'verify', t('verifyLabel') + ' ');
+        checks.forEach(function (c) { v.appendChild(link(c.url, c.name)).className = ''; });
+        who.appendChild(v);
+      }
       tr.appendChild(who);
       var contact = el('td');
       if (e.phone) {
@@ -798,6 +831,55 @@
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
+  }
+
+  // ---------- quote requests to several suppliers ----------
+
+  var bulk = { open: false, touched: {} };
+
+  function messageFor(e) {
+    var w = Services.interpret(e.need || '');
+    return Out.rfqMessage({
+      category: w.categories[0] || '', item: e.need, deliveryZone: e.place,
+      service: w.kind === 'service' && w.services.some(isService), documents: !!prefs.rfqDocs
+    }, e.name, prefs.lang, e.country || country());
+  }
+
+  function markContacted(e) {
+    bulk.touched[e.id] = true;
+    if (e.status === 'todo') e.status = 'contacted';
+    saveShortlist();
+    setTimeout(renderShortlist, 0);
+  }
+
+  function renderBulk() {
+    var pending = shortlist.filter(function (e) { return e.status === 'todo'; });
+    var btn = $('bulkOpen');
+    btn.textContent = bulk.open ? t('bulkClose') : fmt(t('bulkOpen'), { n: pending.length });
+    btn.disabled = !bulk.open && !pending.length;
+    var box = $('bulkBox');
+    var rows = shortlist.filter(function (e) { return e.status === 'todo' || bulk.touched[e.id]; });
+    box.hidden = !bulk.open || !rows.length;
+    if (box.hidden) return;
+    $('bulkPreview').textContent = messageFor(rows[0]);
+    var list = clear($('bulkList'));
+    rows.forEach(function (e) {
+      var done = e.status !== 'todo';
+      var li = el('li', done ? 'done' : '');
+      li.appendChild(el('strong', null, e.name + (done ? ' · ' + t('bulkDone') : '')));
+      var text = messageFor(e);
+      var wa = e.phone ? Out.whatsappLink(e.phone, text) : null;
+      if (wa) {
+        var a = link(wa, t('whatsapp'));
+        a.addEventListener('click', function () { markContacted(e); });
+        li.appendChild(a);
+      } else {
+        li.appendChild(el('span', 'hint-inline', t('bulkNoPhone')));
+      }
+      var copy = button(t('copy'), 'btn small', function () { copyText(text, copy); markContacted(e); });
+      li.appendChild(copy);
+      list.appendChild(li);
+    });
   }
 
   function rememberPlace(label) {
@@ -1215,8 +1297,6 @@
     status.className = 'status-line' + (live.kind ? ' ' + live.kind : '');
     $('liveBackWrap').hidden = !dataset().live;
     $('routesCredit').hidden = !(dataset().live && live.travel);
-    var fine = document.querySelector('[data-i18n="fictional"]');
-    if (fine && dataset().live) fine.textContent = t('liveNote');
     var badge = $('envBadge');
     badge.textContent = dataset().live ? t('liveBadge') : t('sampleBadge');
     badge.className = 'env' + (dataset().live ? ' real' : '');
@@ -1340,7 +1420,7 @@
   function render() {
     applyI18n();
     renderLive();
-    renderKpis();
+    renderBadges();
     renderTabs();
     renderNeedForm();
     renderResults();
@@ -1387,6 +1467,20 @@
       queryTimer = setTimeout(function () { onQueryChange(value); }, 200);
     });
     $('nearMe').addEventListener('click', nearMe);
+    function setFilter(key, value) {
+      prefs.filters = Object.assign({}, filters());
+      prefs.filters[key] = value;
+      writeStorage('prefs', prefs);
+      renderResults();
+    }
+    $('fPhone').addEventListener('change', function () { setFilter('phone', $('fPhone').checked); });
+    $('fOffline').addEventListener('change', function () { setFilter('offline', $('fOffline').checked); });
+    $('sortBy').addEventListener('change', function () { setFilter('sort', $('sortBy').value); });
+    $('bulkOpen').addEventListener('click', function () {
+      bulk.open = !bulk.open;
+      if (!bulk.open) bulk.touched = {};
+      renderShortlist();
+    });
     $('listCsv').addEventListener('click', function () {
       var text = Short.toCsv(shortlist, { headers: t('csvHeaders'), status: t('listStatus') });
       download('supplier-scout-lista-' + today() + '.csv', '\uFEFF' + text, 'text/csv;charset=utf-8');
@@ -1472,6 +1566,8 @@
       state.db.quotes.push(quote);
       $('quoteForm').reset();
       render();
+      $('quoteStatus').textContent = t('quoteSaved');
+      setTimeout(function () { $('quoteStatus').textContent = ''; }, 4000);
     });
 
     document.querySelectorAll('[data-example]').forEach(function (b) {
@@ -1529,6 +1625,9 @@
   if (savedPrefs && I18N[savedPrefs.lang]) prefs.lang = savedPrefs.lang;
   if (savedPrefs && Sample.DATASETS[savedPrefs.datasetId]) prefs.datasetId = savedPrefs.datasetId;
   if (savedPrefs && savedPrefs.rfqDocs === true) prefs.rfqDocs = true;
+  if (savedPrefs && savedPrefs.filters && typeof savedPrefs.filters === 'object') {
+    prefs.filters = { phone: savedPrefs.filters.phone === true, offline: savedPrefs.filters.offline === true, sort: savedPrefs.filters.sort === 'distance' ? 'distance' : 'score' };
+  }
   loadState();
   bind();
   render();

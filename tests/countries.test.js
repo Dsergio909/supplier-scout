@@ -173,3 +173,13 @@ test('docs/countries.md lists every country profile', () => {
     assert.ok(row.includes(p.taxIdCheck === 'checksum' ? '✓ check digit' : 'format only'), `${p.code}: the docs must match the validator`);
   }
 });
+
+test('official portals to check a supplier, by country', () => {
+  assert.deepEqual(C.verifyLinks('CO').map((l) => l.name), ['RUES', 'DIAN']);
+  for (const code of ['CO', 'MX', 'PE', 'CL', 'AR', 'EC', 'BR']) {
+    const links = C.verifyLinks(code);
+    assert.ok(links.length, code);
+    for (const l of links) assert.match(l.url, /^https:\/\/www\.[a-z.]*(gov\.co|org\.co|gob\.mx|gob\.pe|sii\.cl|gob\.ar|gob\.ec|gov\.br)\//, l.url);
+  }
+  assert.deepEqual(C.verifyLinks('XX'), []);
+});

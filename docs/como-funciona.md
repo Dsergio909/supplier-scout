@@ -19,10 +19,11 @@ Arriba de la pestaña **Buscar** está el buscador:
 1. En **¿Qué necesitas?** escribe con tus palabras un producto o un servicio: *mantenimiento de aires acondicionados*, *plomero*, *recarga de extintores*, *fumigación*, *cajas de cartón*, *tornillería*. Debajo aparece lo que la app entendió, por ejemplo **Entendí: Aire acondicionado y refrigeración**.
 2. Escribe **la ciudad, el pueblo o el barrio**: *Barranquilla*, *Guatavita*, *Kennedy, Bogotá*. Elige el **país**, o pulsa **Usar mi ubicación** para buscar donde estás.
 3. Pulsa **Buscar en el mapa**. En unos segundos aparecen en el ranking los negocios que existen de verdad en esa zona, con su teléfono, dirección y horario cuando el mapa los tiene.
-4. El mensaje de resultado dice cuántos encontró, **cuántos no tienen página web** y cuántos tienen teléfono.
-5. Pulsa **Ver en Google Maps** para abrir la misma búsqueda en Google Maps. Google suele tener más negocios; desde ahí puedes llamar, ver fotos y leer reseñas.
-6. Cada negocio muestra su dirección y horario cuando el mapa los tiene, un botón **Llamar**, **Ver en OpenStreetMap** (su ficha en el mapa) y **Buscar en Google Maps** (para ver fotos, reseñas y llamar). **Pedir cotización** arma un mensaje listo para WhatsApp o correo; si es un servicio, pide el valor del servicio, qué incluye y el tiempo de respuesta.
-7. **Volver a los datos de ejemplo** regresa a la demo con proveedores ficticios.
+4. Encima del ranking puedes filtrar **Con teléfono** o **Sin página web** y ordenar por **Recomendado** o **Más cerca** (por tiempo en carro cuando lo hay).
+5. El mensaje de resultado dice cuántos encontró, **cuántos no tienen página web** y cuántos tienen teléfono.
+6. Pulsa **Ver en Google Maps** para abrir la misma búsqueda en Google Maps. Google suele tener más negocios; desde ahí puedes llamar, ver fotos y leer reseñas.
+7. Cada negocio muestra su dirección y horario cuando el mapa los tiene, un botón **Llamar**, **Ver en OpenStreetMap** (su ficha en el mapa) y **Buscar en Google Maps** (para ver fotos, reseñas y llamar). **Pedir cotización** arma un mensaje listo para WhatsApp o correo; si es un servicio, pide el valor del servicio, qué incluye y el tiempo de respuesta.
+8. **Volver a los datos de ejemplo** regresa a la demo con proveedores ficticios.
 
 **No necesitas poner cantidades.** En compras primero se buscan varias opciones y la cantidad se negocia con cada proveedor. Las cantidades solo aparecen en la pestaña **Cotizaciones**, cuando ya tienes precios y quieres comparar el costo real de un pedido.
 
@@ -74,7 +75,9 @@ En compras, la práctica habitual es reunir varias opciones, pedir **al menos tr
 1. En cada tarjeta, **Agregar a mi lista** guarda el proveedor, con su teléfono, dirección y lo que estabas buscando.
 2. En **Mi lista** marcas cómo va cada uno: *Por contactar*, *Contactado*, *Cotizó*, *Elegido* o *Descartado*, y anotas el precio cotizado, el tiempo de entrega, la forma de pago y tus notas.
 3. Arriba ves el avance: **2 de 3 cotizaciones recomendadas**.
-4. **Descargar cuadro comparativo** genera un archivo que se abre en Excel o Google Sheets, con columnas para precio, entrega, forma de pago, garantía, notas y el enlace a la ficha en el mapa.
+4. **Pedir cotización a los que faltan** prepara el mensaje para todos los que están *Por contactar*, cada uno con su nombre: lo abres en WhatsApp (solo celulares) o lo copias para el correo, y el proveedor pasa a *Contactado*. Es lo que hacen herramientas como Thomasnet con su "solicitud a varios proveedores", pero por WhatsApp, que es como se compra en la región.
+5. **Verificar:** junto a cada proveedor hay enlaces a los portales oficiales de su país para revisarlo antes de inscribirlo: RUES y DIAN en Colombia, SAT en México (incluida la lista 69-B de empresas que facturan operaciones simuladas), SUNAT en Perú, SII en Chile, ARCA en Argentina, SRI en Ecuador y Receita Federal en Brasil. Son las páginas principales: ahí buscas por nombre o por número tributario.
+6. **Descargar cuadro comparativo** genera un archivo que se abre en Excel o Google Sheets, con columnas para precio, entrega, forma de pago, garantía, notas y el enlace a la ficha en el mapa.
 
 La lista se guarda solo en tu navegador y se mantiene aunque hagas otras búsquedas o recargues la página. La app también recuerda tus últimos 5 lugares buscados para repetirlos con un toque.
 

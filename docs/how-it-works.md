@@ -19,10 +19,11 @@ At the top of the **Search** tab is the search bar:
 1. In **What do you need?** type a product or a service in your own words: *air conditioning maintenance*, *plumber*, *fire extinguisher refill*, *pest control*, *cardboard boxes*, *hardware*. Below it the app shows what it understood, for example **I understood: Air conditioning & refrigeration**.
 2. Type the **city, town or neighbourhood**: *Barranquilla*, *Guatavita*, *Kennedy, Bogotá*. Pick the **country**, or press **Use my location** to search where you are.
 3. Press **Search the map**. Within seconds, businesses that really exist in that area appear in the ranking, with phone, address and opening hours when the map has them.
-4. The result message says how many were found, **how many have no website** and how many have a phone number.
-5. Press **Open in Google Maps** to open the same search in Google Maps. Google usually lists more businesses; from there you can call, see photos and read reviews.
-6. Every business shows its address and opening hours when the map has them, a **Call** button, **View on OpenStreetMap** (its map entry) and **Find on Google Maps** (photos, reviews, call). **Request a quote** drafts a message for WhatsApp or email; for a service it asks for the price of the job, what it includes and the response time.
-7. **Back to the sample data** returns to the demo's fictional suppliers.
+4. Above the ranking you can filter **With phone** or **No website** and sort by **Recommended** or **Nearest** (by driving time when available).
+5. The result message says how many were found, **how many have no website** and how many have a phone number.
+6. Press **Open in Google Maps** to open the same search in Google Maps. Google usually lists more businesses; from there you can call, see photos and read reviews.
+7. Every business shows its address and opening hours when the map has them, a **Call** button, **View on OpenStreetMap** (its map entry) and **Find on Google Maps** (photos, reviews, call). **Request a quote** drafts a message for WhatsApp or email; for a service it asks for the price of the job, what it includes and the response time.
+8. **Back to the sample data** returns to the demo's fictional suppliers.
 
 **No quantities needed.** In purchasing you first look for several options and negotiate the quantity with each supplier. Quantities only appear in the **Quotes** tab, once you have prices and want to compare the real cost of an order.
 
@@ -74,7 +75,9 @@ Purchasing usually gathers several options, asks for **at least three quotes** a
 1. On each card, **Add to my list** saves the supplier with its phone, address and what you were looking for.
 2. In **My list** you mark where each one stands: *To contact*, *Contacted*, *Quoted*, *Chosen* or *Discarded*, and note the quoted price, lead time, payment terms and your notes.
 3. Progress is shown on top: **2 of 3 recommended quotes**.
-4. **Download comparison table** creates a file that opens in Excel or Google Sheets, with columns for price, lead time, payment terms, warranty, notes and the map link.
+4. **Request quotes from the rest** prepares the message for everyone still *To contact*, each with their name: open it in WhatsApp (mobile numbers only) or copy it for email, and the supplier moves to *Contacted*. It is what tools such as Thomasnet do with their one-to-many request, but over WhatsApp, which is how the region buys.
+5. **Check:** next to each supplier are links to the official portals of its country to check it before registering it: RUES and DIAN in Colombia, SAT in Mexico (including the 69-B list of companies issuing simulated invoices), SUNAT in Peru, SII in Chile, ARCA in Argentina, SRI in Ecuador and Receita Federal in Brazil. They are home pages: search there by name or tax ID.
+6. **Download comparison table** creates a file that opens in Excel or Google Sheets, with columns for price, lead time, payment terms, warranty, notes and the map link.
 
 The list is saved only in your browser and survives other searches and reloads. The app also remembers your last 5 places to repeat them with one tap.
 

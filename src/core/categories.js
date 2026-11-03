@@ -20,7 +20,7 @@
     },
     {
       id: 'hardware', label: { es: 'Ferretería', en: 'Hardware', pt: 'Ferragens', fr: 'Quincaillerie' },
-      keywords: ['ferreteria', 'tlapaleria', 'tornillo', 'tornillos', 'tornilleria', 'pijas', 'clavos', 'herraje', 'herrajes', 'herramienta', 'herramientas', 'pintura', 'pinturas', 'materiales de construccion', 'corralon', 'deposito de materiales', 'cemento', 'hardware', 'tools', 'ferragens', 'ferragem', 'parafusos', 'material de construcao', 'quincaillerie', 'outillage'],
+      keywords: ['ferreteria', 'tlapaleria', 'pintureria', 'casa de materiales', 'ferreteria industrial', 'tornillo', 'tornillos', 'tornilleria', 'pijas', 'clavos', 'herraje', 'herrajes', 'herramienta', 'herramientas', 'pintura', 'pinturas', 'materiales de construccion', 'corralon', 'deposito de materiales', 'cemento', 'hardware', 'tools', 'ferragens', 'ferragem', 'parafusos', 'material de construcao', 'quincaillerie', 'outillage'],
       osm: [['shop', 'hardware'], ['shop', 'doityourself'], ['shop', 'trade']], nameHint: 'ferreter|tlapaler|tornill|herraj|ferragen|quincaill'
     },
     {

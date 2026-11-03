@@ -42,13 +42,6 @@
 </header>
 
 <main class="shell">
-  <section class="intro panel">
-    <p data-i18n="intro"></p>
-    <p class="fine" data-i18n="fictional"></p>
-  </section>
-
-  <section class="kpis" id="kpis" aria-live="polite"></section>
-
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button type="button" role="tab" id="tab-search" aria-controls="panel-search" data-tab="search"><span>1</span> <span data-i18n="tabSearch"></span></button>
     <button type="button" role="tab" id="tab-list" aria-controls="panel-list" data-tab="list"><span>2</span> <span data-i18n="tabList"></span> <span id="listBadge" class="badge"></span></button>
@@ -107,7 +100,15 @@
 
     <section class="panel">
       <div class="panel-head">
-        <h2><span data-i18n="resultsTitle"></span> <span id="resultCount" class="count"></span></h2>
+        <div>
+          <h2><span data-i18n="resultsTitle"></span> <span id="resultCount" class="count"></span></h2>
+          <p class="meta" id="resultsMeta" aria-live="polite"></p>
+        </div>
+        <div class="result-tools">
+          <label class="check"><input type="checkbox" id="fPhone"> <span data-i18n="filterPhone"></span></label>
+          <label class="check"><input type="checkbox" id="fOffline"> <span data-i18n="filterOffline"></span></label>
+          <label class="sort"><span data-i18n="sortLabel"></span><select id="sortBy"></select></label>
+        </div>
       </div>
       <ol id="results" class="list"></ol>
       <div id="excluded"></div>
@@ -119,9 +120,15 @@
     <section class="panel">
       <div class="panel-head"><div><h2 data-i18n="listTitle"></h2><p class="meta" data-i18n="listHint"></p></div></div>
       <div class="goal" id="listGoal"></div>
+      <div class="bulk" id="bulkBox" hidden>
+        <div class="bulk-head"><h3 data-i18n="bulkTitle"></h3><p class="meta" data-i18n="bulkHint"></p></div>
+        <pre class="message" id="bulkPreview"></pre>
+        <ol class="bulk-list" id="bulkList"></ol>
+      </div>
       <div class="table-wrap"><table id="listTable" class="list-table"></table></div>
       <div class="actions list-actions">
-        <button type="button" id="listCsv" class="btn primary" data-i18n="listCsv"></button>
+        <button type="button" id="bulkOpen" class="btn primary"></button>
+        <button type="button" id="listCsv" class="btn" data-i18n="listCsv"></button>
         <button type="button" id="listClear" class="btn" data-i18n="listClear"></button>
       </div>
       <p class="fine" data-i18n="listPrivacy"></p>
@@ -161,6 +168,7 @@
         <label class="check"><input id="qTax" type="checkbox"> <span data-i18n="taxIncluded"></span></label>
       </div>
       <button type="submit" class="btn primary" data-i18n="save"></button>
+      <p id="quoteStatus" class="status-line ok" role="status"></p>
     </form>
   </section>
 

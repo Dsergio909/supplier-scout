@@ -545,8 +545,29 @@
     }
   }
 
+  /**
+   * Official portals where a buyer checks a supplier before registering it
+   * (company registry, tax status, tax blacklists). Home pages only: deep links
+   * to search forms change often, so the buyer searches by name or tax ID there.
+   */
+  var VERIFY = {
+    CO: [['RUES', 'https://www.rues.org.co/'], ['DIAN', 'https://www.dian.gov.co/']],
+    MX: [['SAT', 'https://www.sat.gob.mx/']],
+    PE: [['SUNAT', 'https://www.sunat.gob.pe/']],
+    CL: [['SII', 'https://www.sii.cl/']],
+    AR: [['ARCA', 'https://www.afip.gob.ar/']],
+    EC: [['SRI', 'https://www.sri.gob.ec/']],
+    BR: [['Receita Federal', 'https://www.gov.br/receitafederal/']]
+  };
+
+  /** [{ name, url }] for a country, empty when none is known. */
+  function verifyLinks(code) {
+    return (VERIFY[code] || []).map(function (v) { return { name: v[0], url: v[1] }; });
+  }
+
   var api = {
     PROFILES: PROFILES,
+    verifyLinks: verifyLinks,
     getProfile: getProfile,
     countryForTaxLabel: countryForTaxLabel,
     countriesForTaxLabel: countriesForTaxLabel,
