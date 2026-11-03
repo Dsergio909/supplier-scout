@@ -23,6 +23,7 @@ async function probe(name, url, init) {
     const res = await fetch(url, opts);
     const text = await res.text();
     const out = { name, status: res.status, ms: Date.now() - started, bytes: text.length, head: text.slice(0, 200) };
+    Object.defineProperty(out, 'text', { value: text, enumerable: false });
     try {
       const json = JSON.parse(text);
       if (json.osm3s) out.dataDate = json.osm3s.timestamp_osm_base;
@@ -73,7 +74,7 @@ const SERVERS = [
     await sleep(1500);
     const r = await probe('nominatim ' + name, nomi(q, lat, lng, d));
     try {
-      const arr = JSON.parse(r.head.length < r.bytes ? (await (await fetch(nomi(q, lat, lng, d), { headers: { 'User-Agent': UA } })).text()) : r.head);
+      const arr = JSON.parse(r.text);
       r.elements = arr.length;
       r.names = arr.slice(0, 6).map((e) => `${e.name} [${e.category}=${e.type}]${e.extratags && (e.extratags.phone || e.extratags['contact:phone']) ? ' tel' : ''}`);
       r.kinds = [...new Set(arr.map((e) => e.category + '=' + e.type))].slice(0, 8);
