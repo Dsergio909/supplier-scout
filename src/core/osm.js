@@ -118,7 +118,7 @@
         emails: email ? [email] : [],
         websites: website ? [website] : [],
         address: street || tags['addr:full'] || null,
-        city: tags['addr:city'] || null,
+        city: cityName(tags['addr:city']),
         country: opts.country || null,
         lat: lat != null ? lat : null,
         lng: lng != null ? lng : null,
@@ -187,10 +187,10 @@
       if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
       var a = hit.address || {};
       var full = clean(hit.display_name, 200);
-      var name = clean(hit.name || full.split(',')[0], 80);
+      var name = clean(hit.name || full.split(',')[0], 80).replace(/\s+ciudad$/i, '').replace(/^per[ií]metro urbano\s+/i, '').replace(/^(upzs?\s+)?localidad(\s+de)?\s+(?=\S)/i, '');
       // "Bogotá ciudad" -> "Bogotá"; the region only when it adds something
       // ("San Pedro, Valle del Cauca", not "Kennedy, Bogotá, Bogotá, Distrito Capital").
-      var town = clean(a.city || a.town || a.village || a.municipality || a.county, 80).replace(/\s+ciudad$/i, '');
+      var town = cityName(a.city || a.town || a.village || a.municipality || a.county) || '';
       var region = clean(a.state || a.region || a.province || a.county, 80);
       var fold = function (x) { return x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
       var parts = [name];
@@ -206,13 +206,48 @@
         kind: kind,
         country: /^[a-z]{2}$/i.test(a.country_code || '') ? a.country_code.toUpperCase() : null,
         bbox: bb && bb.length === 4 && bb.every(isFinite) ? bb : null,
-        wholePlace: WHOLE_PLACE.indexOf(kind) !== -1
+        wholePlace: WHOLE_PLACE.indexOf(kind) !== -1,
+        // Nominatim's place rank (lower = bigger) and whether it lies inside another
+        // municipality ("Manizales" as a district of Cáceres): used to tell real homonyms.
+        rank: Number(hit.place_rank) || null,
+        inside: !!town && fold(town) !== fold(name)
       };
       var key = place.label + '|' + Math.round(lat * 100) + '|' + Math.round(lng * 100);
       if (seen[key]) return null;
       seen[key] = true;
       return place;
     }).filter(Boolean);
+  }
+
+  /**
+   * The other places worth offering after the first one: real homonyms, i.e.
+   * places at least 20 km away. A second hit for the same city ("Perímetro
+   * Urbano Medellín" next to "Medellín") is not an alternative.
+   */
+  function otherPlaces(places) {
+    var list = places || [];
+    var first = list[0];
+    if (!first) return [];
+    var kept = [];
+    // A city or town is not confused with a rural area of the same name ("Manizales"
+    // also names hamlets in Antioquia): offer only other towns then.
+    var town = ['city', 'town', 'municipality'].indexOf(first.kind) !== -1;
+    var small = ['hamlet', 'isolated_dwelling', 'locality', 'farm', 'neighbourhood', 'suburb', 'quarter', 'allotments', 'croft', 'city_district'];
+    list.slice(1).forEach(function (p) {
+      // Live data, Nov 2026: "Manizales" also names districts of Cáceres and San Luis
+      // (Antioquia), one of them typed "city" but ranked lower than the real city.
+      if (town && (small.indexOf(p.kind) !== -1 || p.inside || (first.rank && p.rank && p.rank > first.rank + 1))) return;
+      var far = haversineKm(first.lat, first.lng, p.lat, p.lng) >= 20;
+      var repeated = kept.some(function (k) { return k.label === p.label; }) || p.label === first.label;
+      if (far && !repeated) kept.push(p);
+    });
+    return kept;
+  }
+
+  /** "Perímetro Urbano Barranquilla" -> "Barranquilla", "Bogotá ciudad" -> "Bogotá". */
+  function cityName(value) {
+    var c = clean(value, 80).replace(/^per[ií]metro urbano\s+/i, '').replace(/\s+ciudad$/i, '');
+    return c || null;
   }
 
   function haversineKm(lat1, lng1, lat2, lng2) {
@@ -301,7 +336,7 @@
         emails: email ? [email] : [],
         websites: website ? [website] : [],
         address: street || null,
-        city: a.city || a.town || a.village || null,
+        city: cityName(a.city || a.town || a.village),
         country: opts.country || null,
         lat: lat,
         lng: lng,
@@ -335,7 +370,7 @@
   var api = {
     ENDPOINT: ENDPOINT, GEOCODE_ENDPOINT: GEOCODE_ENDPOINT, ATTRIBUTION: ATTRIBUTION, MAX_RADIUS_M: MAX_RADIUS_M,
     safeRegex: safeRegex, buildQuery: buildQuery, normalize: normalize,
-    geocodeUrl: geocodeUrl, parseGeocode: parseGeocode, parsePlaces: parsePlaces, searchRadius: searchRadius,
+    geocodeUrl: geocodeUrl, parseGeocode: parseGeocode, parsePlaces: parsePlaces, otherPlaces: otherPlaces, cityName: cityName, searchRadius: searchRadius,
     poiSearchUrl: poiSearchUrl, normalizePois: normalizePois,
     mapsSearchUrl: mapsSearchUrl
   };

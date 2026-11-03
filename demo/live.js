@@ -75,10 +75,10 @@
   // Calls to each service are queued so that holds across searches too,
   // even if someone clicks fast or picks alternatives one after another.
   var queues = {};
-  function politely(service, task) {
+  function politely(service, task, gapMs) {
     var q = queues[service] || (queues[service] = { last: 0, chain: Promise.resolve() });
     var run = q.chain.then(function () {
-      var gap = q.last + NOMINATIM_GAP_MS - Date.now();
+      var gap = q.last + (gapMs === undefined ? NOMINATIM_GAP_MS : gapMs) - Date.now();
       return (gap > 0 ? wait(gap) : Promise.resolve()).then(function () {
         q.last = Date.now();
         return task();
@@ -222,7 +222,7 @@
           travel: travel,
           source: source,
           point: point,
-          alternatives: loc.given ? [] : loc.places.slice(1),
+          alternatives: loc.given ? [] : Osm.otherPlaces(loc.places),
           movedFrom: loc.movedFrom && country !== loc.movedFrom ? loc.movedFrom : null,
           country: country,
           scope: scope.scope,
@@ -249,5 +249,48 @@
     });
   }
 
-  root.ScoutLive = { search: search };
+  // ---------- national suppliers (Colombia: SECOP II open data) ----------
+
+  var SECOP_TIMEOUT_MS = 20000;
+  // datos.gov.co has no published rate limit; a short gap keeps us polite.
+  var SECOP_GAP_MS = 250;
+  var CONTACTS_FOR = 20;
+
+  /**
+   * Companies that already sold this need to public entities, merged by tax ID.
+   * p: { what, interpretation, region, today }. Resolves { suppliers, terms, failed }.
+   * Each term is one quick grouped query; a failed term is reported, not fatal.
+   */
+  function national(p) {
+    var Secop = root.ScoutSecop;
+    var terms = Secop.searchTerms(p.interpretation, p.what);
+    if (!terms.length) return Promise.reject(LiveError('nothing-to-search'));
+    var failed = [];
+    return Promise.all(terms.map(function (t) {
+      return politely('secop', function () {
+        return fetchJson(Secop.contractsUrl(t.term, { today: p.today, like: t.like, exact: t.exact }), null, SECOP_TIMEOUT_MS);
+      }, SECOP_GAP_MS).then(function (rows) {
+        return { id: t.id, term: t.term, exact: !!t.exact, rows: Array.isArray(rows) ? rows : [] };
+      }, function (err) {
+        failed.push(t.term);
+        return { id: t.id, term: t.term, exact: !!t.exact, rows: [], error: err.code };
+      });
+    })).then(function (groups) {
+      if (failed.length === terms.length) throw LiveError('national-unavailable');
+      var list = Secop.aggregate(groups, { region: p.region, max: 40 });
+      // Contacts for the first companies and the first individuals alike.
+      var pick = function (type) { return list.filter(function (e) { return e.personType === type; }).slice(0, CONTACTS_FOR / 2); };
+      var nits = pick('company').concat(pick('person')).map(function (e) { return e.doc || e.nit; });
+      if (!nits.length) return { suppliers: list, terms: terms, failed: failed };
+      return politely('secop', function () {
+        return fetchJson(Secop.contactsUrl(nits), null, SECOP_TIMEOUT_MS);
+      }, SECOP_GAP_MS).then(function (rows) {
+        return { suppliers: Secop.attachContacts(list, rows), terms: terms, failed: failed };
+      }, function () {
+        return { suppliers: list, terms: terms, failed: failed };
+      });
+    });
+  }
+
+  root.ScoutLive = { search: search, national: national, locate: locate };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

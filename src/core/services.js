@@ -293,6 +293,18 @@
     }
     var services = SERVICES.filter(function (s, i) { return mark(SERVICE_KEYS[i]); });
     var categories = Categories.CATEGORIES.filter(function (c, i) { return mark(CATEGORY_KEYS[i]); });
+    // "Dotación de aseo y papelería" means supplies, not uniforms: drop textiles
+    // unless clothing is actually mentioned.
+    var joined = words.join(' ');
+    if (categories.length > 1 && /\bdotacion(es)? (de|para) /.test(joined) &&
+        !/\b(uniforme|ropa|overol|bota|calzado|epp|camisa|chaqueta|textil|tela)/.test(joined)) {
+      categories = categories.filter(function (c) { return c.id !== 'textiles'; });
+    }
+    // "Tóner para impresora" is a supply bought with stationery, not printer repair.
+    if (/\b(toner|cartucho|cartuchos|tinta|tintas|resma|resmas)\b/.test(joined) &&
+        categories.some(function (c) { return c.id === 'office'; })) {
+      services = services.filter(function (x) { return x.id !== 'it'; });
+    }
     var generic = words.some(function (w) { return GENERIC.indexOf(singular(w)) !== -1 || GENERIC.indexOf(w) !== -1; });
     var terms = unique(words.filter(function (w, i) {
       return !used[i] && w.length >= 3 && STOP.indexOf(w) === -1 && GENERIC.indexOf(w) === -1 && GENERIC.indexOf(singular(w)) === -1;

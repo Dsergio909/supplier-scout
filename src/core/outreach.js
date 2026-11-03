@@ -83,9 +83,29 @@
    * has a well-known list (RUT, Cámara de Comercio, bank certificate, ID); other
    * countries get the same idea named with their own tax ID.
    */
-  function documentsLine(country, lang) {
+  function documentsLine(country, lang, person, service) {
     var profile = Countries.getProfile(country);
     var taxId = profile.code !== 'XX' && profile.taxIdName ? profile.taxIdName : null;
+    var l = language(lang);
+    // An individual (persona natural / física) has no Chamber of Commerce certificate
+    // of legal representation: their own ID, and a business registration only if they have one.
+    if (person && profile.code === 'CO') {
+      return {
+        es: 'Si avanzamos, para inscribirlo como proveedor le pediremos: RUT actualizado, copia de la cédula, certificación bancaria y, si tiene, el registro mercantil de la Cámara de Comercio.' + (service ? ' Como es un servicio, también el soporte de pago de seguridad social.' : ''),
+        en: 'If we go ahead, to register you as a supplier we will ask for: an up-to-date RUT, a copy of your ID, a bank certificate and, if you have one, your Chamber of Commerce business registration.' + (service ? ' As it is a service, also proof of social security payments.' : ''),
+        pt: 'Se avançarmos, para cadastrá-lo como fornecedor pediremos: RUT atualizado, cópia do documento de identidade, declaração bancária e, se tiver, o registro na Câmara de Comércio.' + (service ? ' Por ser um serviço, também o comprovante de seguridade social.' : ''),
+        fr: 'Si nous avançons, pour vous référencer comme fournisseur nous demanderons : RUT à jour, copie de votre pièce d\'identité, attestation bancaire et, si vous l\'avez, votre immatriculation à la Chambre de commerce.' + (service ? ' Comme il s\'agit d\'un service, aussi la preuve des cotisations sociales.' : '')
+      }[l];
+    }
+    if (person) {
+      var taxP = taxId || { es: 'su identificación tributaria', en: 'your tax ID', pt: 'sua identificação fiscal', fr: 'votre identifiant fiscal' }[l];
+      return {
+        es: 'Si avanzamos, para inscribirlo como proveedor le pediremos: ' + taxP + ', una certificación bancaria y su documento de identidad.',
+        en: 'If we go ahead, to register you as a supplier we will ask for: ' + taxP + ', a bank certificate and your ID.',
+        pt: 'Se avançarmos, para cadastrá-lo como fornecedor pediremos: ' + taxP + ', uma declaração bancária e seu documento de identidade.',
+        fr: 'Si nous avançons, pour vous référencer comme fournisseur nous demanderons : ' + taxP + ', une attestation bancaire et votre pièce d\'identité.'
+      }[l];
+    }
     if (profile.code === 'CO') {
       return {
         es: 'Si avanzamos, para inscribirlos como proveedor les pediremos: RUT actualizado, certificado de existencia y representación legal de la Cámara de Comercio reciente, certificación bancaria y copia de la cédula del representante legal.',
@@ -105,7 +125,8 @@
 
   /**
    * need: { category, item, quantity, unit, neededInDays, deliveryZone, service, documents }.
-   * documents: true adds the papers needed to register the supplier.
+   * documents: true adds the papers needed to register the supplier; person: true
+   * asks an individual (persona natural) for their own papers instead of a company's.
    * service: true asks for the price of a service instead of unit price and pack size.
    * country (optional) names the local sales tax: "si incluye IGV" in Peru, "ITBIS" in the Dominican Republic.
    */
@@ -115,7 +136,7 @@
     var unit = UNIT_LABEL[l][need.unit] || need.unit || '';
     var qty = need.quantity ? need.quantity + ' ' + unit + ' ' : '';
     var lines = RFQ[l](supplierName ? ' ' + supplierName : '', qty, what, need.deliveryZone, need.neededInDays, taxName(country, l), !!need.service);
-    if (need.documents) lines.splice(lines.length - 1, 0, documentsLine(country, l));
+    if (need.documents) lines.splice(lines.length - 1, 0, documentsLine(country, l, !!need.person, !!need.service));
     return lines.join('\n');
   }
 

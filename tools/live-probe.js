@@ -22,7 +22,7 @@ async function probe(name, url, init) {
   try {
     const res = await fetch(url, opts);
     const text = await res.text();
-    const out = { name, status: res.status, ms: Date.now() - started, bytes: text.length, head: text.slice(0, 200) };
+    const out = { name, status: res.status, ms: Date.now() - started, bytes: text.length, head: text.slice(0, 200), cors: res.headers.get('access-control-allow-origin') };
     Object.defineProperty(out, 'text', { value: text, enumerable: false });
     try {
       const json = JSON.parse(text);
@@ -83,6 +83,84 @@ const SERVERS = [
     results.push(r);
     await sleep(1100);
   }
+  // What kind of place each "Manizales" is (a city and rural areas share the name).
+  {
+    await sleep(1500);
+    const r = await probe('nominatim lugares Manizales', 'https://nominatim.openstreetmap.org/search?' + new URLSearchParams({ q: 'Manizales', format: 'jsonv2', limit: '5', addressdetails: '1', countrycodes: 'co' }));
+    try { r.names = JSON.parse(r.text).map((e) => [e.name, e.addresstype, e.category + '=' + e.type, 'rank ' + e.place_rank, (e.address && (e.address.city || e.address.town || e.address.municipality || e.address.county)) || '', e.address && e.address.state].join(' | ')); } catch (e) { r.parseError = String(e.message); }
+    delete r.head;
+    results.push(r);
+  }
+  // SECOP II (datos.gov.co): national suppliers that already sell a category to public entities.
+  const secop = async (name, url) => {
+    await sleep(1200);
+    const r = await probe(name, url, { headers: { Origin: 'https://dsergio909.github.io' } });
+    try {
+      const j = JSON.parse(r.text);
+      // Document numbers and contact details are not kept in the results: an individual's ID is their national ID.
+      if (Array.isArray(j)) { r.rows = j.length; r.sample = j.slice(0, 8).map((x) => { const y = {}; Object.keys(x).forEach((k) => { if (!/documento|^nit$|telefono|correo|direcci|representante/.test(k)) y[k] = x[k]; }); return y; }); }
+      else if (j.columns) { r.columns = j.columns.map((c) => c.fieldName + ':' + c.dataTypeName); r.datasetName = j.name; }
+      else r.json = j;
+    } catch (e) { r.parseError = String(e.message); }
+    delete r.head;
+    return r;
+  };
+  const SODA = 'https://www.datos.gov.co';
+  results.push(await secop('secop contratos meta', SODA + '/api/views/jbjy-vk9h.json'));
+  results.push(await secop('secop procesos meta', SODA + '/api/views/p6dx-8zbt.json'));
+  results.push(await secop('secop proveedores meta', SODA + '/api/views/qmzu-gj57.json'));
+  const q = (params) => SODA + '/resource/jbjy-vk9h.json?' + new URLSearchParams(params);
+  results.push(await secop('secop contratos q papeleria (crudo)', q({ $q: 'papelería', $limit: '5' })));
+  results.push(await secop('secop contratos q papeleria agrupado', q({
+    $select: 'proveedor_adjudicado, documento_proveedor, tipodocproveedor, departamento, count(*) as n, max(fecha_de_firma) as ultima',
+    $q: 'papelería', $where: "fecha_de_firma > '2024-01-01T00:00:00'",
+    $group: 'proveedor_adjudicado, documento_proveedor, tipodocproveedor, departamento', $order: 'n DESC', $limit: '500'
+  })));
+  results.push(await secop('secop contratos like aseo agrupado', q({
+    $select: 'proveedor_adjudicado, documento_proveedor, departamento, count(*) as n',
+    $where: "fecha_de_firma > '2024-01-01T00:00:00' AND upper(objeto_del_contrato) like '%ASEO%'",
+    $group: 'proveedor_adjudicado, documento_proveedor, departamento', $order: 'n DESC', $limit: '300'
+  })));
+  // Which wording finds the right companies, and is filtering by the contract description fast enough?
+  const since = new Date(Date.now() - 730 * 86400000).toISOString().slice(0, 10) + 'T00:00:00';
+  const variants = [
+    ['vigilancia', null], ['vigilancia privada', 'VIGILANCIA'], ['seguridad privada vigilancia', null],
+    ['cajas carton', 'CAJA'], ['empaques', 'EMPAQUE'], ['toner', 'TONER'], ['toner impresora', null],
+    ['mantenimiento hidrosanitario', 'HIDROSANITARI'], ['plomeria', null], ['recarga extintores', 'EXTINTOR'],
+    ['papeleria', 'PAPELER'], ['utiles de oficina', null], ['aseo', 'ASEO']
+  ];
+  for (const [term, like] of variants) {
+    const base = { $q: term, $group: 'proveedor_adjudicado, departamento', $order: 'n DESC', $limit: '1000' };
+    const where = "tipodocproveedor = 'NIT' AND fecha_de_firma > '" + since + "'";
+    const plain = await secop('secop variante q=' + term, q(Object.assign({}, base, { $select: 'proveedor_adjudicado, departamento, count(*) as n, max(objeto_del_contrato) as ejemplo', $where: where })));
+    if (plain.sample) { plain.sample = plain.sample.map((x) => x.proveedor_adjudicado + ' · ' + x.n + ' · ' + String(x.ejemplo || '').slice(0, 90)); }
+    results.push(plain);
+    if (like) {
+      const f = await secop('secop variante q=' + term + ' + like ' + like, q(Object.assign({}, base, { $select: 'proveedor_adjudicado, departamento, count(*) as n', $where: where + " AND upper(objeto_del_contrato) like '%" + like + "%'" })));
+      if (f.sample) f.sample = f.sample.map((x) => x.proveedor_adjudicado + ' · ' + x.n);
+      results.push(f);
+    }
+  }
+  // Individuals (personas naturales): how many, and how to tell a small supplier
+  // from a person hired as quasi-staff ("prestación de servicios profesionales y de apoyo a la gestión").
+  const sinceN = new Date(Date.now() - 730 * 86400000).toISOString().slice(0, 10) + 'T00:00:00';
+  const termsN = [['papeleria', 'PAPELER'], ['extintores', 'EXTINTOR'], ['fumigacion', 'FUMIGACI'], ['mantenimiento hidrosanitario', 'HIDROSANITARI'],
+    ['aire acondicionado', 'AIRE'], ['aseo', 'ASEO'], ['cerrajeria', 'CERRAJER'], ['cajas carton', 'CAJA']];
+  for (const [term, like] of termsN) {
+    const where = "fecha_de_firma > '" + sinceN + "' AND upper(objeto_del_contrato) like '%" + like + "%'";
+    const byType = await secop('personas: tipos q=' + term, q({ $select: 'tipodocproveedor, tipo_de_contrato, justificacion_modalidad_de, count(*) as n', $q: term, $where: where,
+      $group: 'tipodocproveedor, tipo_de_contrato, justificacion_modalidad_de', $order: 'n DESC', $limit: '40' }));
+    if (byType.sample) byType.sample = (JSON.parse(byType.text) || []).map((x) => [x.tipodocproveedor, x.tipo_de_contrato, x.justificacion_modalidad_de, x.n].join(' | '));
+    results.push(byType);
+    const people = await secop('personas: top q=' + term, q({ $select: 'proveedor_adjudicado, tipodocproveedor, departamento, count(*) as n, max(objeto_del_contrato) as ejemplo, max(tipo_de_contrato) as tipo, max(justificacion_modalidad_de) as just, max(valor_del_contrato) as valor',
+      $q: term, $where: where + " AND tipodocproveedor != 'NIT'", $group: 'proveedor_adjudicado, tipodocproveedor, departamento', $order: 'n DESC', $limit: '15' }));
+    if (people.sample) people.sample = (JSON.parse(people.text) || []).map((x) => [x.proveedor_adjudicado, x.tipodocproveedor, x.departamento, x.n, x.tipo, x.just, x.valor, String(x.ejemplo || '').slice(0, 110)].join(' | '));
+    results.push(people);
+  }
+  results.push(await secop('personas: tipos de documento', q({ $select: 'tipodocproveedor, count(*) as n', $q: 'suministro', $where: "fecha_de_firma > '" + sinceN + "'", $group: 'tipodocproveedor', $order: 'n DESC', $limit: '20' })));
+  results.push(await secop('personas: tipo_empresa en registro', SODA + '/resource/qmzu-gj57.json?' + new URLSearchParams({ $select: 'tipo_empresa, espyme, count(*) as n', $group: 'tipo_empresa, espyme', $order: 'n DESC', $limit: '30' })));
+  results.push(await secop('secop proveedores q papeleria', SODA + '/resource/qmzu-gj57.json?' + new URLSearchParams({ $q: 'papeleria', $limit: '10' })));
+
   await sleep(2000);
   results.push(await probe('overpass-api.de status', 'https://overpass-api.de/api/status'));
   for (const r of results) console.log(JSON.stringify(r));

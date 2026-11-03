@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' https://tile.openstreetmap.org; connect-src https://nominatim.openstreetmap.org https://overpass-api.de https://router.project-osrm.org; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://tile.openstreetmap.org; connect-src https://nominatim.openstreetmap.org https://overpass-api.de https://router.project-osrm.org https://www.datos.gov.co; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
-<title>Supplier Scout</title>
-<meta name="description" content="Type what you need, a product or a service, and find real businesses near you on OpenStreetMap, including the ones with no website. Shortlist, request quotes and compare.">
+<title>Supplier Scout · búsqueda de proveedores</title>
+<meta name="description" content="Encuentra proveedores en varias capas: empresas nacionales que ya venden a entidades públicas (SECOP II), tus proveedores conocidos, negocios cercanos en el mapa y búsquedas listas en Google, Facebook y LinkedIn.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Supplier Scout · find suppliers, including the ones that are not online">
-<meta property="og:description" content="Live demo: find real suppliers of goods and services on the map, with driving times, a shortlist, quote requests over WhatsApp and a comparison table. Latin America, 4 languages.">
+<meta property="og:title" content="Supplier Scout · búsqueda de proveedores">
+<meta property="og:description" content="Proveedores nacionales con datos públicos, tus proveedores con sus condiciones, negocios cercanos y búsquedas en internet, en una sola búsqueda.">
 <meta property="og:url" content="https://dsergio909.github.io/supplier-scout/">
 <meta property="og:image" content="https://dsergio909.github.io/supplier-scout/demo/og.png">
 <meta property="og:image:width" content="1200">
@@ -20,266 +20,121 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="appbar">
-  <div class="shell appbar-inner">
-    <a class="brand" href="./" aria-label="Supplier Scout">
-      <span class="mark" aria-hidden="true">SS</span>
-      <span class="name">Supplier Scout</span>
-      <span class="module" data-i18n="tagline"></span>
-    </a>
-    <div class="controls">
-      <span class="env" id="envBadge"></span>
-      <a class="link" id="howLink" href="https://github.com/Dsergio909/supplier-scout/blob/main/docs/como-funciona.md" data-i18n="howLink"></a>
-      <label class="dataset"><span class="sr-only" data-i18n="dataset"></span><select id="dataset"></select></label>
-      <div class="segmented" id="langGroup" role="group" aria-label="Language">
-        <button type="button" data-lang="es" lang="es" title="Español">ES</button><button type="button" data-lang="en" lang="en" title="English">EN</button><button type="button" data-lang="pt" lang="pt" title="Português">PT</button><button type="button" data-lang="fr" lang="fr" title="Français">FR</button>
-      </div>
-      <button type="button" class="icon-btn" id="theme" aria-label="Tema">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
-      </button>
+<a class="skip" href="#main" data-i18n="skip"></a>
+<header class="bar">
+  <div class="bar-left">
+    <span class="app-name">Supplier Scout</span>
+    <span class="bar-sep" aria-hidden="true"></span>
+    <span class="app-module" data-i18n="module"></span>
+  </div>
+  <nav class="views" aria-label="Secciones" data-i18n-label="sections">
+    <a href="#buscar" data-view="search" data-i18n="viewSearch"></a>
+    <a href="#lista" data-view="list"><span data-i18n="viewList"></span> <span class="badge" id="listBadge"></span></a>
+  </nav>
+  <div class="bar-right">
+    <a id="howLink" href="https://github.com/Dsergio909/supplier-scout/blob/main/docs/como-funciona.md" data-i18n="how"></a>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" data-lang="es">ES</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="pt">PT</button><button type="button" data-lang="fr">FR</button>
     </div>
   </div>
 </header>
 
-<main class="shell">
-  <nav class="tabs" role="tablist" aria-label="Sections">
-    <button type="button" role="tab" id="tab-search" aria-controls="panel-search" data-tab="search"><span>1</span> <span data-i18n="tabSearch"></span></button>
-    <button type="button" role="tab" id="tab-list" aria-controls="panel-list" data-tab="list"><span>2</span> <span data-i18n="tabList"></span> <span id="listBadge" class="badge"></span></button>
-    <button type="button" role="tab" id="tab-quotes" aria-controls="panel-quotes" data-tab="quotes"><span>3</span> <span data-i18n="tabQuotes"></span></button>
-    <button type="button" role="tab" id="tab-offline" aria-controls="panel-offline" data-tab="offline"><span>4</span> <span data-i18n="tabOffline"></span></button>
-    <button type="button" role="tab" id="tab-review" aria-controls="panel-review" data-tab="review"><span>5</span> <span data-i18n="tabReview"></span> <span id="reviewBadge" class="badge"></span></button>
-    <button type="button" role="tab" id="tab-data" aria-controls="panel-data" data-tab="data"><span>6</span> <span data-i18n="tabData"></span></button>
-  </nav>
-
-  <!-- 1 · SEARCH -->
-  <section id="panel-search" role="tabpanel" aria-labelledby="tab-search" class="tabpanel">
-    <section class="panel live" id="livePanel">
-      <div class="panel-head"><div><h2 data-i18n="liveTitle"></h2><p class="meta" data-i18n="liveHint"></p></div></div>
-      <form class="live-form" id="liveForm" autocomplete="off">
-        <label class="what"><span data-i18n="whatLabel"></span><input id="liveWhat" type="search" maxlength="120" required></label>
-        <div class="place-field grow">
-          <div class="field-head"><label for="livePlace" data-i18n="livePlace"></label><button type="button" class="linkish" id="nearMe" data-i18n="nearMe"></button></div>
-          <input id="livePlace" type="text" maxlength="120" required>
-        </div>
-        <label><span data-i18n="liveCountry"></span><select id="liveCountry"></select></label>
-        <div class="live-actions">
-          <button type="submit" class="btn primary" id="liveSearch" data-i18n="liveButton"></button>
-          <a class="btn" id="mapsLink" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer"><span data-i18n="mapsButton"></span> ↗</a>
-        </div>
-      </form>
-      <p class="understood" id="understood" aria-live="polite"></p>
-      <div class="try-row"><span data-i18n="tryLabel"></span><span id="tryChips" class="try-chips"></span></div>
-      <div class="try-row" id="recentRow" hidden><span data-i18n="recentLabel"></span><span id="recentChips" class="try-chips"></span></div>
-      <p id="liveStatus" class="status-line" role="status" aria-live="polite"></p>
-      <div class="alt-row" id="altRow" hidden><span data-i18n="altLabel"></span><span id="altChips" class="try-chips"></span></div>
-      <p class="fine"><span data-i18n="mapsHint"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span id="routesCredit" hidden> · <span data-i18n="routesCredit"></span></span><span id="liveBackWrap" hidden> · <button type="button" class="linkish" id="liveBack" data-i18n="liveBack"></button></span></p>
-    </section>
-
-    <div class="grid search-grid">
-      <form class="panel need" id="needForm" autocomplete="off">
-        <div class="panel-head"><h2 data-i18n="filtersTitle"></h2></div>
-        <label class="full" id="originField"><span data-i18n="origin"></span><select id="origin"></select></label>
-        <label class="full"><span><span data-i18n="radius"></span> <strong id="radiusOut"></strong></span><input id="radius" type="range" min="1" max="25" step="1"></label>
-        <fieldset class="full priorities">
-          <legend data-i18n="priority"></legend>
-          <div id="presets" class="preset-row"></div>
-        </fieldset>
-        <p class="full hint" data-i18n="noQtyHint"></p>
-      </form>
-
-      <section class="panel radar-panel">
-        <div class="panel-head"><h2 data-i18n="radarTitle"></h2><span class="hint-inline" id="radarHint"></span></div>
-        <div id="map" class="map"></div>
-        <ul class="legend-row" id="sourceLegend"></ul>
-      </section>
-    </div>
-
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <h2><span data-i18n="resultsTitle"></span> <span id="resultCount" class="count"></span></h2>
-          <p class="meta" id="resultsMeta" aria-live="polite"></p>
-        </div>
-        <div class="result-tools">
-          <label class="check"><input type="checkbox" id="fPhone"> <span data-i18n="filterPhone"></span></label>
-          <label class="check"><input type="checkbox" id="fOffline"> <span data-i18n="filterOffline"></span></label>
-          <label class="sort"><span data-i18n="sortLabel"></span><select id="sortBy"></select></label>
-        </div>
+<main id="main">
+  <!-- Buscar -->
+  <section class="view" id="view-search" aria-labelledby="searchTitle">
+    <h1 class="sr-only" id="searchTitle" data-i18n="viewSearch"></h1>
+    <form class="search-card" id="searchForm" novalidate>
+      <div class="fields">
+        <label class="f grow"><span data-i18n="what"></span><input id="what" type="search" autocomplete="off" maxlength="120"></label>
+        <label class="f"><span class="f-row"><span data-i18n="place"></span> <button type="button" class="link-btn small" id="nearMe" data-i18n="nearMe"></button></span><input id="place" type="search" autocomplete="off" maxlength="120"></label>
+        <label class="f"><span data-i18n="country"></span><select id="country"></select></label>
+        <button type="submit" class="btn primary go" id="go" data-i18n="search"></button>
       </div>
-      <ol id="results" class="list"></ol>
-      <div id="excluded"></div>
-    </section>
-  </section>
-
-  <!-- 2 · SHORTLIST -->
-  <section id="panel-list" role="tabpanel" aria-labelledby="tab-list" class="tabpanel" hidden>
-    <section class="panel">
-      <div class="panel-head"><div><h2 data-i18n="listTitle"></h2><p class="meta" data-i18n="listHint"></p></div></div>
-      <div class="goal" id="listGoal"></div>
-      <div class="bulk" id="bulkBox" hidden>
-        <div class="bulk-head"><h3 data-i18n="bulkTitle"></h3><p class="meta" data-i18n="bulkHint"></p></div>
-        <pre class="message" id="bulkPreview"></pre>
-        <ol class="bulk-list" id="bulkList"></ol>
-      </div>
-      <div class="table-wrap"><table id="listTable" class="list-table"></table></div>
-      <div class="actions list-actions">
-        <button type="button" id="bulkOpen" class="btn primary"></button>
-        <button type="button" id="listCsv" class="btn" data-i18n="listCsv"></button>
-        <button type="button" id="listClear" class="btn" data-i18n="listClear"></button>
-      </div>
-      <p class="fine" data-i18n="listPrivacy"></p>
-    </section>
-  </section>
-
-  <!-- 3 · QUOTES -->
-  <section id="panel-quotes" role="tabpanel" aria-labelledby="tab-quotes" class="tabpanel" hidden>
-    <section class="panel">
-      <div class="panel-head"><h2 data-i18n="quotesTitle"></h2></div>
-      <p class="hint" data-i18n="quotesHint"></p>
-      <div class="settings order">
-        <label><span data-i18n="category"></span><select id="category"></select></label>
-        <label><span data-i18n="item"></span><input id="item" type="text" maxlength="120"></label>
-        <label><span data-i18n="quantity"></span><input id="quantity" type="number" min="0" step="any"></label>
-        <label><span data-i18n="unit"></span><select id="unit"></select></label>
-      </div>
-      <div class="settings">
-        <label><span data-i18n="vat"></span><input id="vat" type="number" min="0" max="100" step="0.5"></label>
-        <label><span data-i18n="monthlyRate"></span><input id="monthlyRate" type="number" min="0" max="20" step="0.1"></label>
-        <label><span data-i18n="fxUsd"></span><input id="fxUsd" type="number" min="0" step="any"></label>
-      </div>
-      <p id="quoteCallout" class="callout" hidden></p>
-      <div class="table-wrap"><table id="quoteTable"></table></div>
-    </section>
-    <form class="panel" id="quoteForm" autocomplete="off">
-      <div class="panel-head"><h2 data-i18n="addQuote"></h2></div>
-      <div class="form-grid">
-        <label class="full"><span data-i18n="colSupplier"></span><select id="qSupplier" required></select></label>
-        <label><span data-i18n="colListPrice"></span><input id="qPrice" type="number" min="0" step="any" required></label>
-        <label><span data-i18n="packQty"></span><input id="qPack" type="number" min="0.001" step="any" value="1" required></label>
-        <label><span data-i18n="unit"></span><select id="qUnit"></select></label>
-        <label><span data-i18n="colShipping"></span><input id="qShipping" type="number" min="0" step="any" value="0"></label>
-        <label><span data-i18n="colMoq"></span><input id="qMoq" type="number" min="0" step="any"></label>
-        <label><span data-i18n="colLead"></span><input id="qLead" type="number" min="0" step="1"></label>
-        <label><span data-i18n="colTerms"></span><input id="qTerms" type="number" min="0" step="1" value="0"></label>
-        <label class="check"><input id="qTax" type="checkbox"> <span data-i18n="taxIncluded"></span></label>
-      </div>
-      <button type="submit" class="btn primary" data-i18n="save"></button>
-      <p id="quoteStatus" class="status-line ok" role="status"></p>
+      <p class="examples"><span data-i18n="tryLabel"></span> <span id="examples"></span></p>
     </form>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <div id="results"></div>
   </section>
 
-  <!-- 3 · OFFLINE -->
-  <section id="panel-offline" role="tabpanel" aria-labelledby="tab-offline" class="tabpanel" hidden>
-    <section class="panel ways">
-      <div class="panel-head"><h2 data-i18n="waysTitle"></h2></div>
-      <ol id="ways" class="ways-list"></ol>
-      <div class="country-box">
-        <h3 id="countryTitle"></h3>
-        <p class="hint" data-i18n="countryHint"></p>
-        <dl id="countryInfo" class="country-info"></dl>
+  <!-- Mi lista -->
+  <section class="view" id="view-list" aria-labelledby="listTitle" hidden>
+    <div class="page-head">
+      <div>
+        <h1 id="listTitle" data-i18n="viewList"></h1>
+        <p class="sub" data-i18n="listSub"></p>
       </div>
-    </section>
-    <div class="grid">
-      <section class="panel">
-        <div class="panel-head"><h2 data-i18n="captureTitle"></h2></div>
-        <p class="hint" data-i18n="captureHint"></p>
-        <div class="examples"><span data-i18n="examples"></span>
-          <button type="button" class="btn small" data-example="card" data-i18n="exCard"></button>
-          <button type="button" class="btn small" data-example="whatsapp" data-i18n="exWhatsapp"></button>
-          <button type="button" class="btn small" data-example="flyer" data-i18n="exFlyer"></button>
-          <button type="button" class="btn small" data-example="cartao" data-i18n="exCartao"></button>
-        </div>
-        <label class="stack"><span class="sr-only" data-i18n="captureTitle"></span><textarea id="captureText" rows="9" maxlength="5000"></textarea></label>
-        <div class="form-grid">
-          <label><span data-i18n="captureCountry"></span><select id="captureCountry"></select></label>
-          <label><span data-i18n="howFound"></span><select id="captureSource"></select></label>
-          <label class="full"><span data-i18n="referredBy"></span><input id="captureReferrer" type="text" maxlength="80"></label>
-          <label class="check full"><input id="captureConsent" type="checkbox"> <span id="consentText"></span></label>
-        </div>
-        <button type="button" id="extract" class="btn primary" data-i18n="extract"></button>
-      </section>
-      <section class="panel">
-        <div class="panel-head"><h2 data-i18n="previewTitle"></h2></div>
-        <div id="capturePreview"><p class="empty" data-i18n="previewEmpty"></p></div>
-      </section>
+      <div class="actions">
+        <button type="button" class="btn primary" id="addSupplier" data-i18n="addSupplier"></button>
+        <button type="button" class="btn" id="askQuotes" data-i18n="askQuotes"></button>
+        <button type="button" class="btn" id="exportCsv" data-i18n="exportCsv"></button>
+      </div>
     </div>
-    <div class="grid">
-      <section class="panel">
-        <div class="panel-head"><h2 data-i18n="askReferralsTitle"></h2></div>
-        <p class="hint" data-i18n="askReferralsHint"></p>
-        <label><span data-i18n="category"></span><select id="referralCategory"></select></label>
-        <pre id="referralMessage" class="message"></pre>
-        <button type="button" class="btn" id="copyReferral" data-i18n="copy"></button>
-      </section>
-      <section class="panel">
-        <div class="panel-head"><h2 data-i18n="networkTitle"></h2></div>
-        <p class="hint" data-i18n="networkHint"></p>
-        <ul id="network" class="list compact"></ul>
-      </section>
+    <div class="goals" id="goals"></div>
+    <div class="filters"><div class="chips" role="group" id="catChips"></div></div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Lista" id="listWrap">
+      <table class="grid list-table">
+        <thead><tr>
+          <th scope="col" data-i18n="colSupplier"></th>
+          <th scope="col" data-i18n="colCategories"></th>
+          <th scope="col" data-i18n="colContact"></th>
+          <th scope="col" data-i18n="colTerms"></th>
+          <th scope="col" data-i18n="colStatus"></th>
+          <th scope="col"><span class="sr-only" data-i18n="colActions"></span></th>
+        </tr></thead>
+        <tbody id="listRows"></tbody>
+      </table>
     </div>
-  </section>
-
-  <!-- 4 · REVIEW -->
-  <section id="panel-review" role="tabpanel" aria-labelledby="tab-review" class="tabpanel" hidden>
-    <section class="panel">
-      <div class="panel-head"><h2 data-i18n="pendingTitle"></h2></div>
-      <p class="hint" data-i18n="pendingHint"></p>
-      <ol id="pending" class="list"></ol>
-    </section>
-    <section class="panel">
-      <div class="panel-head"><h2 data-i18n="dupesTitle"></h2></div>
-      <p class="hint" data-i18n="dupesHint"></p>
-      <ol id="dupes" class="list"></ol>
-    </section>
-    <section class="panel legend">
-      <h2 data-i18n="tiersTitle"></h2>
-      <ol class="tiers">
-        <li><span class="code exact">Exact</span> <span data-i18n="tierExact"></span></li>
-        <li><span class="code high">High</span> <span data-i18n="tierHigh"></span></li>
-        <li><span class="code medium">Medium</span> <span data-i18n="tierMedium"></span></li>
-        <li><span class="code low">Low</span> <span data-i18n="tierLow"></span></li>
-      </ol>
-      <ul id="mergeLog" class="log"></ul>
-    </section>
-  </section>
-
-  <!-- 5 · DATA -->
-  <section id="panel-data" role="tabpanel" aria-labelledby="tab-data" class="tabpanel" hidden>
-    <div class="grid">
-      <section class="panel">
-        <div class="panel-head"><h2 data-i18n="sourcesTitle"></h2></div>
-        <ul id="sourceStats" class="bars"></ul>
-      </section>
-      <section class="panel">
-        <div class="panel-head"><h2 data-i18n="ioTitle"></h2></div>
-        <p class="hint" data-i18n="ioHint"></p>
-        <div class="io">
-          <label class="btn file"><span data-i18n="importJson"></span><input id="importJson" type="file" accept=".json,application/json"></label>
-          <label class="btn file"><span data-i18n="importCsv"></span><input id="importCsv" type="file" accept=".csv,text/csv"></label>
-          <button type="button" class="btn" id="exportJson" data-i18n="exportJson"></button>
-          <button type="button" class="btn" id="exportCsv" data-i18n="exportCsv"></button>
-          <button type="button" class="btn danger" id="reset" data-i18n="reset"></button>
-        </div>
-        <p id="ioStatus" class="status-line" role="status"></p>
-      </section>
-    </div>
-    <section class="panel">
-      <div class="panel-head"><h2 data-i18n="cliTitle"></h2></div>
-      <p class="hint" data-i18n="cliHint"></p>
-      <pre class="message code">npm run scout -- osm --category packaging --lat 4.6782 --lng -74.1411 --radius 3000 --out mapa.json
-npm run scout -- registry --preset secop-co --q "carton corrugado" --city Bogota --out secop.json
-npm run scout -- csv --file expositores-feria.csv --country CO --out feria.json
-npm run scout -- merge mapa.json secop.json feria.json --out todo.json
-
-export ANTHROPIC_API_KEY=...   # solo en tu terminal, nunca en el código
-npm run agent -- "Necesito 500 cajas de cartón cerca de Fontibón, Bogotá, en 7 días" --db todo.json --out resultado.json</pre>
-    </section>
+    <p class="verify" id="verify"></p>
+    <p class="clear-row"><button type="button" class="link-btn danger" id="clearList" data-i18n="clearList"></button></p>
   </section>
 </main>
 
-<footer class="shell footer">
+<dialog class="sheet" id="editor" aria-labelledby="editorTitle">
+  <form method="dialog" id="editorForm" novalidate>
+    <header class="sheet-head"><h2 id="editorTitle"></h2><button type="button" class="link-btn" id="editorClose" data-i18n="close"></button></header>
+    <div class="sheet-body">
+      <div class="paste">
+        <label for="pasteText" data-i18n="pasteLabel"></label>
+        <textarea id="pasteText" rows="3" maxlength="5000"></textarea>
+        <p class="paste-row"><button type="button" class="btn" id="pasteFill" data-i18n="pasteBtn"></button> <span class="note" id="pasteNote" aria-live="polite"></span></p>
+      </div>
+      <div class="form-grid">
+        <label class="f span2"><span data-i18n="fName"></span><input id="eName" maxlength="120" required></label>
+        <fieldset class="f span2 cats"><legend data-i18n="fCategories"></legend><div id="eCats"></div></fieldset>
+        <label class="f"><span data-i18n="fPersonType"></span><select id="ePersonType"></select></label>
+        <label class="f"><span data-i18n="fNit"></span><input id="eNit" inputmode="numeric" maxlength="15"></label>
+        <label class="f"><span data-i18n="fCoverage"></span><select id="eCoverage"></select></label>
+        <label class="f"><span data-i18n="fCity"></span><input id="eCity" maxlength="80"></label>
+        <label class="f"><span data-i18n="fPhone"></span><input id="ePhone" inputmode="tel" maxlength="25"></label>
+        <label class="f"><span data-i18n="fEmail"></span><input id="eEmail" type="email" maxlength="120"></label>
+        <label class="f"><span data-i18n="fWebsite"></span><input id="eWebsite" maxlength="200" placeholder="https://"></label>
+        <label class="f"><span data-i18n="fCredit"></span><input id="eCredit" type="number" min="0" max="365" step="1"></label>
+        <label class="f"><span data-i18n="fPayment"></span><select id="ePayment"></select></label>
+        <label class="f"><span data-i18n="fDelivery"></span><select id="eDelivery"></select></label>
+        <label class="f check"><input id="eInvoice" type="checkbox"> <span data-i18n="fEInvoice"></span></label>
+        <label class="f"><span data-i18n="fPrice"></span><input id="ePrice" maxlength="60"></label>
+        <label class="f"><span data-i18n="fLead"></span><input id="eLead" maxlength="60"></label>
+        <label class="f"><span data-i18n="fStatus"></span><select id="eStatus"></select></label>
+        <label class="f span2"><span data-i18n="fNotes"></span><textarea id="eNotes" rows="2" maxlength="300"></textarea></label>
+      </div>
+      <p class="form-error" id="editorError" role="alert"></p>
+    </div>
+    <footer class="sheet-foot"><button type="submit" class="btn primary" id="editorSave" data-i18n="save"></button><button type="button" class="btn" id="editorCancel" data-i18n="cancel"></button></footer>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="quotes" aria-labelledby="quotesTitle">
+  <header class="sheet-head"><h2 id="quotesTitle" data-i18n="quotesTitle"></h2><button type="button" class="link-btn" id="quotesClose" data-i18n="close"></button></header>
+  <div class="sheet-body">
+    <p class="sub" data-i18n="quotesSub"></p>
+    <label class="f"><span data-i18n="quotesNeed"></span><input id="qNeed" maxlength="120"></label>
+    <ul class="rfq" id="rfqList"></ul>
+  </div>
+</dialog>
+
+<footer class="foot">
   <span data-i18n="footer"></span>
-  <a href="https://github.com/Dsergio909/supplier-scout" rel="noopener noreferrer">GitHub ↗</a>
+  <span class="foot-links"><a href="https://github.com/Dsergio909/supplier-scout" data-i18n="code"></a><a href="https://dsergio909.github.io/">Sergio García</a></span>
 </footer>
 
 <script src="../src/core/text.js"></script>
@@ -287,19 +142,13 @@ npm run agent -- "Necesito 500 cajas de cartón cerca de Fontibón, Bogotá, en 
 <script src="../src/core/categories.js"></script>
 <script src="../src/core/osm.js"></script>
 <script src="../src/core/services.js"></script>
-<script src="../src/core/geo.js"></script>
 <script src="../src/core/quotes.js"></script>
-<script src="../src/core/schema.js"></script>
-<script src="../src/core/reviews.js"></script>
-<script src="../src/core/trust.js"></script>
-<script src="../src/core/dedupe.js"></script>
-<script src="../src/core/score.js"></script>
 <script src="../src/core/capture.js"></script>
 <script src="../src/core/csv.js"></script>
 <script src="../src/core/shortlist.js"></script>
-<script src="../src/core/messages.js"></script>
 <script src="../src/core/outreach.js"></script>
-<script src="../src/data/sample.js"></script>
+<script src="../src/core/channels.js"></script>
+<script src="../src/core/secop.js"></script>
 <script src="i18n.js"></script>
 <script src="live.js"></script>
 <script src="map.js"></script>

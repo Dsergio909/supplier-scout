@@ -58,7 +58,7 @@ test('the comparison table exports safely to Excel or Sheets', () => {
   assert.match(row, /^"'=HYPERLINK/, 'formulas are neutralised');
   assert.match(row, /,'\+3200,/);
   assert.match(row, /Por contactar/);
-  assert.match(row, /https:\/\/www\.openstreetmap\.org\/node\/7$/);
+  assert.match(row, /https:\/\/www\.openstreetmap\.org\/node\/7(,|$)/);
 });
 
 test('a quote request can include the documents to register the supplier', () => {

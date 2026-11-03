@@ -1,75 +1,49 @@
 /**
- * Supplier Scout — browser demo.
+ * Supplier Scout — browser app.
  *
- * Every decision (ranking, costs, capture parsing, duplicates, trust) comes
- * from src/core, the same code the CLI, the agent and the tests use. This
- * file only wires it to the page. All content is rendered with textContent.
- * The only network calls are the live OpenStreetMap search in live.js, and
- * the Content-Security-Policy allows no other host.
+ * One search, answered in layers (src/core/channels.js): national suppliers
+ * from public procurement data, the buyer's own suppliers, businesses nearby
+ * on the open map and ready-made web searches (Google, Facebook, LinkedIn).
+ * Every decision comes from src/core; the network is used only by demo/live.js.
+ * Untrusted text is always rendered with textContent.
  */
 (function () {
   'use strict';
 
-  var C = window.ScoutCountries;
-  var Cat = window.ScoutCategories;
-  var Geo = window.ScoutGeo;
-  var Q = window.ScoutQuotes;
-  var Schema = window.ScoutSchema;
-  var Dedupe = window.ScoutDedupe;
-  var Score = window.ScoutScore;
-  var Capture = window.ScoutCapture;
-  var Csv = window.ScoutCsv;
-  var M = window.ScoutMessages;
-  var Out = window.ScoutOutreach;
-  var Sample = window.ScoutSample;
-  var Osm = window.ScoutOsm;
-  var Live = window.ScoutLive;
-  var Services = window.ScoutServices;
-  var Text = window.ScoutText;
-  var Short = window.ScoutShortlist;
-
-  var STORAGE = 'supplier-scout:v1:';
-  var MAX_IMPORT_BYTES = 2 * 1024 * 1024;
-  var UNITS = ['unidad', 'kg', 'm', 'l', 'docena'];
-  var SOURCE_COLORS = {
-    web: 'var(--blue)', map: 'var(--green)', registry: 'var(--amber)', referral: 'var(--pink)',
-    field: 'var(--violet)', import: 'var(--muted)', agent: 'var(--cyan)'
-  };
-  var SVG_NS = 'http://www.w3.org/2000/svg';
-
   var I18N = window.ScoutI18n;
-  var TABS = ['search', 'list', 'quotes', 'offline', 'review', 'data'];
-  var MAX_RECENT = 5;
-  var MAX_LISTED = 50;
+  var Services = window.ScoutServices;
+  var Categories = window.ScoutCategories;
+  var Countries = window.ScoutCountries;
+  var Channels = window.ScoutChannels;
+  var Short = window.ScoutShortlist;
+  var Outreach = window.ScoutOutreach;
+  var Capture = window.ScoutCapture;
+  var Live = window.ScoutLive;
+  var STORAGE = 'supplier-scout:v1:';
+  var NATIONAL_SHOWN = 10;
+  var NEARBY_SHOWN = 40;
+  var VIEWS = { buscar: 'search', search: 'search', lista: 'list', list: 'list' };
 
-  var state = null;
-  var prefs = { lang: detectLanguage(), datasetId: 'bogota' };
-  // Live search status. Live results are never saved: they are real data, shown fresh.
-  // The shortlist and recent places belong to the viewer, not to a dataset: they
-  // survive switching datasets and live searches. Read like an import.
-  var shortlist = Short.sanitize(readStorage('shortlist'));
-  var recentPlaces = (function () {
-    var list = readStorage('recentPlaces');
-    return (Array.isArray(list) ? list : []).filter(function (x) { return typeof x === 'string' && x.trim(); })
-      .map(function (x) { return x.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 120); }).slice(0, MAX_RECENT);
-  })();
-  var live = { busy: false, status: '', kind: '', country: null, lastSampleId: 'bogota', alternatives: [], places: [] };
-
-  /** The first browser language we speak (pt-BR -> pt), otherwise English. */
-  function detectLanguage() {
-    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
-    for (var i = 0; i < list.length; i++) {
-      var base = String(list[i]).toLowerCase().split('-')[0];
-      if (I18N[base]) return base;
-    }
-    return 'en';
-  }
+  var prefs = { lang: detectLanguage(), country: 'CO' };
+  var list = Short.sanitize(readStorage('shortlist'));
+  var state = { view: 'search', filter: 'all', search: null, editing: null, seq: 0 };
+  var map = null;
 
   // ---------- helpers ----------
 
-  function t(key) { return I18N[prefs.lang][key]; }
-  function fmt(template, params) {
-    return String(template).replace(/\{(\w+)\}/g, function (m, k) { return params[k] != null ? params[k] : m; });
+  function detectLanguage() {
+    var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+    for (var i = 0; i < langs.length; i++) {
+      var l = String(langs[i]).slice(0, 2).toLowerCase();
+      if (I18N[l]) return l;
+    }
+    return 'es';
+  }
+  function t(key) {
+    return key.split('.').reduce(function (o, k) { return o == null ? o : o[k]; }, I18N[prefs.lang]);
+  }
+  function fmt(template, values) {
+    return String(template).replace(/\{(\w+)\}/g, function (_, k) { return values[k] === undefined ? '' : values[k]; });
   }
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, text) {
@@ -78,81 +52,47 @@
     if (text !== undefined && text !== null) node.textContent = text;
     return node;
   }
-  function svg(tag, attrs) {
-    var node = document.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (k) { node.setAttribute(k, attrs[k]); });
-    return node;
+  function add(parent) {
+    for (var i = 1; i < arguments.length; i++) if (arguments[i]) parent.appendChild(arguments[i]);
+    return parent;
   }
   function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); return node; }
-  function today() { return new Date().toISOString().slice(0, 10); }
-  function dataset() { return Sample.DATASETS[prefs.datasetId]; }
-  function country() { return dataset().country; }
-  function money(amount, currency) { return C.formatMoney(amount, country(), currency); }
-  function unitText(qty, unit) {
-    var word = qty === 1 ? t('unitOne')[unit] : t('units')[unit];
-    return qty + ' ' + (word || unit);
-  }
-  function catLabel(id) { var c = Cat.byId(id); return c ? c.label[prefs.lang] : id; }
-  var byIdCache = { list: null, length: -1, map: null };
-
-  function supplierById(id) {
-    var list = state.db.suppliers;
-    if (byIdCache.list !== list || byIdCache.length !== list.length) {
-      byIdCache = { list: list, length: list.length, map: new Map(list.map(function (s) { return [s.id, s]; })) };
-    }
-    return byIdCache.map.get(id) || null;
-  }
-
-  function uid(prefix) { return prefix + '-' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
-  function pairKey(p) { return [p.a, p.b].sort().join('|'); }
-  function explain(item) { return M.explain(item, prefs.lang, { country: country() }); }
-  function option(value, label, selected) {
-    var o = el('option', null, label);
-    o.value = value;
-    if (selected) o.selected = true;
-    return o;
-  }
-  function fillSelect(select, options, selected) {
-    clear(select);
-    options.forEach(function (o) { select.appendChild(option(o.value, o.label, String(o.value) === String(selected))); });
-  }
-  function button(label, cls, onClick) {
-    var b = el('button', cls || 'btn small', label);
-    b.type = 'button';
-    b.addEventListener('click', onClick);
-    return b;
-  }
-  function link(href, label) {
-    var a = el('a', 'btn small', label);
+  /** The one helper for links that open another site. */
+  function link(href, text, cls) {
+    var a = el('a', cls || '', text);
     a.href = href;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     return a;
   }
-
-  function copyText(text, trigger) {
-    function done() {
-      var original = trigger.textContent;
-      trigger.textContent = t('copied');
-      setTimeout(function () { trigger.textContent = original; }, 1400);
-    }
-    function selectForManualCopy() {
-      var pre = trigger.closest('.panel, .outreach');
-      var target = pre && pre.querySelector('pre');
-      if (!target || !window.getSelection) return;
-      var range = document.createRange();
-      range.selectNodeContents(target);
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(range);
-    }
-    // No clipboard access (e.g. a page opened from a file): select the text so Ctrl+C works.
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, selectForManualCopy);
-    } else {
-      selectForManualCopy();
-    }
+  function button(text, cls, onClick) {
+    var b = el('button', cls || 'btn small', text);
+    b.type = 'button';
+    if (onClick) b.addEventListener('click', onClick);
+    return b;
   }
-
+  function readStorage(key) {
+    try { return JSON.parse(window.localStorage.getItem(STORAGE + key) || 'null'); } catch (err) { return null; }
+  }
+  function writeStorage(key, value) {
+    try { window.localStorage.setItem(STORAGE + key, JSON.stringify(value)); } catch (err) { /* private mode: list lasts this visit */ }
+  }
+  function saveList() { writeStorage('shortlist', list); }
+  function today() { return new Date().toISOString().slice(0, 10); }
+  function fmtDate(day) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day || '')) return '';
+    return new Intl.DateTimeFormat(prefs.lang, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(day + 'T00:00:00Z'));
+  }
+  function countryName(code) {
+    var p = Countries.getProfile(code);
+    return (p.name && (p.name[prefs.lang] || p.name.es)) || code;
+  }
+  function needLabel(id, typed) {
+    if (id === 'text') return typed;
+    var s = Services.byId(id);
+    if (s) return s.label[prefs.lang] || s.label.es;
+    return Channels.categoryLabel(id, prefs.lang);
+  }
   function download(name, content, type) {
     var url = URL.createObjectURL(new Blob([content], { type: type }));
     var a = el('a');
@@ -163,1455 +103,726 @@
     a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
-
-  // ---------- state & storage ----------
-
-  function readStorage(key) {
-    try { return JSON.parse(window.localStorage.getItem(STORAGE + key) || 'null'); } catch (err) { return null; }
-  }
-  function writeStorage(key, value) {
-    try { window.localStorage.setItem(STORAGE + key, JSON.stringify(value)); } catch (err) { /* private mode: fine */ }
-  }
-  function removeStorage(key) {
-    try { window.localStorage.removeItem(STORAGE + key); } catch (err) { /* ignore */ }
-  }
-
-  function defaultNeed(ds) {
-    var n = ds.needs[0];
-    return {
-      query: n.item || catLabel(n.category), presetId: n.id, category: n.category, item: n.item,
-      quantity: n.quantity || 1, unit: n.unit, originId: n.originId, radiusKm: n.radiusKm, neededInDays: null, budget: null
-    };
-  }
-
-  function freshState() {
-    var ds = dataset();
-    var clean = Schema.sanitizeDatabase(ds);
-    var names = {};
-    clean.suppliers.forEach(function (s) { names[s.id] = s.name; });
-    var merged = Dedupe.autoMerge(clean);
-    return {
-      db: merged.db,
-      autoMerged: merged.merged.map(function (p) {
-        return { a: names[p.a], b: names[p.b], evidence: p.evidence };
-      }),
-      pending: Object.create(null),
-      distinct: Object.create(null),
-      need: defaultNeed(ds),
-      preset: 'balanced',
-      weights: Object.assign({}, Score.PRESETS.balanced),
-      settings: { vat: Math.round(C.getProfile(ds.country).vatRate * 1000) / 10, monthlyRate: 1.5, fxUsd: ds.fx.USD },
-      tab: 'search',
-      capture: null,
-      openRfq: null
-    };
-  }
-
-  function plainObject(value) {
-    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-  }
-
-  function finiteOr(value, fallback) {
-    var n = Number(value);
-    return value !== null && value !== '' && isFinite(n) ? n : fallback;
-  }
-
-  /**
-   * Browser storage is shared by every page on dsergio909.github.io and can be edited by
-   * hand, so a saved state is treated like an import: every field is checked before use.
-   */
-  function loadState() {
-    var saved = dataset().live ? null : readStorage('state:' + prefs.datasetId);
-    var base = freshState();
-    if (saved && saved.db) {
-      base.db = Schema.sanitizeDatabase(saved.db);
-      var ids = new Set(base.db.suppliers.map(function (s) { return s.id; }));
-      Object.keys(plainObject(saved.pending)).forEach(function (id) {
-        if (ids.has(id)) base.pending[id] = { reason: 'saved' };
-      });
-      Object.keys(plainObject(saved.distinct)).forEach(function (key) {
-        if (/^[^|]{1,80}\|[^|]{1,80}$/.test(key)) base.distinct[key] = true;
-      });
-      var need = plainObject(saved.need);
-      if (Cat.byId(need.category)) base.need.category = need.category;
-      if (UNITS.indexOf(need.unit) !== -1) base.need.unit = need.unit;
-      if (dataset().origins.some(function (o) { return o.id === need.originId; })) base.need.originId = need.originId;
-      if (typeof need.item === 'string') base.need.item = need.item.slice(0, 120);
-      if (typeof need.query === 'string') base.need.query = need.query.slice(0, 120);
-      base.need.presetId = dataset().needs.some(function (n) { return n.id === need.presetId; }) ? need.presetId : '';
-      base.need.quantity = Math.max(0.001, finiteOr(need.quantity, base.need.quantity));
-      base.need.radiusKm = Math.min(25, Math.max(1, finiteOr(need.radiusKm, base.need.radiusKm)));
-      // Weights come only from the named priorities (manual sliders were removed).
-      if (Score.PRESETS[saved.preset]) base.preset = saved.preset;
-      base.weights = Object.assign({}, Score.PRESETS[base.preset]);
-      var settings = plainObject(saved.settings);
-      ['vat', 'monthlyRate', 'fxUsd'].forEach(function (k) { base.settings[k] = Math.max(0, finiteOr(settings[k], base.settings[k])); });
-      if (TABS.indexOf(saved.tab) !== -1) base.tab = saved.tab;
-    }
-    state = base;
-  }
-
-  function saveState() {
-    writeStorage('prefs', prefs);
-    if (dataset().live) return;
-    writeStorage('state:' + prefs.datasetId, {
-      db: state.db, pending: state.pending, distinct: state.distinct, need: state.need,
-      preset: state.preset, weights: state.weights, settings: state.settings, tab: state.tab
-    });
-  }
-
-  function settings() {
-    return {
-      country: country(),
-      vatRate: (Number(state.settings.vat) || 0) / 100,
-      monthlyRate: (Number(state.settings.monthlyRate) || 0) / 100,
-      fx: { USD: Number(state.settings.fxUsd) || 0 }
-    };
-  }
-
-  function origin() {
-    var list = dataset().origins;
-    for (var i = 0; i < list.length; i++) if (list[i].id === state.need.originId) return list[i];
-    return list[0];
-  }
-
-  /** The order typed in the Quotes tab: only there do quantities matter. */
-  function currentNeed() {
-    return {
-      category: state.need.category,
-      item: state.need.item,
-      quantity: Number(state.need.quantity) || 1,
-      unit: state.need.unit,
-      origin: origin(),
-      radiusKm: Number(state.need.radiusKm) || 10,
-      weights: state.weights
-    };
-  }
-
-  var wantedCache = { text: null, value: null };
-  /** What the buyer typed, read by ScoutServices (map tags, categories, words in names). */
-  function wanted() {
-    var text = state.need.query || '';
-    if (wantedCache.text !== text) wantedCache = { text: text, value: Services.interpret(text) };
-    return wantedCache.value;
-  }
-
-  /**
-   * The Search tab ranks options without a quantity: amounts are negotiated
-   * later. Live results already match the search; sample data is filtered by
-   * what was typed (categories, or words in the name).
-   */
-  function searchNeed() {
-    var need = { origin: origin(), radiusKm: Number(state.need.radiusKm) || 10, weights: state.weights, quantity: null };
-    var w = wanted();
-    if (!dataset().live && w.kind === 'category') need.categories = w.categories;
-    return need;
-  }
-
-  /**
-   * Sample data only: a specific trade ("aire acondicionado") or plain words are
-   * matched against names and notes; a broad category is filtered by searchNeed.
-   */
-  function searchDb() {
-    var w = wanted();
-    if (dataset().live || w.kind === 'empty' || w.kind === 'category') return state.db;
-    var stems = w.nameHint.split('|').map(function (x) { return Text.normalize(x); }).filter(function (x) { return x.length >= 3; });
-    var suppliers = state.db.suppliers.filter(function (sup) {
-      var hay = Text.normalize([sup.name, sup.notes].join(' '));
-      return stems.some(function (st) { return hay.indexOf(st) !== -1; });
-    });
-    return { suppliers: suppliers, quotes: state.db.quotes, referrals: state.db.referrals };
-  }
-
-  // Finding duplicates compares every pair of suppliers, so it runs only when the list changes.
-  var pairsCache = { suppliers: null, length: -1, pairs: [] };
-
-  function reviewPairs() {
-    var list = state.db.suppliers;
-    if (pairsCache.suppliers !== list || pairsCache.length !== list.length) {
-      pairsCache = { suppliers: list, length: list.length, pairs: Dedupe.findDuplicates(list) };
-    }
-    return pairsCache.pairs.filter(function (p) { return !state.distinct[pairKey(p)]; });
-  }
-
-  function prunePending() {
-    Object.keys(state.pending).forEach(function (id) { if (!supplierById(id)) delete state.pending[id]; });
-  }
+  function inList(id) { return list.some(function (e) { return e.id === id; }); }
 
   // ---------- static texts ----------
 
-  function applyI18n() {
+  function renderTexts() {
     document.documentElement.lang = prefs.lang;
-    document.querySelectorAll('[data-i18n]').forEach(function (node) {
-      var value = t(node.getAttribute('data-i18n'));
-      if (typeof value === 'string') node.textContent = value;
-    });
-    document.querySelectorAll('[data-lang]').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === prefs.lang));
-    });
-    fillSelect($('dataset'), Object.keys(Sample.DATASETS).map(function (id) {
-      return { value: id, label: Sample.DATASETS[id].label[prefs.lang] };
-    }), prefs.datasetId);
-    $('langGroup').setAttribute('aria-label', t('language'));
-    $('howLink').href = 'https://github.com/Dsergio909/supplier-scout/blob/main/docs/' +
-      (prefs.lang === 'es' ? 'como-funciona.md' : 'how-it-works.md');
-    var profile = C.getProfile(country());
-    var params = {
-      procurement: profile.procurement.join(', ') || '—',
-      registry: profile.businessRegistry.join(', ') || '—',
-      city: profile.sampleCity,
-      clusters: dataset().clusters || '—'
-    };
-    var ways = clear($('ways'));
-    t('ways').forEach(function (w) {
-      var li = el('li');
-      li.appendChild(el('strong', null, w[0]));
-      li.appendChild(document.createTextNode(' ' + fmt(w[1], params)));
-      ways.appendChild(li);
-    });
-    renderCountryInfo(profile);
-  }
+    document.querySelectorAll('[data-i18n]').forEach(function (n) { n.textContent = t(n.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-label]').forEach(function (n) { n.setAttribute('aria-label', t(n.getAttribute('data-i18n-label'))); });
+    document.querySelectorAll('[data-lang]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === prefs.lang)); });
+    $('what').placeholder = t('whatPh');
+    $('place').placeholder = t('placePh');
+    $('howLink').href = prefs.lang === 'es' || prefs.lang === 'pt'
+      ? 'https://github.com/Dsergio909/supplier-scout/blob/main/docs/como-funciona.md'
+      : 'https://github.com/Dsergio909/supplier-scout/blob/main/docs/how-it-works.md';
+    $('listWrap').setAttribute('aria-label', t('listTable'));
 
-  /** Where formal suppliers show up in this country, even without a website. */
-  function renderCountryInfo(profile) {
-    $('countryTitle').textContent = fmt(t('countryTitle'), { country: profile.name[prefs.lang] });
-    var rows = [
-      [t('countryTax'), profile.vatName + ' ' + (profile.vatRate ? M.formatPercent(profile.vatRate, prefs.lang) : '(' + t('countryTaxVaries') + ')') + ' · ' + profile.currency],
-      [t('countryTaxId'), profile.taxIdName + ' (' + (profile.taxIdCheck === 'checksum' ? t('countryCheck') : t('countryFormat')) + ')'],
-      [t('countryProcurement'), profile.procurement.join(' · ') || '—'],
-      [t('countryRegistry'), profile.businessRegistry.join(' · ') || '—'],
-      [t('countryDataLaw'), profile.dataLaw || t('countryNoLaw')]
-    ];
-    var dl = clear($('countryInfo'));
-    rows.forEach(function (r) {
-      dl.appendChild(el('dt', null, r[0]));
-      dl.appendChild(el('dd', null, r[1]));
+    var sel = clear($('country'));
+    Object.keys(Countries.PROFILES).filter(function (c) { return c !== 'XX'; }).map(function (c) {
+      return { code: c, name: countryName(c) };
+    }).sort(function (a, b) { return a.name.localeCompare(b.name, prefs.lang); }).forEach(function (c) {
+      var o = el('option', '', c.name);
+      o.value = c.code;
+      sel.appendChild(o);
+    });
+    sel.value = prefs.country;
+
+    var ex = clear($('examples'));
+    t('examples').forEach(function (text) {
+      ex.appendChild(button(text, '', function () { $('what').value = text; runSearch(); }));
     });
   }
 
-  function renderConsentLabel() {
-    var profile = C.getProfile($('captureCountry').value || country());
-    var law = profile.dataLaw ? fmt(t('consentLaw'), { country: profile.name[prefs.lang], law: profile.dataLaw }) : t('consentNoLaw');
-    $('consentText').textContent = t('consent') + ' (' + law + ')';
-  }
+  // ---------- views ----------
 
-  // ---------- KPIs & tabs ----------
-
-  function renderBadges() {
-    var toReview = Object.keys(state.pending).length + reviewPairs().length;
-    $('reviewBadge').textContent = toReview ? String(toReview) : '';
-  }
-
-  function renderTabs() {
-    document.querySelectorAll('[data-tab]').forEach(function (b) {
-      var active = b.getAttribute('data-tab') === state.tab;
-      b.setAttribute('aria-selected', String(active));
-      b.tabIndex = active ? 0 : -1;
-      $('panel-' + b.getAttribute('data-tab')).hidden = !active;
-    });
-  }
-
-  // ---------- 1 · search ----------
-
-  function renderNeedForm() {
-    var ds = dataset();
-    var n = state.need;
-    var cats = Cat.CATEGORIES.map(function (c) { return { value: c.id, label: c.label[prefs.lang] }; });
-    fillSelect($('category'), cats, n.category);
-    fillSelect($('referralCategory'), cats, $('referralCategory').value || n.category);
-    var units = UNITS.map(function (u) { return { value: u, label: t('units')[u] }; });
-    fillSelect($('unit'), units, n.unit);
-    fillSelect($('qUnit'), units, n.unit);
-    fillSelect($('origin'), ds.origins.map(function (o) { return { value: o.id, label: o.label }; }), n.originId);
-    $('originField').hidden = ds.origins.length < 2;
-    $('item').value = n.item || '';
-    $('quantity').value = n.quantity;
-    $('radius').value = n.radiusKm;
-    $('radiusOut').textContent = n.radiusKm + ' km';
-
-    var presets = clear($('presets'));
-    Object.keys(Score.PRESETS).forEach(function (id) {
-      var b = button(t('preset')[id], '', function () {
-        state.preset = id;
-        state.weights = Object.assign({}, Score.PRESETS[id]);
-        render();
-      });
-      b.setAttribute('aria-pressed', String(state.preset === id));
-      presets.appendChild(b);
-    });
-  }
-
-  var map = null;
-
-  /** Scroll to a supplier's card from its map marker. */
-  function focusCard(id) {
-    var card = document.querySelector('#results .card[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
-    if (!card) return;
-    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    card.classList.add('flash');
-    setTimeout(function () { card.classList.remove('flash'); }, 1600);
-  }
-
-  function renderRadar(result) {
-    var o = origin();
-    var radius = Number(state.need.radiusKm) || 10;
-    if (dataset().live && live.searchedKm) radius = live.searchedKm;
-    if (!map) {
-      map = window.ScoutMap.create($('map'), { onSelect: focusCard });
-    }
-    map.setLabels({ zoomIn: t('zoomIn'), zoomOut: t('zoomOut') });
-    var noCoords = 0;
-    var points = [];
-    result.ranked.forEach(function (r) {
-      var s = r.supplier;
-      if (s.lat == null || s.lng == null) { noCoords++; return; }
-      points.push({
-        id: s.id, lat: s.lat, lng: s.lng, rank: r.rank,
-        color: r.rank <= 3 ? 'var(--brand)' : (SOURCE_COLORS[(s.sources[0] || {}).type] || 'var(--muted)'),
-        title: '#' + r.rank + ' ' + s.name + (r.km != null ? ' · ' + M.formatKm(r.km, prefs.lang) : '')
-      });
-    });
-    result.excluded.forEach(function (x) {
-      var s = x.supplier;
-      if (s.lat == null || s.lng == null) return;
-      points.push({ id: s.id, lat: s.lat, lng: s.lng, faded: true, color: 'var(--muted)', title: s.name + ' — ' + explain(x.reason) });
-    });
-    map.show({ center: { lat: o.lat, lng: o.lng }, radiusKm: radius, points: points, label: fmt(t('radarDesc'), { o: o.label }) });
-    var hint = fmt(t('radarHint'), { n: radius });
-    $('radarHint').textContent = noCoords ? hint + ' · ' + fmt(t('radarNoCoords'), { n: noCoords }) : hint;
-
-    var legend = clear($('sourceLegend'));
-    var present = {};
-    result.ranked.forEach(function (r) { present[(r.supplier.sources[0] || {}).type] = true; });
-    var types = Object.keys(SOURCE_COLORS).filter(function (type) { return present[type]; });
-    legend.hidden = types.length < 2;
-    types.forEach(function (type) {
-      var li = el('li');
-      var dot = el('i', 'dot');
-      dot.style.setProperty('--c', SOURCE_COLORS[type]);
-      li.appendChild(dot);
-      li.appendChild(document.createTextNode(M.SOURCES[prefs.lang][type]));
-      legend.appendChild(li);
-    });
-  }
-
-  function sourceChips(s) {
-    var wrap = el('div', 'chips');
-    var seen = {};
-    (s.sources || []).forEach(function (src) {
-      if (seen[src.type]) return;
-      seen[src.type] = true;
-      var chip = el('span', 'chip src', M.SOURCES[prefs.lang][src.type]);
-      chip.style.setProperty('--c', SOURCE_COLORS[src.type]);
-      chip.title = src.ref || '';
-      wrap.appendChild(chip);
-    });
-    if (Schema.isOffline(s)) wrap.appendChild(el('span', 'chip offline', t('noWeb')));
-    wrap.appendChild(el('span', 'chip level', M.LEVELS[prefs.lang][s.verification || 0]));
-    return wrap;
-  }
-
-  // Trades and services (not goods): the quote request asks for the price of the job.
-  var GOODS_SERVICES = ['upholstery', 'signs', 'appliances', 'fireSafety'];
-  function isService(id) { return GOODS_SERVICES.indexOf(id) === -1; }
-
-  function outreachBlock(s) {
-    var w = wanted();
-    var what = w.kind === 'empty' ? state.need.item : state.need.query;
-    var category = w.categories[0] || state.need.category;
-    // Asking for a quote never needs a quantity: it is negotiated afterwards.
-    var text = Out.rfqMessage({ category: category, item: what, deliveryZone: origin().label, service: w.kind === 'service' && w.services.some(isService), documents: !!prefs.rfqDocs }, s.name, prefs.lang, s.country || country());
-    var box = el('div', 'outreach');
-    box.appendChild(el('p', 'hint', t('rfqHint')));
-    var docs = el('label', 'check');
-    var docsBox = el('input');
-    docsBox.type = 'checkbox';
-    docsBox.checked = !!prefs.rfqDocs;
-    docsBox.addEventListener('change', function () { prefs.rfqDocs = docsBox.checked; saveState(); renderResults(); });
-    docs.appendChild(docsBox);
-    docs.appendChild(el('span', null, t('rfqDocs')));
-    box.appendChild(docs);
-    var pre = el('pre', 'message', text);
-    box.appendChild(pre);
-    var actions = el('div', 'actions');
-    var copyBtn = button(t('copy'), 'btn small', function () { copyText(text, copyBtn); });
-    actions.appendChild(copyBtn);
-    var wa = s.phones && s.phones[0] ? Out.whatsappLink(s.phones[0], text) : null;
-    if (wa) actions.appendChild(link(wa, t('whatsapp')));
-    if (s.emails && s.emails[0]) {
-      actions.appendChild(link('mailto:' + encodeURIComponent(s.emails[0]).replace('%40', '@') + '?subject=' + encodeURIComponent(t('rfq')) + '&body=' + encodeURIComponent(text), t('email')));
-    }
-    if (s.websites && s.websites[0]) {
-      var url = Schema.cleanUrl(s.websites[0]);
-      if (url) actions.appendChild(link(url, t('website')));
-    }
-    box.appendChild(actions);
-    return box;
-  }
-
-  function resultCard(r) {
-    var s = r.supplier;
-    var li = el('li', 'card' + (r.rank <= 3 ? ' podium' : ''));
-    li.setAttribute('data-id', s.id);
-    var head = el('div', 'card-head');
-    var title = el('div', 'card-title');
-    title.appendChild(el('span', 'rank', '#' + r.rank));
-    var nameBox = el('div');
-    nameBox.appendChild(el('div', 'name', s.name));
-    nameBox.appendChild(sourceChips(s));
-    var where = [s.address, s.city].filter(Boolean).join(', ');
-    var hours = /^Horario \(OSM\): (.+)$/.exec(s.notes || '');
-    if (where || hours) {
-      nameBox.appendChild(el('div', 'place-line', [where, hours ? t('hoursLabel') + ': ' + hours[1] : ''].filter(Boolean).join(' · ')));
-    }
-    title.appendChild(nameBox);
-    head.appendChild(title);
-    var score = el('div', 'score');
-    score.appendChild(el('span', 'n', String(r.score)));
-    score.appendChild(el('span', 'of', '/100'));
-    head.appendChild(score);
-    li.appendChild(head);
-
-    var facts = el('div', 'facts');
-    function fact(label, value) {
-      var d = el('div');
-      d.appendChild(el('span', null, label));
-      d.appendChild(el('strong', null, value));
-      facts.appendChild(d);
-    }
-    // Only facts that exist: an empty "no quote / no reviews" on every map result is noise
-    // (those gaps are still explained under "Why this position?").
-    var trip = dataset().live && live.travel ? live.travel[s.id] : null;
-    if (trip || r.km !== null) {
-      fact(t('distance'), trip
-        ? fmt(t('travelFact'), { min: trip.minutes, km: trip.km != null ? M.formatKm(trip.km, prefs.lang) : M.formatKm(r.km, prefs.lang) })
-        : M.formatKm(r.km, prefs.lang));
-    }
-    fact(t('phone'), s.phones && s.phones[0] ? s.phones[0] : t('none'));
-    if (r.cost) fact(t('quotedPrice'), fmt(t('perUnitOf'), { price: money(r.cost.unitPrice), unit: t('unitOne')[r.cost.unit === 'unit' ? 'unidad' : r.cost.unit] || r.cost.unit }));
-    // A neutral prior is not a review: only real reviews are shown.
-    var reviewed = r.rating.externalCount || r.rating.internalCount;
-    if (reviewed) fact(t('rating'), M.formatDecimal(r.rating.value.toFixed(1), prefs.lang) + ' / 5');
-    li.appendChild(facts);
-
-    var bars = el('div', 'factor-bars');
-    Score.FACTORS.forEach(function (f) {
-      var d = el('div');
-      d.appendChild(el('span', null, t('factor')[f]));
-      var b = el('b');
-      var fill = el('i');
-      fill.style.width = Math.round(r.factors[f] * 100) + '%';
-      b.appendChild(fill);
-      d.appendChild(b);
-      bars.appendChild(d);
-    });
-    var why = el('details', 'why');
-    why.appendChild(el('summary', null, t('why') + (r.warnings.length ? ' (' + r.warnings.length + ' ⚠)' : '')));
-    why.appendChild(bars);
-    var ul = el('ul');
-    r.evidence.forEach(function (e) { ul.appendChild(el('li', null, explain(e))); });
-    r.warnings.forEach(function (w) { ul.appendChild(el('li', 'warn', '⚠ ' + explain(w))); });
-    why.appendChild(ul);
-    li.appendChild(why);
-
-    var actions = el('div', 'actions');
-    var listed = inList(s.id);
-    var listBtn = button(listed ? t('listAdded') : t('listAdd'), 'btn small' + (listed ? ' on' : ''), function () { toggleList(s); });
-    listBtn.setAttribute('aria-pressed', String(listed));
-    actions.appendChild(listBtn);
-    actions.appendChild(button(t('rfq'), 'btn small', function () {
-      state.openRfq = state.openRfq === s.id ? null : s.id;
-      renderResults();
-    }));
-    if (s.phones && s.phones[0] && /^\+?[0-9]{6,15}$/.test(s.phones[0])) {
-      var call = el('a', 'btn small', t('call'));
-      call.href = 'tel:' + s.phones[0];
-      actions.appendChild(call);
-    }
-    var osmRef = (s.sources || []).map(function (src) { return /^osm:(node|way|relation)\/(\d+)$/.exec(src && src.ref || ''); }).filter(Boolean)[0];
-    if (osmRef) {
-      actions.appendChild(link('https://www.openstreetmap.org/' + osmRef[1] + '/' + osmRef[2], t('mapEntry')));
-      actions.appendChild(link(Osm.mapsSearchUrl(s.name, [s.address, s.city || origin().label].filter(Boolean).join(', ')), t('mapsEntry')));
-    }
-    li.appendChild(actions);
-    if (state.openRfq === s.id) li.appendChild(outreachBlock(s));
-    return li;
-  }
-
-  function filters() {
-    var f = prefs.filters || {};
-    return { phone: !!f.phone, offline: !!f.offline, sort: f.sort === 'distance' ? 'distance' : 'score' };
-  }
-
-  /** Filters and order chosen by the buyer, applied after scoring. Positions are renumbered. */
-  function viewOf(ranked) {
-    var f = filters();
-    var list = ranked.filter(function (r) {
-      var s = r.supplier;
-      if (f.phone && !(s.phones && s.phones.length)) return false;
-      if (f.offline && !Schema.isOffline(s)) return false;
-      return true;
-    });
-    if (f.sort === 'distance') {
-      var trips = dataset().live && live.travel ? live.travel : {};
-      var away = function (r) {
-        var trip = trips[r.supplier.id];
-        return trip ? trip.minutes * 1000 : (r.km === null ? Infinity : r.km * 1000 / 0.4);
-      };
-      list = list.slice().sort(function (a, b) { return away(a) - away(b); });
-    }
-    return list.map(function (r, i) { return Object.assign({}, r, { rank: i + 1 }); });
-  }
-
-  function renderResults() {
-    var result = Score.rankSuppliers(searchDb(), searchNeed(), settings());
-    var view = viewOf(result.ranked);
-    var list = clear($('results'));
-    $('resultCount').textContent = result.ranked.length ? '(' + (view.length === result.ranked.length ? view.length : view.length + '/' + result.ranked.length) + ')' : '';
-    var all = result.ranked.map(function (r) { return r.supplier; });
-    var meta = result.ranked.length ? fmt(t('resultsMeta'), {
-      offline: all.filter(Schema.isOffline).length,
-      phone: all.filter(function (s) { return s.phones && s.phones.length; }).length
-    }) : '';
-    $('resultsMeta').textContent = [meta, dataset().live ? t('liveNote') : t('sampleNote')].filter(Boolean).join(' · ');
-    var f = filters();
-    $('fPhone').checked = f.phone;
-    $('fOffline').checked = f.offline;
-    fillSelect($('sortBy'), [{ value: 'score', label: t('sort').score }, { value: 'distance', label: t('sort').distance }], f.sort);
-    if (!result.ranked.length) {
-      var w = wanted();
-      list.appendChild(el('li', 'empty', !dataset().live && w.kind !== 'empty' ? fmt(t('noMatchSample'), { q: state.need.query }) : t('noResults')));
-    } else if (!view.length) {
-      list.appendChild(el('li', 'empty', t('filteredOut')));
-    }
-    view.slice(0, MAX_LISTED).forEach(function (r) { list.appendChild(resultCard(r)); });
-    if (view.length > MAX_LISTED) list.appendChild(el('li', 'hint', fmt(t('showingFirst'), { n: MAX_LISTED, total: view.length })));
-    var ex = clear($('excluded'));
-    if (result.excluded.length) {
-      var box = el('div', 'excluded');
-      box.appendChild(el('span', null, t('excludedTitle')));
-      var ul = el('ul');
-      result.excluded.forEach(function (x) { ul.appendChild(el('li', null, x.supplier.name + ' — ' + explain(x.reason))); });
-      box.appendChild(ul);
-      ex.appendChild(box);
-    }
-    renderRadar({ ranked: view, excluded: result.excluded });
-    return result;
-  }
-
-  // ---------- 2 · quotes ----------
-
-  // ---------- 2 · shortlist ----------
-
-  function inList(id) {
-    return shortlist.some(function (e) { return e.id === id; });
-  }
-
-  function saveShortlist() {
-    writeStorage('shortlist', shortlist);
-  }
-
-  function toggleList(s) {
-    if (inList(s.id)) {
-      shortlist = shortlist.filter(function (e) { return e.id !== s.id; });
-    } else if (shortlist.length < Short.MAX_ENTRIES) {
-      var entry = Short.fromSupplier(s, {
-        need: state.need.query || state.need.item || catLabel(state.need.category),
-        place: origin().label, sample: !dataset().live, today: today()
-      });
-      if (entry) shortlist.push(entry);
-    }
-    saveShortlist();
-    renderResults();
-    renderShortlist();
-  }
-
-  function renderShortlist() {
-    $('listBadge').textContent = shortlist.length ? String(shortlist.length) : '';
-    var sum = Short.summary(shortlist);
-    var goal = clear($('listGoal'));
-    goal.className = 'goal' + (sum.goalReached ? ' done' : '');
-    goal.hidden = !shortlist.length;
-    goal.appendChild(el('div', 'goal-text', sum.goalReached
-      ? fmt(t('listGoalDone'), { q: sum.quoted })
-      : fmt(t('listGoal'), { q: sum.quoted, goal: sum.goal })));
-    var bar = el('div', 'goal-bar');
-    var fill = el('i');
-    fill.style.width = Math.min(100, Math.round(sum.quoted / sum.goal * 100)) + '%';
-    bar.appendChild(fill);
-    goal.appendChild(bar);
-
-    var table = clear($('listTable'));
-    renderBulk();
-    $('listCsv').disabled = !shortlist.length;
-    $('listClear').disabled = !shortlist.length;
-    if (!shortlist.length) {
-      var tr0 = el('tr');
-      var td0 = el('td', 'empty', t('listEmpty'));
-      tr0.appendChild(td0);
-      table.appendChild(tr0);
-      return;
-    }
-    var cols = t('listCols');
-    var thead = el('thead');
-    var hr = el('tr');
-    ['supplier', 'contact', 'status', 'price', 'lead', 'payment', 'notes', ''].forEach(function (k) { hr.appendChild(el('th', null, k ? cols[k] : '')); });
-    thead.appendChild(hr);
-    table.appendChild(thead);
-    var tbody = el('tbody');
-    shortlist.forEach(function (e) {
-      var tr = el('tr', e.status === 'discarded' ? 'invalid' : (e.status === 'chosen' ? 'best' : ''));
-      var who = el('td', 'who');
-      who.appendChild(el('strong', null, e.name));
-      who.appendChild(el('small', null, [e.need, e.place].filter(Boolean).join(' · ') + (e.sample ? ' (' + t('listSample') + ')' : '')));
-      if (e.address || e.city) who.appendChild(el('small', null, [e.address, e.city].filter(Boolean).join(', ')));
-      var checks = C.verifyLinks(e.country);
-      if (checks.length && !e.sample) {
-        var v = el('span', 'verify', t('verifyLabel') + ' ');
-        checks.forEach(function (c) { v.appendChild(link(c.url, c.name)).className = ''; });
-        who.appendChild(v);
-      }
-      tr.appendChild(who);
-      var contact = el('td');
-      if (e.phone) {
-        var tel = el('a', null, e.phone);
-        tel.href = 'tel:' + e.phone;
-        contact.appendChild(tel);
-      } else {
-        contact.textContent = t('none');
-      }
-      tr.appendChild(contact);
-      var stTd = el('td');
-      var sel = el('select');
-      sel.setAttribute('aria-label', cols.status + ' · ' + e.name);
-      Short.STATUSES.forEach(function (st) { sel.appendChild(option(st, t('listStatus')[st], st === e.status)); });
-      sel.addEventListener('change', function () { e.status = sel.value; saveShortlist(); renderShortlist(); });
-      stTd.appendChild(sel);
-      tr.appendChild(stTd);
-      ['price', 'lead', 'payment', 'notes'].forEach(function (field) {
-        var td = el('td', field === 'notes' ? 'wide' : null);
-        var input = el('input');
-        input.type = 'text';
-        input.maxLength = field === 'notes' ? 300 : 60;
-        input.value = e[field] || '';
-        input.setAttribute('aria-label', cols[field] + ' · ' + e.name);
-        input.addEventListener('change', function () { e[field] = input.value.slice(0, input.maxLength); saveShortlist(); });
-        td.appendChild(input);
-        tr.appendChild(td);
-      });
-      var rm = el('td');
-      rm.appendChild(button(t('listRemove'), 'btn small', function () {
-        shortlist = shortlist.filter(function (x) { return x.id !== e.id; });
-        saveShortlist();
-        renderShortlist();
-        renderResults();
-      }));
-      tr.appendChild(rm);
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-  }
-
-  // ---------- quote requests to several suppliers ----------
-
-  var bulk = { open: false, touched: {} };
-
-  function messageFor(e) {
-    var w = Services.interpret(e.need || '');
-    return Out.rfqMessage({
-      category: w.categories[0] || '', item: e.need, deliveryZone: e.place,
-      service: w.kind === 'service' && w.services.some(isService), documents: !!prefs.rfqDocs
-    }, e.name, prefs.lang, e.country || country());
-  }
-
-  function markContacted(e) {
-    bulk.touched[e.id] = true;
-    if (e.status === 'todo') e.status = 'contacted';
-    saveShortlist();
-    setTimeout(renderShortlist, 0);
-  }
-
-  function renderBulk() {
-    var pending = shortlist.filter(function (e) { return e.status === 'todo'; });
-    var btn = $('bulkOpen');
-    btn.textContent = bulk.open ? t('bulkClose') : fmt(t('bulkOpen'), { n: pending.length });
-    btn.disabled = !bulk.open && !pending.length;
-    var box = $('bulkBox');
-    var rows = shortlist.filter(function (e) { return e.status === 'todo' || bulk.touched[e.id]; });
-    box.hidden = !bulk.open || !rows.length;
-    if (box.hidden) return;
-    $('bulkPreview').textContent = messageFor(rows[0]);
-    var list = clear($('bulkList'));
-    rows.forEach(function (e) {
-      var done = e.status !== 'todo';
-      var li = el('li', done ? 'done' : '');
-      li.appendChild(el('strong', null, e.name + (done ? ' · ' + t('bulkDone') : '')));
-      var text = messageFor(e);
-      var wa = e.phone ? Out.whatsappLink(e.phone, text) : null;
-      if (wa) {
-        var a = link(wa, t('whatsapp'));
-        a.addEventListener('click', function () { markContacted(e); });
-        li.appendChild(a);
-      } else {
-        li.appendChild(el('span', 'hint-inline', t('bulkNoPhone')));
-      }
-      var copy = button(t('copy'), 'btn small', function () { copyText(text, copy); markContacted(e); });
-      li.appendChild(copy);
-      list.appendChild(li);
-    });
-  }
-
-  function rememberPlace(label) {
-    var clean = String(label || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 120);
-    if (!clean) return;
-    recentPlaces = [clean].concat(recentPlaces.filter(function (x) { return x !== clean; })).slice(0, MAX_RECENT);
-    writeStorage('recentPlaces', recentPlaces);
-  }
-
-  function renderRecent() {
-    var box = clear($('recentChips'));
-    $('recentRow').hidden = !recentPlaces.length;
-    recentPlaces.forEach(function (label) {
-      box.appendChild(button(label, '', function () {
-        $('livePlace').value = label;
-        updateMapsLink();
-        liveSearch();
-      }));
-    });
-  }
-
-  function renderQuotes() {
-    $('vat').value = state.settings.vat;
-    $('monthlyRate').value = state.settings.monthlyRate;
-    $('fxUsd').value = state.settings.fxUsd;
-    var need = currentNeed();
-    var quotes = state.db.quotes.filter(function (q) { return q.category === need.category && supplierById(q.supplierId); });
-    var cmp = Q.compareQuotes(quotes, need, settings());
-    var table = clear($('quoteTable'));
-    var cols = ['colSupplier', 'colItem', 'colListPrice', 'colPack', 'colTax', 'colShipping', 'colMoq', 'colBuy', 'colTotal', 'colUnit', 'colTerms', 'colPv', 'colLead'];
-    var thead = el('thead');
-    var hr = el('tr');
-    cols.forEach(function (k) { hr.appendChild(el('th', null, t(k))); });
-    thead.appendChild(hr);
-    table.appendChild(thead);
-    var tbody = el('tbody');
-    function row(entry, cls) {
-      var q = entry.quote;
-      var c = entry.cost;
-      var tr = el('tr', cls);
-      var cells = [
-        (supplierById(q.supplierId) || {}).name, q.item || t('none'),
-        money(q.price, q.currency), unitText(q.per.qty, q.per.unit), q.taxIncluded ? t('taxIncl') : t('taxExcl'),
-        money(q.shipping || 0, q.currency), q.minOrder ? unitText(q.minOrder.qty, q.minOrder.unit) : t('none'),
-        c.ok ? c.packs + ' × ' + q.per.qty + ' = ' + c.purchased : t('none'), c.ok ? money(c.total) : explain(c.warnings[0]),
-        c.ok ? money(c.unitCost) : t('none'), String(q.paymentDays || 0), c.ok ? money(c.presentValue) : t('none'),
-        q.leadDays == null ? t('none') : String(q.leadDays)
-      ];
-      cells.forEach(function (v, i) { tr.appendChild(el('td', i >= 2 && i !== 3 && i !== 4 ? 'num' : null, v)); });
-      tbody.appendChild(tr);
-    }
-    cmp.ranked.forEach(function (entry) {
-      row(entry, (entry.cheapestTotal ? 'best' : '') + (entry.cheapestListPrice && !entry.cheapestTotal ? ' list-cheapest' : ''));
-    });
-    cmp.invalid.forEach(function (entry) { row(entry, 'invalid'); });
-    if (!quotes.length) {
-      var tr = el('tr');
-      var td = el('td', 'empty', t('noQuotes'));
-      td.colSpan = cols.length;
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-
-    var callout = $('quoteCallout');
-    callout.hidden = !cmp.listPriceMisleads;
-    if (cmp.listPriceMisleads) {
-      var listRow = cmp.ranked.filter(function (r) { return r.cheapestListPrice; })[0];
-      callout.textContent = fmt(t('callout'), {
-        list: supplierById(listRow.quote.supplierId).name,
-        best: supplierById(cmp.ranked[0].quote.supplierId).name
-      });
-    }
-
-    var inCategory = state.db.suppliers.filter(function (s) { return s.categories.indexOf(need.category) !== -1; });
-    fillSelect($('qSupplier'), (inCategory.length ? inCategory : state.db.suppliers).map(function (s) {
-      return { value: s.id, label: s.name };
-    }), $('qSupplier').value);
-  }
-
-  // ---------- 3 · offline ----------
-
-  function renderCapturePreview() {
-    var box = clear($('capturePreview'));
-    var cap = state.capture;
-    if (!cap) { box.appendChild(el('p', 'empty', t('previewEmpty'))); return; }
-    var d = cap.draft;
-    var labels = t('fieldLabels');
-    var fields = el('div', 'fields');
-    function field(key, value, conf) {
-      var row = el('div', 'field');
-      row.appendChild(el('span', null, labels[key]));
-      row.appendChild(el('span', null, value || t('none')));
-      if (conf && value) row.appendChild(el('span', 'chip ' + (conf === 'high' ? 'exact' : conf), t('conf')[conf]));
-      else row.appendChild(el('span'));
-      fields.appendChild(row);
-    }
-    field('name', d.name, cap.confidence.name);
-    field('taxId', d.taxId ? d.taxId.label + ' ' + d.taxId.value + (d.taxId.valid === true ? ' ✓' : d.taxId.valid === false ? ' ✗' : '') : null, cap.confidence.taxId);
-    field('phones', d.phones.join(', '), cap.confidence.phones);
-    field('emails', d.emails.join(', '), cap.confidence.emails);
-    field('websites', d.websites.join(', '));
-    field('socials', d.socials.join(', '));
-    field('address', d.address, cap.confidence.address);
-    field('city', d.city);
-    field('categories', d.categories.map(catLabel).join(', '), cap.confidence.categories);
-    field('prices', d.prices.map(function (p) {
-      return (p.item ? p.item + ': ' : '') + C.formatMoney(p.price, d.country, p.currency) + ' / ' + unitText(p.per.qty, p.per.unit) +
-        (p.taxIncluded === true ? ' (' + t('taxIncl') + ')' : p.taxIncluded === false ? ' (' + t('taxExcl') + ')' : '');
-    }).join(' · '));
-    var terms = t('terms');
-    field('terms', [
-      d.leadDays != null ? fmt(terms.leadDays, { n: d.leadDays }) : null,
-      d.paymentDays != null ? fmt(terms.paymentDays, { n: d.paymentDays }) : null,
-      d.minOrder ? fmt(terms.minOrder, { n: d.minOrder.qty + ' ' + d.minOrder.unit }) : null,
-      d.ships ? terms.ships : null,
-      d.shipping != null ? fmt(terms.shipping, { n: C.formatMoney(d.shipping, d.country) }) : null
-    ].filter(Boolean).join(' · '));
-    box.appendChild(fields);
-    box.appendChild(el('p', 'hint', fmt(t('completeness'), { n: Math.round(cap.completeness * 100) })));
-    if (cap.warnings.length) {
-      var ul = el('ul', 'warnings');
-      cap.warnings.forEach(function (w) { ul.appendChild(el('li', null, explain(w))); });
-      box.appendChild(ul);
-    }
-    var add = button(t('addToReview'), 'btn primary', addCapture);
-    box.appendChild(add);
-    box.appendChild(el('p', 'status-line', state.captureStatus || ''));
-  }
-
-  function addCapture() {
-    var cap = state.capture;
-    var d = cap.draft;
-    if (!d.name) { state.captureStatus = t('captureNeedsName'); renderCapturePreview(); return; }
-    var id = uid('cap');
-    var source = $('captureSource').value === 'referral' ? 'referral' : 'field';
-    var referrer = $('captureReferrer').value.trim().slice(0, 80);
-    var categories = d.categories.length ? d.categories : [state.need.category];
-    var supplier = Schema.sanitizeSupplier({
-      id: id, name: d.name, categories: categories, taxId: d.taxId, phones: d.phones, emails: d.emails,
-      websites: d.websites, socials: d.socials, address: d.address, city: d.city, country: d.country,
-      ships: d.ships, leadDays: d.leadDays,
-      sources: [{ type: source, ref: source === 'referral' ? (referrer || 'referido') : 'captura de campo', at: today() }],
-      verification: 0, consent: $('captureConsent').checked ? true : null
-    }, 0);
-    state.db.suppliers.push(supplier);
-    d.prices.forEach(function (p, i) {
-      var quote = Schema.sanitizeQuote({
-        id: id + '-q' + i, supplierId: id, category: categories[0], item: p.item, price: p.price, currency: p.currency,
-        per: p.per, taxIncluded: p.taxIncluded === true, shipping: d.shipping || 0,
-        minOrder: d.minOrder && d.minOrder.resolved ? { qty: d.minOrder.qty, unit: d.minOrder.unit } : null,
-        leadDays: d.leadDays, paymentDays: d.paymentDays || 0, at: today()
-      }, i);
-      if (quote) state.db.quotes.push(quote);
-    });
-    if (referrer) {
-      state.db.referrals.push(Schema.sanitizeReferral({
-        id: uid('ref'), from: 'person:' + referrer.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30), fromLabel: referrer,
-        to: id, relation: 'colleague', at: today()
-      }, 0));
-    }
-    state.pending[id] = { reason: 'capture', at: today() };
-    state.captureStatus = t('captureAdded');
+  function route() {
+    var key = (location.hash || '').replace('#', '').toLowerCase();
+    state.view = VIEWS[key] || 'search';
     render();
-  }
-
-  function renderOffline() {
-    var profiles = Object.keys(C.PROFILES).map(function (code) { return { value: code, label: C.PROFILES[code].name[prefs.lang] }; });
-    fillSelect($('captureCountry'), profiles, $('captureCountry').value || country());
-    fillSelect($('captureSource'), [{ value: 'field', label: t('srcField') }, { value: 'referral', label: t('srcReferral') }], $('captureSource').value || 'field');
-    renderConsentLabel();
-    renderCapturePreview();
-    $('referralMessage').textContent = Out.referralRequest($('referralCategory').value || state.need.category, prefs.lang);
-
-    var net = clear($('network'));
-    if (!state.db.referrals.length) net.appendChild(el('li', 'empty', t('noReferrals')));
-    state.db.referrals.forEach(function (r) {
-      var from = supplierById(r.from);
-      var to = supplierById(r.to);
-      if (!to) return;
-      var mutual = state.db.referrals.some(function (b) { return b.from === r.to && b.to === r.from; });
-      var li = el('li', 'row');
-      var left = el('span');
-      left.appendChild(document.createTextNode((from ? from.name : r.fromLabel || r.from) + ' '));
-      left.appendChild(el('span', 'arrow', '→'));
-      left.appendChild(document.createTextNode(' ' + to.name));
-      li.appendChild(left);
-      var chips = el('span', 'chips');
-      chips.appendChild(el('span', 'chip level', t('relation')[r.relation] || r.relation));
-      if (mutual) chips.appendChild(el('span', 'chip warn', t('mutual')));
-      li.appendChild(chips);
-      net.appendChild(li);
-    });
-  }
-
-  // ---------- 4 · review ----------
-
-  function supplierSide(s) {
-    var side = el('div', 'side');
-    side.appendChild(el('strong', null, s.name));
-    side.appendChild(sourceChips(s));
-    if (s.taxId) side.appendChild(el('span', null, s.taxId.label + ' ' + s.taxId.value));
-    if (s.phones.length) side.appendChild(el('span', null, s.phones.join(', ')));
-    if (s.address || s.city) side.appendChild(el('span', null, [s.address, s.city].filter(Boolean).join(', ')));
-    return side;
-  }
-
-  function renderReview() {
-    prunePending();
-    var list = clear($('pending'));
-    var ids = Object.keys(state.pending);
-    if (!ids.length) list.appendChild(el('li', 'empty', t('pendingEmpty')));
-    if (ids.length > MAX_LISTED) list.appendChild(el('li', 'hint', fmt(t('showingFirst'), { n: MAX_LISTED, total: ids.length })));
-    ids.slice(0, MAX_LISTED).forEach(function (id) {
-      var s = supplierById(id);
-      var li = el('li', 'card');
-      li.appendChild(supplierSide(s));
-      var actions = el('div', 'actions');
-      actions.appendChild(el('span', 'hint', t('markLevel')));
-      [1, 2, 3].forEach(function (level) {
-        var b = button(M.LEVELS[prefs.lang][level], 'btn small', function () { s.verification = level; render(); });
-        b.setAttribute('aria-pressed', String(s.verification === level));
-        actions.appendChild(b);
-      });
-      actions.appendChild(button(t('approve'), 'btn small primary', function () { delete state.pending[id]; render(); }));
-      actions.appendChild(button(t('discard'), 'btn small danger', function () {
-        state.db.suppliers = state.db.suppliers.filter(function (x) { return x.id !== id; });
-        state.db.quotes = state.db.quotes.filter(function (q) { return q.supplierId !== id; });
-        state.db.referrals = state.db.referrals.filter(function (r) { return r.to !== id && r.from !== id; });
-        delete state.pending[id];
-        render();
-      }));
-      li.appendChild(actions);
-      list.appendChild(li);
-    });
-
-    var dupes = clear($('dupes'));
-    var pairs = reviewPairs();
-    if (!pairs.length) dupes.appendChild(el('li', 'empty', t('dupesEmpty')));
-    if (pairs.length > MAX_LISTED) dupes.appendChild(el('li', 'hint', fmt(t('showingFirst'), { n: MAX_LISTED, total: pairs.length })));
-    pairs.slice(0, MAX_LISTED).forEach(function (p) {
-      var a = supplierById(p.a);
-      var b = supplierById(p.b);
-      var li = el('li', 'card');
-      var head = el('div', 'chips');
-      head.appendChild(el('span', 'chip ' + p.tier, p.tier.toUpperCase()));
-      head.appendChild(el('span', 'hint', t('suggestion')[p.decision]));
-      li.appendChild(head);
-      var pair = el('div', 'pair');
-      pair.appendChild(supplierSide(a));
-      pair.appendChild(supplierSide(b));
-      li.appendChild(pair);
-      var ul = el('ul', 'warnings');
-      p.evidence.forEach(function (e) { ul.appendChild(el('li', null, explain(e))); });
-      li.appendChild(ul);
-      var actions = el('div', 'actions');
-      actions.appendChild(button(t('merge'), 'btn small primary', function () {
-        state.db = Dedupe.applyMerge(state.db, p.a, p.b);
-        if (state.pending[p.b]) { state.pending[p.a] = state.pending[p.b]; delete state.pending[p.b]; }
-        render();
-      }));
-      actions.appendChild(button(t('distinct'), 'btn small', function () { state.distinct[pairKey(p)] = true; render(); }));
-      li.appendChild(actions);
-      dupes.appendChild(li);
-    });
-
-    var log = clear($('mergeLog'));
-    state.autoMerged.forEach(function (m) {
-      log.appendChild(el('li', null, fmt(t('autoMerged'), { a: m.a, b: m.b, why: m.evidence.map(explain).join(' ') })));
-    });
-  }
-
-  // ---------- 5 · data ----------
-
-  function renderData() {
-    var s = state.db.suppliers;
-    var counts = {};
-    s.forEach(function (x) {
-      var seen = {};
-      x.sources.forEach(function (src) {
-        if (seen[src.type]) return;
-        seen[src.type] = true;
-        counts[src.type] = (counts[src.type] || 0) + 1;
-      });
-    });
-    var ul = clear($('sourceStats'));
-    Object.keys(SOURCE_COLORS).forEach(function (type) {
-      var li = el('li');
-      li.appendChild(el('span', null, M.SOURCES[prefs.lang][type]));
-      var b = el('b');
-      var fill = el('i');
-      fill.style.setProperty('--c', SOURCE_COLORS[type]);
-      fill.style.width = s.length ? Math.round(((counts[type] || 0) / s.length) * 100) + '%' : '0';
-      b.appendChild(fill);
-      li.appendChild(b);
-      li.appendChild(el('strong', null, String(counts[type] || 0)));
-      ul.appendChild(li);
-    });
-    var offline = s.filter(Schema.isOffline).length;
-    ul.appendChild(el('li', 'hint', fmt(t('offlineShare'), { p: s.length ? Math.round((offline / s.length) * 100) : 0 })));
-  }
-
-  function prefixIds(db, prefix) {
-    function re(id) { return id && id.indexOf('person:') !== 0 ? prefix + id : id; }
-    return {
-      suppliers: db.suppliers.map(function (s) { return Object.assign({}, s, { id: re(s.id) }); }),
-      quotes: db.quotes.map(function (q) { return Object.assign({}, q, { id: re(q.id), supplierId: re(q.supplierId) }); }),
-      referrals: db.referrals.map(function (r) { return Object.assign({}, r, { id: re(r.id), from: re(r.from), to: re(r.to) }); })
-    };
-  }
-
-  function importDb(incoming) {
-    var fresh = prefixIds(Schema.sanitizeDatabase(incoming), uid('imp') + '-');
-    var combined = Schema.sanitizeDatabase({
-      country: state.db.country,
-      suppliers: state.db.suppliers.concat(fresh.suppliers),
-      quotes: state.db.quotes.concat(fresh.quotes),
-      referrals: state.db.referrals.concat(fresh.referrals)
-    });
-    var before = combined.suppliers.length;
-    var result = Dedupe.autoMerge(combined);
-    state.db = result.db;
-    fresh.suppliers.forEach(function (s) { state.pending[s.id] = { reason: 'import', at: today() }; });
-    prunePending();
-    return { added: fresh.suppliers.length, merged: before - result.db.suppliers.length };
-  }
-
-  function readFile(input, onText) {
-    var file = input.files && input.files[0];
-    input.value = '';
-    if (!file) return;
-    if (file.size > MAX_IMPORT_BYTES) { $('ioStatus').textContent = t('tooBig'); return; }
-    var reader = new FileReader();
-    reader.onload = function () {
-      try { onText(String(reader.result), file.name); } catch (err) { $('ioStatus').textContent = fmt(t('importError'), { e: err.message }); }
-    };
-    reader.readAsText(file);
-  }
-
-  // ---------- render & events ----------
-
-  // ---------- live search & theme ----------
-
-  function storedTheme() {
-    try { return window.localStorage.getItem(STORAGE + 'theme'); } catch (err) { return null; }
-  }
-  function isDark() {
-    var forced = document.documentElement.getAttribute('data-theme');
-    if (forced) return forced === 'dark';
-    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  }
-
-  function countryName(code) {
-    var profile = C.getProfile(code);
-    return profile.name[prefs.lang] || profile.name.en || code;
-  }
-
-  function defaultPlace() {
-    var o = origin();
-    var city = C.getProfile(country()).sampleCity;
-    return dataset().live || !city || o.label === city ? o.label : o.label + ', ' + city;
-  }
-
-  function updateMapsLink() {
-    var place = $('livePlace').value.trim() || defaultPlace();
-    var where = live.myPoint && place === t('myLocation')
-      ? live.myPoint.lat.toFixed(5) + ',' + live.myPoint.lng.toFixed(5)
-      : place + ', ' + countryName($('liveCountry').value || country());
-    var what = (state.need.query || '').trim() || catLabel(state.need.category);
-    try { $('mapsLink').href = Osm.mapsSearchUrl(what, where); } catch (err) { /* keep the previous link */ }
-  }
-
-  function renderUnderstood() {
-    var box = clear($('understood'));
-    var w = wanted();
-    if (!(state.need.query || '').trim()) return;
-    if (w.kind === 'service' || w.kind === 'category') {
-      box.appendChild(el('span', null, t('understood')));
-      Services.describe(w, prefs.lang).forEach(function (label) { box.appendChild(el('span', 'tag-ok', label)); });
-    } else if (w.kind === 'name') {
-      box.appendChild(el('span', null, fmt(t('understoodName'), { terms: w.terms.slice(0, 6).join(', ') })));
-    } else {
-      box.appendChild(el('span', null, t('understoodEmpty')));
-    }
-  }
-
-  function renderTryChips() {
-    var box = clear($('tryChips'));
-    t('tryExamples').forEach(function (text) {
-      box.appendChild(button(text, '', function () {
-        $('liveWhat').value = text;
-        onQueryChange(text);
-      }));
-    });
-  }
-
-  function renderLive() {
-    var what = $('liveWhat');
-    what.placeholder = t('whatPh');
-    if (document.activeElement !== what) what.value = state.need.query || '';
-    renderUnderstood();
-    renderTryChips();
-    renderRecent();
-    renderAlternatives();
-    var codes = Object.keys(C.PROFILES).filter(function (code) { return code !== 'XX'; })
-      .sort(function (a, b) { return countryName(a).localeCompare(countryName(b), prefs.lang); });
-    fillSelect($('liveCountry'), codes.map(function (code) { return { value: code, label: countryName(code) }; }), live.country || country());
-    var input = $('livePlace');
-    input.placeholder = t('livePlacePh');
-    if (!input.value) input.value = defaultPlace();
-    $('liveSearch').disabled = live.busy;
-    $('liveSearch').setAttribute('aria-busy', String(live.busy));
-    var status = $('liveStatus');
-    status.textContent = live.status;
-    status.className = 'status-line' + (live.kind ? ' ' + live.kind : '');
-    $('liveBackWrap').hidden = !dataset().live;
-    $('routesCredit').hidden = !(dataset().live && live.travel);
-    var badge = $('envBadge');
-    badge.textContent = dataset().live ? t('liveBadge') : t('sampleBadge');
-    badge.className = 'env' + (dataset().live ? ' real' : '');
-    $('theme').setAttribute('aria-label', isDark() ? t('themeLight') : t('themeDark'));
-    $('theme').title = $('theme').getAttribute('aria-label');
-    updateMapsLink();
-  }
-
-  function fxFor(code) {
-    var keys = Object.keys(Sample.DATASETS);
-    for (var i = 0; i < keys.length; i++) {
-      var ds = Sample.DATASETS[keys[i]];
-      if (!ds.live && ds.country === code) return ds.fx;
-    }
-    return { USD: 1 };
-  }
-
-  /**
-   * Search the map. `point` skips geocoding: a place picked among the
-   * alternatives, or the browser's location.
-   */
-  function liveSearch(point) {
-    if (live.busy) return;
-    // "tu ubicación" in the box means the position the browser already gave.
-    if (!point && live.myPoint && $('livePlace').value.trim() === t('myLocation')) point = live.myPoint;
-    var place = point ? point.label : $('livePlace').value.trim();
-    if (!place) { $('livePlace').focus(); return; }
-    var what = $('liveWhat').value.trim().slice(0, 120);
-    if (!what || Services.interpret(what).kind === 'empty') {
-      live.kind = 'error';
-      live.status = t('liveError')['nothing-to-search'];
-      renderLive();
-      $('liveWhat').focus();
-      return;
-    }
-    var code = $('liveCountry').value || country();
-    var radiusKm = state.need.radiusKm;
-    live.busy = true;
-    live.country = code;
-    live.kind = 'busy';
-    live.alternatives = [];
-    live.status = fmt(t('liveSearching'), { cat: what, place: place });
-    renderLive();
-    Live.search({
-      what: what, place: place, point: point || null, country: code, radiusKm: radiusKm, fx: fxFor(code), unit: state.need.unit
-    }).then(function (res) {
-      if (!dataset().live) live.lastSampleId = prefs.datasetId;
-      saveState();
-      res.dataset.fx = fxFor(res.country);
-      Sample.DATASETS.live = res.dataset;
-      prefs.datasetId = 'live';
-      loadState();
-      state.tab = 'search';
-      live.busy = false;
-      live.country = res.country;
-      // Keep every candidate place so the buyer can switch between homonyms.
-      if (!point) live.places = [res.point].concat(res.alternatives || []);
-      else if (!live.places.some(function (x) { return x === point; })) live.places = [];
-      live.travel = res.travel || null;
-      live.searchedKm = res.radiusKm;
-      live.alternatives = live.places.filter(function (x) { return x !== res.point && !(x.lat === res.point.lat && x.lng === res.point.lng); });
-      var where = res.point.label || place;
-      if (!point) $('livePlace').value = where;
-      if (!point || point !== live.myPoint) rememberPlace(where);
-      var st = res.stats;
-      var notes = [];
-      if (res.movedFrom) notes.push(fmt(t('placeMoved'), { from: countryName(res.movedFrom), to: countryName(res.country), place: where }));
-      live.kind = st.total ? 'ok' : 'warn';
-      notes.push(st.total
-        ? fmt(t('liveFound'), { n: st.total, place: where, offline: st.withoutWebsite, phone: st.withPhone })
-        : fmt(t('liveNone'), { cat: what, place: where }));
-      if (res.source === 'nominatim') notes.push(t('liveFallback'));
-      if (res.scope === 'whole') notes.push(fmt(t('scopeWhole'), { place: res.point.name || where, km: res.radiusKm }));
-      else if (res.scope === 'centre') notes.push(fmt(t('scopeCentre'), { place: res.point.name || where, km: res.radiusKm }));
-      else if (Number(radiusKm) > res.radiusKm) notes.push(fmt(t('liveCapped'), { km: res.radiusKm }));
-      live.status = notes.join(' ');
-      render();
-    }, function (err) {
-      live.busy = false;
-      live.kind = 'error';
-      live.status = t('liveError')[err && err.code] || t('liveError').http;
-      renderLive();
-    });
-  }
-
-  /** "Use my location": the browser asks first; the position goes only to OpenStreetMap's Overpass. */
-  function nearMe() {
-    if (live.busy) return;
-    function fail(code) {
-      live.kind = 'error';
-      live.status = t('geoError')[code];
-      renderLive();
-    }
-    if (!navigator.geolocation) { fail('unsupported'); return; }
-    live.kind = 'busy';
-    live.status = fmt(t('liveSearching'), { cat: $('liveWhat').value.trim(), place: t('myLocation') });
-    renderLive();
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      live.status = '';
-      $('livePlace').value = t('myLocation');
-      // About 100 m of precision is enough to find suppliers nearby; the exact
-      // position never leaves the browser.
-      var coarse = function (x) { return Math.round(x * 1000) / 1000; };
-      live.myPoint = { lat: coarse(pos.coords.latitude), lng: coarse(pos.coords.longitude), label: t('myLocation'), name: t('myLocation'), country: null };
-      liveSearch(live.myPoint);
-    }, function (err) {
-      fail(err && err.code === 1 ? 'denied' : 'unavailable');
-    }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
-  }
-
-  function renderAlternatives() {
-    var row = $('altRow');
-    var box = clear($('altChips'));
-    var list = dataset().live ? live.alternatives : [];
-    row.hidden = !list.length || live.busy;
-    list.forEach(function (alt) {
-      var label = alt.label + (alt.country && alt.country !== country() ? ' (' + countryName(alt.country) + ')' : '');
-      box.appendChild(button(label, '', function () {
-        $('livePlace').value = alt.label;
-        liveSearch(alt);
-      }));
-    });
   }
 
   function render() {
-    applyI18n();
-    renderLive();
-    renderBadges();
-    renderTabs();
-    renderNeedForm();
-    renderResults();
-    renderShortlist();
-    renderQuotes();
-    renderOffline();
-    renderReview();
-    renderData();
-    saveState();
+    document.querySelectorAll('[data-view]').forEach(function (a) {
+      if (a.getAttribute('data-view') === state.view) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    $('view-search').hidden = state.view !== 'search';
+    $('view-list').hidden = state.view !== 'list';
+    $('listBadge').textContent = list.length ? String(list.length) : '';
+    if (state.view === 'search') renderResults();
+    else renderList();
   }
 
-  function onNeedChange(field, value) {
-    state.need[field] = value;
-    state.need.presetId = '';
+  // ---------- search ----------
+
+  function runSearch(point) {
+    var what = $('what').value.trim();
+    var place = $('place').value.trim();
+    var interp = Services.interpret(what);
+    var status = $('status');
+    if (!what || interp.kind === 'empty') {
+      status.className = 'status error';
+      status.textContent = t('errors.nothing-to-search');
+      $('what').focus();
+      return;
+    }
+    prefs.country = $('country').value;
+    var seq = ++state.seq;
+    var s = state.search = {
+      seq: seq, what: what, place: place, country: prefs.country, interp: interp, scope: Channels.scopeOf(interp),
+      point: point || null, region: '', alternatives: [], movedFrom: null, placeError: null,
+      national: { status: prefs.country === 'CO' ? 'loading' : 'unsupported', suppliers: [], failed: [], terms: [], showAll: false },
+      nearby: { status: 'idle', result: null, error: null, showAll: false }
+    };
+    $('go').disabled = true;
+    $('go').textContent = t('searching');
+    render();
+
+    var located = s.point ? Promise.resolve({ places: [s.point], movedFrom: null })
+      : (place ? Live.locate(place, s.country) : Promise.resolve({ places: [], movedFrom: null }));
+    var national = s.national.status === 'loading'
+      ? located.catch(function () { return { places: [] }; }).then(function (loc) {
+        var p = loc.places && loc.places[0];
+        s.region = p ? (p.full || p.label || '') : '';
+        return Live.national({ what: what, interpretation: interp, region: s.region, today: today() });
+      }).then(function (res) {
+        if (state.search !== s) return;
+        s.national = { status: 'done', suppliers: res.suppliers, failed: res.failed, terms: res.terms, showAll: false };
+        render();
+      }, function (err) {
+        if (state.search !== s) return;
+        s.national = { status: 'error', error: err.code || 'network', suppliers: [], failed: [], terms: [], showAll: false };
+        render();
+      })
+      : Promise.resolve();
+
+    var nearby = located.then(function (loc) {
+      if (state.search !== s) return;
+      if (place && !loc.places.length) { s.placeError = 'place-not-found'; render(); return; }
+      s.point = loc.places[0] || null;
+      s.alternatives = s.point && !point ? window.ScoutOsm.otherPlaces(loc.places) : [];
+      s.movedFrom = loc.movedFrom && s.point && s.point.country && s.point.country !== loc.movedFrom ? loc.movedFrom : null;
+      if (s.point && s.scope !== 'goods') return searchNearby(s);
+      render();
+    }, function (err) {
+      if (state.search !== s) return;
+      s.placeError = err.code || 'network';
+      render();
+    });
+
+    Promise.all([national, nearby]).then(function () {
+      if (state.seq !== seq) return;
+      $('go').disabled = false;
+      $('go').textContent = t('search');
+    });
+  }
+
+  function searchNearby(s) {
+    s.nearby = { status: 'loading', result: null, error: null, showAll: false };
+    render();
+    return Live.search({ what: s.what, point: s.point, country: s.country }).then(function (res) {
+      if (state.search !== s) return;
+      s.nearby = { status: 'done', result: res, error: null, showAll: false };
+      render();
+    }, function (err) {
+      if (state.search !== s) return;
+      s.nearby = { status: 'error', result: null, error: err.code || 'network', showAll: false };
+      render();
+    });
+  }
+
+  function renderStatus(s) {
+    var box = clear($('status'));
+    box.className = 'status';
+    if (!s) return;
+    var labels = Services.describe(s.interp, prefs.lang);
+    add(box, el('span', 'understood', t('understood') + ' '),
+      document.createTextNode(labels.length ? labels.join(' · ') + '. ' : fmt(t('understoodText'), { text: s.what }) + ' '),
+      document.createTextNode(t('scope.' + s.scope)));
+    if (s.movedFrom) box.appendChild(add(el('div', 'alts'), document.createTextNode(fmt(t('movedFrom'), { from: countryName(s.movedFrom), to: countryName(s.point.country) }))));
+    if (s.placeError) box.appendChild(el('div', 'alts error', t('errors.' + s.placeError) || t('errors.network')));
+    if (s.alternatives.length) {
+      var alts = add(el('div', 'alts'), el('span', '', t('altPlaces')));
+      s.alternatives.forEach(function (p) {
+        alts.appendChild(button(p.label + (p.country && p.country !== s.country ? ' (' + countryName(p.country) + ')' : ''), '', function () {
+          $('place').value = p.label;
+          runSearch(p);
+        }));
+      });
+      box.appendChild(alts);
+    }
+  }
+
+  function layer(id, title, sub) {
+    var sec = el('section', 'layer');
+    sec.id = 'layer-' + id;
+    sec.setAttribute('aria-labelledby', 'h-' + id);
+    var head = el('div', 'layer-head');
+    var h = el('h2', '', title);
+    h.id = 'h-' + id;
+    add(head, add(el('div'), h, sub ? el('p', 'sub', sub) : null));
+    sec.appendChild(head);
+    return sec;
+  }
+
+  function renderResults() {
+    var s = state.search;
+    renderStatus(s);
+    var box = clear($('results'));
+    if (!s) return;
+    Channels.layerOrder(s.scope).forEach(function (id) {
+      if (id === 'national') box.appendChild(nationalLayer(s));
+      if (id === 'mine') box.appendChild(mineLayer(s));
+      if (id === 'nearby') box.appendChild(nearbyLayer(s));
+      if (id === 'web') box.appendChild(webLayer(s));
+    });
+  }
+
+  // ----- national -----
+
+  function termsText(s) {
+    var terms = s.national.terms.length ? s.national.terms : window.ScoutSecop.searchTerms(s.interp, s.what);
+    return terms.map(function (x) { return x.term; }).join('», «');
+  }
+
+  /** "Persona natural" in Colombia, "persona física" in Mexico, "persona humana" in Argentina. */
+  function personLabel(type, country) {
+    if (type !== 'person') return t('personType.company');
+    if (prefs.lang === 'es' && country === 'MX') return 'Persona física';
+    if (prefs.lang === 'es' && country === 'AR') return 'Persona humana';
+    return t('personType.person');
+  }
+
+  /** +573001234567 -> 300 123 4567; +576017470153 -> 601 747 0153. */
+  function phoneText(phone) {
+    var d = String(phone || '').replace(/\D/g, '');
+    if (/^57\d{10}$/.test(d)) { d = d.slice(2); return d.slice(0, 3) + ' ' + d.slice(3, 6) + ' ' + d.slice(6); }
+    return phone;
+  }
+
+  /** https://www.example.com/v2/index.php -> example.com */
+  function siteText(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; }
+  }
+
+  function nationalLayer(s) {
+    var n = s.national;
+    var sec = layer('national', t('layer.national'), n.status === 'unsupported' ? null : fmt(t('natSub'), { terms: termsText(s) }));
+    if (n.status === 'unsupported') { sec.appendChild(el('p', 'empty', fmt(t('natNotCO'), { country: countryName(s.country) }))); return sec; }
+    if (n.status === 'loading') { sec.appendChild(el('p', 'loading', t('natLoading'))); return sec; }
+    if (n.status === 'error') { sec.appendChild(el('p', 'empty', t('errors.' + n.error) || t('errors.network'))); return sec; }
+    if (!n.suppliers.length) { sec.appendChild(el('p', 'empty', fmt(t('natNone'), { terms: termsText(s) }))); return sec; }
+
+    var wrap = el('div', 'table-wrap');
+    var table = el('table', 'grid nat-table');
+    var head = el('tr');
+    [t('colCompany'), t('colReach'), t('colContracts'), t('colCovers'), t('colContact')].forEach(function (h) {
+      var th = el('th', '', h);
+      th.scope = 'col';
+      head.appendChild(th);
+    });
+    var actionsTh = add(el('th'), el('span', 'sr-only', t('colActions')));
+    actionsTh.scope = 'col';
+    head.appendChild(actionsTh);
+    table.appendChild(add(el('thead'), head));
+    // Companies and individuals: both are suppliers; the buyer can look at either.
+    var counts = { all: n.suppliers.length, company: 0, person: 0 };
+    n.suppliers.forEach(function (e) { counts[e.personType] = (counts[e.personType] || 0) + 1; });
+    var filter = n.typeFilter && counts[n.typeFilter] ? n.typeFilter : 'all';
+    var pool = filter === 'all' ? n.suppliers : n.suppliers.filter(function (e) { return e.personType === filter; });
+    if (counts.person && counts.company) {
+      var chips = add(el('div', 'chips nat-chips'), el('span', 'meta inline', t('natFilterLabel')));
+      chips.setAttribute('role', 'group');
+      chips.setAttribute('aria-label', t('natFilterLabel'));
+      ['all', 'company', 'person'].forEach(function (k) {
+        var b = button(fmt(t('natFilter.' + k), { n: counts[k] }), 'chip' + (filter === k ? ' on' : ''), function () { n.typeFilter = k; n.showAll = false; render(); });
+        b.setAttribute('aria-pressed', String(filter === k));
+        chips.appendChild(b);
+      });
+      sec.appendChild(chips);
+    }
+    var body = el('tbody');
+    var shown = n.showAll ? pool : pool.slice(0, NATIONAL_SHOWN);
+    var multiple = (n.terms || []).map(function (x) { return x.id; }).filter(function (id, i, a) { return a.indexOf(id) === i; }).length > 1;
+    shown.forEach(function (e) {
+      var c = e.contacts || {};
+      var reachCls = e.reach === 'national' ? 'ok' : (e.reach === 'regional' ? 'info' : 'none');
+      var reach = add(el('td', 'reach'), el('span', 'st ' + reachCls, t('reach.' + e.reach)),
+        el('span', 'meta', (e.departments.length === 1 ? t('oneDepartment') : fmt(t('departments'), { n: e.departments.length })) +
+          (e.inBuyerRegion ? ' · ' + t('inYourRegion') : '')));
+      reach.title = e.departments.join(', ');
+      var covers = el('td', 'sold');
+      if (multiple) e.needs.forEach(function (id) { covers.appendChild(el('span', 'tag hit', needLabel(id, s.what))); });
+      if (e.example) covers.appendChild(el('span', 'example', e.example));
+      else if (!multiple) covers.appendChild(el('span', 'tag', needLabel(e.needs[0], s.what)));
+      var contact = el('td', 'contact');
+      if (c.phone) contact.appendChild(link('tel:' + c.phone, phoneText(c.phone)));
+      if (c.email) contact.appendChild(link('mailto:' + c.email, c.email));
+      if (c.website) contact.appendChild(link(c.website, siteText(c.website)));
+      if (!contact.firstChild) contact.appendChild(el('span', 'muted', t('none')));
+      var person = e.personType === 'person';
+      var saved = inList(e.key);
+      var addBtn = button(saved ? t('added') : t('add'), saved ? 'btn small' : 'btn small primary', function () { addNational(e, s); });
+      addBtn.disabled = saved;
+      var actions = add(el('td'), add(el('div', 'row-actions'), addBtn,
+        // An individual is searched by name and city, never by their ID number.
+        link('https://www.google.com/search?q=' + encodeURIComponent(person ? e.name + (c.city ? ' ' + c.city : '') : e.name + ' NIT ' + e.nit), t('webSearch'), 'btn small')));
+      body.appendChild(add(el('tr'),
+        add(el('td'), el('span', 'name', e.name), el('span', 'meta', (person ? personLabel('person', 'CO') : 'NIT ' + e.nit) + (c.city ? ' · ' + c.city : ''))),
+        reach,
+        add(el('td', 'num'), el('span', '', fmt(t('contracts'), { n: e.contracts })), el('span', 'meta', fmt(t('lastContract'), { date: fmtDate(e.last) }))),
+        covers, contact, actions));
+    });
+    table.appendChild(body);
+    sec.appendChild(add(wrap, table));
+    if (pool.length > NATIONAL_SHOWN) {
+      sec.appendChild(add(el('div', 'more-row'), button(n.showAll ? t('showLess') : fmt(t('showMore'), { n: pool.length - NATIONAL_SHOWN }), 'link-btn', function () {
+        n.showAll = !n.showAll;
+        render();
+      })));
+    }
+    if (counts.person) sec.appendChild(el('p', 'person-note', t('natPersonNote')));
+    var foot = add(el('div', 'layer-foot'), el('span', '', t('natSource')));
+    if (n.failed.length) foot.appendChild(el('span', '', fmt(t('natPartial'), { terms: n.failed.join(', ') })));
+    sec.appendChild(foot);
+    return sec;
+  }
+
+  function wantedCategories(s) {
+    var cats = (s.interp.categories || []).slice();
+    return cats.length ? cats : [];
+  }
+
+  function addNational(e, s) {
+    if (inList(e.key)) return;
+    var entry = Short.fromNational(e, { need: s.what, today: today(), categories: wantedCategories(s) });
+    if (entry) { list.push(entry); saveList(); render(); }
+  }
+
+  // ----- mine -----
+
+  function termsLine(e) {
+    var parts = [];
+    if (e.creditDays !== null) parts.push(fmt(t('credit'), { n: e.creditDays }));
+    if (e.payment) parts.push(t('payment.' + e.payment) || e.payment);
+    if (e.delivery) parts.push(fmt(t('delivery'), { where: (t('coverage.' + e.delivery) || '').toLowerCase() }));
+    if (e.eInvoice) parts.push(t('eInvoice'));
+    return parts.length ? parts.join(' · ') : t('noTerms');
+  }
+
+  function mineLayer(s) {
+    var cats = wantedCategories(s);
+    var mine = cats.length ? Short.covering(list, cats) : [];
+    var sec = layer('mine', t('layer.mine'), t('mineSub'));
+    if (!mine.length) {
+      sec.appendChild(add(el('div', 'empty'), el('p', '', t('mineNone')),
+        button(t('addKnown'), 'btn small', function () { openEditor(null, cats); })));
+      return sec;
+    }
+    var ul = el('ul', 'near-list plain');
+    mine.forEach(function (e) {
+      ul.appendChild(add(el('li', 'near-item'),
+        add(el('div', 'near-top'), el('span', 'name', e.name), el('span', 'st ' + (e.status === 'quoted' || e.status === 'chosen' ? 'ok' : 'none'), t('status.' + e.status))),
+        el('span', 'meta', t('source.' + e.source) + (e.personType ? ' · ' + personLabel(e.personType, e.country || prefs.country) : '') + (e.city ? ' · ' + e.city : '') + (e.phone ? ' · ' + phoneText(e.phone) : '')),
+        el('span', 'terms', termsLine(e)),
+        add(el('div', 'row-actions'), button(t('edit'), 'btn small', function () { openEditor(e); }))));
+    });
+    sec.appendChild(ul);
+    return sec;
+  }
+
+  // ----- nearby -----
+
+  function nearbyLayer(s) {
+    var placeLabel = s.point ? (s.point.name || s.point.label || s.place) : s.place;
+    var sec = layer('nearby', placeLabel ? fmt(t('layer.nearby'), { place: placeLabel }) : t('layer.nearbyAny'), t('nearSub'));
+    var nb = s.nearby;
+    if (!s.point) {
+      sec.appendChild(el('p', 'empty', s.placeError ? (t('errors.' + s.placeError) || t('errors.network')) : t('nearNeedPlace')));
+      return sec;
+    }
+    if (nb.status === 'idle') {
+      sec.appendChild(add(el('div', 'empty'), button(fmt(t('nearRun'), { place: placeLabel }), 'btn', function () { searchNearby(s); })));
+      return sec;
+    }
+    if (nb.status === 'loading') { sec.appendChild(el('p', 'loading', t('nearLoading'))); return sec; }
+    if (nb.status === 'error') { sec.appendChild(el('p', 'empty', t('errors.' + nb.error) || t('errors.network'))); return sec; }
+    var res = nb.result;
+    var found = res.dataset.suppliers;
+    if (!found.length) { sec.appendChild(el('p', 'empty', t('nearNone'))); return sec; }
+    var travel = res.travel || {};
+    var origin = res.point;
+    var items = found.map(function (sup) {
+      var tr = travel[sup.id];
+      var km = sup.lat != null ? haversine(origin, sup) : null;
+      return { s: sup, minutes: tr ? tr.minutes : null, km: tr && tr.km != null ? tr.km : km };
+    }).sort(function (a, b) {
+      var am = a.minutes === null ? Infinity : a.minutes, bm = b.minutes === null ? Infinity : b.minutes;
+      return (am - bm) || ((a.km === null ? Infinity : a.km) - (b.km === null ? Infinity : b.km));
+    });
+    var shown = nb.showAll ? items : items.slice(0, NEARBY_SHOWN);
+    var grid = el('div', 'near-grid');
+    var ul = el('ul', 'near-list');
+    shown.forEach(function (it, i) {
+      var sup = it.s;
+      var li = el('li', 'near-item');
+      li.id = 'near-' + i;
+      var dist = it.minutes !== null ? fmt(t('driveMin'), { n: it.minutes }) : (it.km !== null ? fmt(t('km'), { n: Math.round(it.km * 10) / 10 }) : '');
+      var saved = inList(sup.id);
+      var addBtn = button(saved ? t('added') : t('add'), saved ? 'btn small' : 'btn small primary', function () {
+        if (inList(sup.id)) return;
+        var entry = Short.fromSupplier(sup, { need: s.what, place: s.place, today: today(), categories: wantedCategories(s) });
+        if (entry) { list.push(entry); saveList(); render(); }
+      });
+      addBtn.disabled = saved;
+      var osm = (sup.sources || []).map(function (x) { return x && x.ref; }).filter(function (r) { return /^osm:/.test(r || ''); })[0];
+      add(li,
+        add(el('div', 'near-top'), add(el('span', 'name'), el('span', 'near-num', String(i + 1)), document.createTextNode(sup.name)), el('span', 'meta', dist)),
+        el('span', 'meta', [sup.address, sup.city].filter(Boolean).join(', ')),
+        el('span', 'meta', (sup.phones[0] || t('noPhone')) + (sup.websites[0] ? ' · ' + sup.websites[0].replace(/^https?:\/\//, '') : '')),
+        add(el('div', 'row-actions'), addBtn, osm ? link('https://www.openstreetmap.org/' + osm.slice(4), t('openMap'), 'btn small') : null));
+      ul.appendChild(li);
+    });
+    var mapBox = el('div', 'map');
+    mapBox.id = 'map';
+    add(grid, ul, mapBox);
+    sec.appendChild(grid);
+    if (items.length > NEARBY_SHOWN) {
+      sec.appendChild(add(el('div', 'more-row'), button(nb.showAll ? t('showLess') : fmt(t('showMore'), { n: items.length - NEARBY_SHOWN }), 'link-btn', function () {
+        nb.showAll = !nb.showAll;
+        render();
+      })));
+    }
+    var st = res.stats || {};
+    var foot = add(el('div', 'layer-foot'), el('span', '', fmt(t('nearFound'), { n: found.length, web: st.withoutWebsite || 0, phone: st.withPhone || 0 })));
+    if (res.source === 'nominatim') foot.appendChild(el('span', '', t('nearFallback')));
+    sec.appendChild(foot);
+
+    // The map lives inside this layer; recreate it whenever the layer is drawn.
+    setTimeout(function () {
+      if (!document.getElementById('map')) return;
+      map = window.ScoutMap.create(mapBox, { onSelect: function (id) {
+        var idx = shown.map(function (x) { return x.s.id; }).indexOf(id);
+        var target = document.getElementById('near-' + idx);
+        if (!target) return;
+        target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        target.classList.remove('flash');
+        void target.offsetWidth;
+        target.classList.add('flash');
+      } });
+      map.setLabels({ zoomIn: t('zoomIn'), zoomOut: t('zoomOut') });
+      map.show({
+        center: { lat: origin.lat, lng: origin.lng }, radiusKm: res.radiusKm, label: fmt(t('layer.nearby'), { place: placeLabel }),
+        points: shown.filter(function (x) { return x.s.lat != null; }).map(function (x) {
+          return { id: x.s.id, lat: x.s.lat, lng: x.s.lng, rank: shown.indexOf(x) + 1, color: 'var(--accent)', title: (shown.indexOf(x) + 1) + '. ' + x.s.name };
+        })
+      });
+    }, 0);
+    return sec;
+  }
+
+  function haversine(a, b) {
+    var rad = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  // ----- web -----
+
+  function webLayer(s) {
+    var sec = layer('web', t('layer.web'), t('webSub'));
+    var links = Channels.webSearches({
+      need: s.what, place: s.point ? (s.point.label || s.place) : s.place, countryName: countryName(s.country), scope: s.scope, lang: prefs.lang
+    });
+    var row = el('div', 'web-links');
+    links.forEach(function (l) {
+      var a = link(l.url, t('web.' + l.id), 'btn');
+      a.title = l.query;
+      row.appendChild(a);
+    });
+    sec.appendChild(add(el('div', 'layer-body'), row));
+    return sec;
+  }
+
+  // ---------- my list ----------
+
+  function listCategories() {
+    var seen = [];
+    list.forEach(function (e) { e.categories.forEach(function (c) { if (seen.indexOf(c) === -1) seen.push(c); }); });
+    return seen;
+  }
+
+  function renderList() {
+    var cats = listCategories();
+    if (state.filter !== 'all' && cats.indexOf(state.filter) === -1) state.filter = 'all';
+
+    var goals = clear($('goals'));
+    cats.forEach(function (c) {
+      var g = Short.goalFor(list, c);
+      goals.appendChild(el('span', g.reached ? 'goal done' : 'goal', fmt(t('goalLine'), { cat: Channels.categoryLabel(c, prefs.lang), q: g.quoted, goal: g.goal })));
+    });
+
+    var chips = clear($('catChips'));
+    $('catChips').setAttribute('aria-label', t('colCategories'));
+    [['all', t('allCategories') + ' ' + list.length]].concat(cats.map(function (c) {
+      return [c, Channels.categoryLabel(c, prefs.lang) + ' ' + Short.covering(list, [c]).length];
+    })).forEach(function (c) {
+      var b = button(c[1], '', function () { state.filter = c[0]; renderList(); });
+      b.setAttribute('aria-pressed', String(state.filter === c[0]));
+      chips.appendChild(b);
+    });
+
+    var rows = state.filter === 'all' ? list : list.filter(function (e) { return e.categories.indexOf(state.filter) !== -1; });
+    var body = clear($('listRows'));
+    if (!rows.length) {
+      var td = el('td', 'empty', t('listEmpty'));
+      td.colSpan = 6;
+      body.appendChild(add(el('tr'), td));
+    }
+    rows.forEach(function (e) {
+      var cats2 = el('td');
+      e.categories.forEach(function (c) { cats2.appendChild(el('span', 'tag', Channels.categoryLabel(c, prefs.lang))); });
+      var contact = el('td', 'contact');
+      if (e.phone) contact.appendChild(link('tel:' + e.phone, phoneText(e.phone)));
+      if (e.email) contact.appendChild(link('mailto:' + e.email, e.email));
+      if (e.website) contact.appendChild(link(e.website, siteText(e.website)));
+      if (!contact.firstChild) contact.appendChild(el('span', 'muted', t('none')));
+      var sel = el('select');
+      sel.setAttribute('aria-label', t('colStatus') + ': ' + e.name);
+      Short.STATUSES.forEach(function (st) {
+        var o = el('option', '', t('status.' + st));
+        o.value = st;
+        sel.appendChild(o);
+      });
+      sel.value = e.status;
+      sel.addEventListener('change', function () { e.status = sel.value; saveList(); render(); });
+      var meta = [t('source.' + e.source)];
+      if (e.personType) meta.push(personLabel(e.personType, e.country || prefs.country));
+      if (e.nit) meta.push('NIT ' + e.nit);
+      if (e.city) meta.push(e.city);
+      body.appendChild(add(el('tr'),
+        add(el('td'), el('span', 'name', e.name), el('span', 'meta', meta.join(' · '))),
+        cats2, contact, el('td', 'terms', termsLine(e)), add(el('td'), sel),
+        add(el('td'), add(el('div', 'row-actions'),
+          button(t('edit'), 'btn small', function () { openEditor(e); }),
+          button(t('remove'), 'btn small', function () {
+            list = list.filter(function (x) { return x.id !== e.id; });
+            saveList();
+            render();
+          })))));
+    });
+
+    var verify = clear($('verify'));
+    var links = Countries.verifyLinks(prefs.country);
+    if (links.length) {
+      verify.appendChild(el('span', '', t('verify')));
+      links.forEach(function (l) { verify.appendChild(link(l.url, l.name)); });
+    }
+    $('exportCsv').disabled = !list.length;
+    $('askQuotes').disabled = !list.length;
+    $('clearList').hidden = !list.length;
+  }
+
+  // ---------- editor ----------
+
+  function fillSelect(sel, values, labelOf, allowEmpty) {
+    clear(sel);
+    if (allowEmpty) {
+      var o0 = el('option', '', t('choose'));
+      o0.value = '';
+      sel.appendChild(o0);
+    }
+    values.forEach(function (v) {
+      var o = el('option', '', labelOf(v));
+      o.value = v;
+      sel.appendChild(o);
+    });
+  }
+
+  function openEditor(entry, presetCategories) {
+    state.editing = entry || null;
+    $('editorTitle').textContent = entry ? t('formTitleEdit') : t('formTitleNew');
+    $('editorError').textContent = '';
+    $('pasteText').value = '';
+    $('pasteNote').textContent = '';
+    fillSelect($('ePersonType'), Short.PERSON_TYPES, function (v) { return personLabel(v, prefs.country); }, true);
+    fillSelect($('eCoverage'), Short.COVERAGE, function (v) { return t('coverage.' + v); }, true);
+    fillSelect($('eDelivery'), Short.COVERAGE, function (v) { return t('coverage.' + v); }, true);
+    fillSelect($('ePayment'), Short.PAYMENT, function (v) { return t('payment.' + v); }, true);
+    fillSelect($('eStatus'), Short.STATUSES, function (v) { return t('status.' + v); }, false);
+    var chosen = entry ? entry.categories : (presetCategories || []);
+    var box = clear($('eCats'));
+    Categories.CATEGORIES.forEach(function (c) {
+      var lab = el('label');
+      var cb = el('input');
+      cb.type = 'checkbox';
+      cb.value = c.id;
+      cb.checked = chosen.indexOf(c.id) !== -1;
+      add(box, add(lab, cb, el('span', '', c.label[prefs.lang] || c.label.es)));
+    });
+    var e = entry || {};
+    $('eName').value = e.name || '';
+    $('ePersonType').value = e.personType || '';
+    $('eNit').value = e.nit || '';
+    $('eCoverage').value = e.coverage || '';
+    $('eCity').value = e.city || '';
+    $('ePhone').value = e.phone || '';
+    $('eEmail').value = e.email || '';
+    $('eWebsite').value = e.website || '';
+    $('eCredit').value = e.creditDays === null || e.creditDays === undefined ? '' : String(e.creditDays);
+    $('ePayment').value = Short.PAYMENT.indexOf(e.payment) !== -1 ? e.payment : '';
+    $('eDelivery').value = e.delivery || '';
+    $('eInvoice').checked = !!e.eInvoice;
+    $('ePrice').value = e.price || '';
+    $('eLead').value = e.lead || '';
+    $('eStatus').value = e.status || 'todo';
+    $('eNotes').value = e.notes || '';
+    $('editor').showModal();
+    $('eName').focus();
+  }
+
+  function fillFromText() {
+    var text = $('pasteText').value;
+    var r = Capture.parseCapture(text, { country: prefs.country });
+    var d = r.draft;
+    var filled = [];
+    function set(id, value, label) { if (value && !$(id).value) { $(id).value = value; filled.push(label); } }
+    set('eName', d.name, t('fName'));
+    set('ePhone', d.phones[0], t('fPhone'));
+    set('eEmail', d.emails[0], t('fEmail'));
+    set('eWebsite', (d.websites[0] || '').replace(/^http:\/\//, 'https://'), t('fWebsite'));
+    set('eCity', d.city, t('fCity'));
+    if (d.taxId && d.taxId.value) set('eNit', String(d.taxId.value).replace(/\D/g, '').slice(0, 12), t('fNit'));
+    // A Colombian company NIT (8xx/9xx) says it is a company; anything else is left for the buyer to choose.
+    if (d.taxId && d.taxId.value && !$('ePersonType').value && window.ScoutSecop.companyNit(d.taxId.value)) $('ePersonType').value = 'company';
+    if (d.paymentDays != null) set('eCredit', String(d.paymentDays), t('fCredit'));
+    if (d.ships && !$('eDelivery').value) { $('eDelivery').value = 'national'; filled.push(t('fDelivery')); }
+    if (d.categories.length) {
+      document.querySelectorAll('#eCats input').forEach(function (cb) { if (d.categories.indexOf(cb.value) !== -1) cb.checked = true; });
+      filled.push(t('fCategories'));
+    }
+    $('pasteNote').textContent = filled.length ? fmt(t('pasteDone'), { fields: filled.join(', ') }) : t('pasteNothing');
+  }
+
+  function saveEditor(ev) {
+    ev.preventDefault();
+    var err = $('editorError');
+    var name = $('eName').value.trim();
+    var cats = Array.prototype.slice.call(document.querySelectorAll('#eCats input:checked')).map(function (cb) { return cb.value; });
+    var rawPhone = $('ePhone').value.trim();
+    var phone = rawPhone ? Countries.normalizePhone(rawPhone, prefs.country) : '';
+    var email = $('eEmail').value.trim().toLowerCase();
+    var web = $('eWebsite').value.trim();
+    if (!name) { err.textContent = t('nameRequired'); $('eName').focus(); return; }
+    if (!cats.length) { err.textContent = t('categoryRequired'); return; }
+    if (rawPhone && !phone) { err.textContent = t('phoneInvalid'); $('ePhone').focus(); return; }
+    if (email && !/^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/.test(email)) { err.textContent = t('emailInvalid'); $('eEmail').focus(); return; }
+    if (web && !/^https:\/\/[^\s<>"]+$/i.test(web)) { err.textContent = t('websiteInvalid'); $('eWebsite').focus(); return; }
+    var base = state.editing || { id: 'm:' + Date.now().toString(36), source: 'manual', addedAt: today(), country: prefs.country };
+    var entry = Short.sanitizeEntry(Object.assign({}, base, {
+      name: name, categories: cats, personType: $('ePersonType').value, nit: $('eNit').value.replace(/\D/g, ''), coverage: $('eCoverage').value, city: $('eCity').value,
+      phone: phone || '', email: email, website: web, creditDays: $('eCredit').value === '' ? null : $('eCredit').value,
+      payment: $('ePayment').value, delivery: $('eDelivery').value, eInvoice: $('eInvoice').checked,
+      price: $('ePrice').value, lead: $('eLead').value, status: $('eStatus').value, notes: $('eNotes').value
+    }));
+    if (!entry) return;
+    var at = list.map(function (x) { return x.id; }).indexOf(entry.id);
+    if (at === -1) {
+      if (list.length >= Short.MAX_ENTRIES) return;
+      list.push(entry);
+    } else list[at] = entry;
+    saveList();
+    $('editor').close();
     render();
   }
 
-  /**
-   * The buyer typed what they need. The ranking of the sample data follows it;
-   * the Quotes tab follows its category, so quotes match what is being sought.
-   */
-  function onQueryChange(value) {
-    state.need.query = String(value || '').slice(0, 120);
-    var w = wanted();
-    if (w.categories.length && w.categories[0] !== state.need.category) {
-      state.need.category = w.categories[0];
-      state.need.item = '';
-    }
-    state.need.presetId = '';
-    state.openRfq = null;
-    renderLive();
-    renderNeedForm();
-    renderResults();
+  // ---------- quote requests ----------
+
+  function openQuotes() {
+    var s = state.search;
+    $('qNeed').value = s ? s.what : (state.filter !== 'all' ? Channels.categoryLabel(state.filter, prefs.lang).toLowerCase() : '');
     renderQuotes();
-    saveState();
+    $('quotes').showModal();
   }
 
-  function bind() {
-    $('liveForm').addEventListener('submit', function (e) { e.preventDefault(); liveSearch(); });
-    var queryTimer = null;
-    $('liveWhat').addEventListener('input', function () {
-      var value = $('liveWhat').value.slice(0, 120);
-      clearTimeout(queryTimer);
-      queryTimer = setTimeout(function () { onQueryChange(value); }, 200);
+  function renderQuotes() {
+    var need = $('qNeed').value.trim();
+    var ul = clear($('rfqList'));
+    var todo = list.filter(function (e) {
+      return e.status === 'todo' && (e.phone || e.email) && (state.filter === 'all' || e.categories.indexOf(state.filter) !== -1);
     });
-    $('nearMe').addEventListener('click', nearMe);
-    function setFilter(key, value) {
-      prefs.filters = Object.assign({}, filters());
-      prefs.filters[key] = value;
-      writeStorage('prefs', prefs);
-      renderResults();
-    }
-    $('fPhone').addEventListener('change', function () { setFilter('phone', $('fPhone').checked); });
-    $('fOffline').addEventListener('change', function () { setFilter('offline', $('fOffline').checked); });
-    $('sortBy').addEventListener('change', function () { setFilter('sort', $('sortBy').value); });
-    $('bulkOpen').addEventListener('click', function () {
-      bulk.open = !bulk.open;
-      if (!bulk.open) bulk.touched = {};
-      renderShortlist();
-    });
-    $('listCsv').addEventListener('click', function () {
-      var text = Short.toCsv(shortlist, { headers: t('csvHeaders'), status: t('listStatus') });
-      download('supplier-scout-lista-' + today() + '.csv', '\uFEFF' + text, 'text/csv;charset=utf-8');
-    });
-    $('listClear').addEventListener('click', function () {
-      if (!window.confirm(t('listClearConfirm'))) return;
-      shortlist = [];
-      saveShortlist();
-      renderShortlist();
-      renderResults();
-    });
-    $('liveCountry').addEventListener('change', function () { live.country = $('liveCountry').value; updateMapsLink(); });
-    $('livePlace').addEventListener('input', updateMapsLink);
-    $('liveBack').addEventListener('click', function () {
-      prefs.datasetId = Sample.DATASETS[live.lastSampleId] ? live.lastSampleId : 'bogota';
-      live.status = '';
-      live.kind = '';
-      live.alternatives = [];
-      live.places = [];
-      live.travel = null;
-      live.searchedKm = null;
-      $('livePlace').value = '';
-      loadState();
-      render();
-    });
-    $('theme').addEventListener('click', function () {
-      var next = isDark() ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try { window.localStorage.setItem(STORAGE + 'theme', next); } catch (err) { /* private mode */ }
-      renderLive();
-    });
-    document.querySelectorAll('[data-lang]').forEach(function (b) {
-      b.addEventListener('click', function () { prefs.lang = b.getAttribute('data-lang'); render(); });
-    });
-    $('dataset').addEventListener('change', function () {
-      saveState();
-      if (!Sample.DATASETS[$('dataset').value].live) live.lastSampleId = $('dataset').value;
-      $('livePlace').value = '';
-      prefs.datasetId = $('dataset').value;
-      loadState();
-      render();
-    });
-    var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-tab]'));
-    tabs.forEach(function (b, i) {
-      b.addEventListener('click', function () { state.tab = b.getAttribute('data-tab'); render(); });
-      b.addEventListener('keydown', function (e) {
-        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-        var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
-        state.tab = next.getAttribute('data-tab');
-        render();
-        next.focus();
+    if (!todo.length) { ul.appendChild(el('li', 'empty', t('quotesNone'))); return; }
+    var onsite = !!state.search && (state.search.scope === 'onsite' || state.search.scope === 'firm');
+    todo.forEach(function (e) {
+      var msg = Outreach.rfqMessage({ item: need, service: onsite, documents: true, person: e.personType === 'person' }, e.name, prefs.lang, e.country || prefs.country);
+      function contacted() { e.status = 'contacted'; saveList(); setTimeout(function () { renderQuotes(); render(); }, 300); }
+      var row = add(el('div', 'row-actions'));
+      var wa = e.phone && Outreach.whatsappLink(e.phone, msg);
+      if (wa) { var a = link(wa, t('whatsapp'), 'btn small primary'); a.addEventListener('click', contacted); row.appendChild(a); }
+      if (e.email) {
+        var subject = t('quotesTitle') + (need ? ': ' + need : '');
+        var m = link('mailto:' + e.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(msg), t('email'), 'btn small');
+        m.addEventListener('click', contacted);
+        row.appendChild(m);
+      }
+      var copyBtn = button(t('copy'), 'btn small', function () {
+        if (navigator.clipboard) navigator.clipboard.writeText(msg).then(function () { copyBtn.textContent = t('copied'); }, function () {});
       });
-    });
-
-    $('category').addEventListener('change', function () { onNeedChange('category', $('category').value); });
-    $('item').addEventListener('change', function () { onNeedChange('item', $('item').value.slice(0, 120)); });
-    $('quantity').addEventListener('change', function () { onNeedChange('quantity', Math.max(0, Number($('quantity').value) || 1)); });
-    $('unit').addEventListener('change', function () { onNeedChange('unit', $('unit').value); });
-    $('origin').addEventListener('change', function () { onNeedChange('originId', $('origin').value); });
-    $('radius').addEventListener('input', function () {
-      state.need.radiusKm = Number($('radius').value);
-      $('radiusOut').textContent = state.need.radiusKm + ' km';
-      renderResults();
-    });
-    $('radius').addEventListener('change', function () { render(); });
-    $('needForm').addEventListener('submit', function (e) { e.preventDefault(); });
-
-    ['vat', 'monthlyRate', 'fxUsd'].forEach(function (id) {
-      $(id).addEventListener('change', function () { state.settings[id] = Math.max(0, Number($(id).value) || 0); render(); });
-    });
-    $('quoteForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var need = currentNeed();
-      var moq = Number($('qMoq').value);
-      var quote = Schema.sanitizeQuote({
-        id: uid('q'), supplierId: $('qSupplier').value, category: need.category, item: need.item,
-        price: Number($('qPrice').value), currency: C.getProfile(country()).currency,
-        per: { qty: Number($('qPack').value) || 1, unit: $('qUnit').value }, taxIncluded: $('qTax').checked,
-        shipping: Number($('qShipping').value) || 0, minOrder: moq ? { qty: moq, unit: $('qUnit').value } : null,
-        leadDays: $('qLead').value === '' ? null : Number($('qLead').value), paymentDays: Number($('qTerms').value) || 0, at: today()
-      }, 0);
-      if (!quote) return;
-      state.db.quotes.push(quote);
-      $('quoteForm').reset();
-      render();
-      $('quoteStatus').textContent = t('quoteSaved');
-      setTimeout(function () { $('quoteStatus').textContent = ''; }, 4000);
-    });
-
-    document.querySelectorAll('[data-example]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var key = b.getAttribute('data-example');
-        $('captureText').value = Sample.CAPTURE_EXAMPLES[key];
-        $('captureCountry').value = { flyer: 'MX', cartao: 'BR' }[key] || 'CO';
-        renderConsentLabel();
-        $('captureSource').value = 'field';
-        $('captureReferrer').value = '';
-      });
-    });
-    $('captureCountry').addEventListener('change', renderConsentLabel);
-    $('extract').addEventListener('click', function () {
-      state.capture = Capture.parseCapture($('captureText').value, { country: $('captureCountry').value });
-      state.captureStatus = '';
-      renderCapturePreview();
-    });
-    $('referralCategory').addEventListener('change', function () { renderOffline(); });
-    $('copyReferral').addEventListener('click', function () { copyText($('referralMessage').textContent, $('copyReferral')); });
-
-    $('importJson').addEventListener('change', function () {
-      readFile($('importJson'), function (text) {
-        var r = importDb(JSON.parse(text));
-        $('ioStatus').textContent = fmt(t('imported'), { n: r.added, m: r.merged });
-        render();
-      });
-    });
-    $('importCsv').addEventListener('change', function () {
-      readFile($('importCsv'), function (text, name) {
-        var out = Csv.importSuppliers(text, { country: country(), source: 'import', ref: name.slice(0, 80), today: today() });
-        var r = importDb({ suppliers: out.suppliers });
-        $('ioStatus').textContent = fmt(t('imported'), { n: r.added, m: r.merged }) + ' ' + fmt(t('csvColumns'), { c: Object.keys(out.mapping).join(', ') || '—' });
-        render();
-      });
-    });
-    $('exportJson').addEventListener('click', function () {
-      var db = { version: 1, country: country(), suppliers: state.db.suppliers, quotes: state.db.quotes, referrals: state.db.referrals };
-      download('supplier-scout-' + prefs.datasetId + '.json', JSON.stringify(db, null, 2), 'application/json');
-    });
-    $('exportCsv').addEventListener('click', function () {
-      download('supplier-scout-' + prefs.datasetId + '.csv', '\uFEFF' + Csv.toCsv(Csv.exportRows(state.db.suppliers)), 'text/csv;charset=utf-8');
-    });
-    $('reset').addEventListener('click', function () {
-      removeStorage('state:' + prefs.datasetId);
-      loadState();
-      render();
-      $('ioStatus').textContent = t('resetDone');
+      row.appendChild(copyBtn);
+      ul.appendChild(add(el('li'), el('span', 'name', e.name), el('pre', '', msg), row));
     });
   }
 
-  var savedTheme = storedTheme();
-  if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.setAttribute('data-theme', savedTheme);
-  var savedPrefs = readStorage('prefs');
-  if (savedPrefs && I18N[savedPrefs.lang]) prefs.lang = savedPrefs.lang;
-  if (savedPrefs && Sample.DATASETS[savedPrefs.datasetId]) prefs.datasetId = savedPrefs.datasetId;
-  if (savedPrefs && savedPrefs.rfqDocs === true) prefs.rfqDocs = true;
-  if (savedPrefs && savedPrefs.filters && typeof savedPrefs.filters === 'object') {
-    prefs.filters = { phone: savedPrefs.filters.phone === true, offline: savedPrefs.filters.offline === true, sort: savedPrefs.filters.sort === 'distance' ? 'distance' : 'score' };
+  // ---------- location ----------
+
+  function nearMe() {
+    var status = $('status');
+    function fail(code) { status.className = 'status error'; status.textContent = t('geoError.' + code); }
+    if (!navigator.geolocation) { fail('unsupported'); return; }
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      // About 100 m of precision is enough; the exact position never leaves the browser.
+      var coarse = function (x) { return Math.round(x * 1000) / 1000; };
+      $('place').value = t('myLocation');
+      runSearch({ lat: coarse(pos.coords.latitude), lng: coarse(pos.coords.longitude), label: t('myLocation'), name: t('myLocation'), country: prefs.country });
+    }, function (err) { fail(err && err.code === 1 ? 'denied' : 'unavailable'); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
   }
-  loadState();
-  bind();
-  render();
+
+  // ---------- wiring ----------
+
+  $('searchForm').addEventListener('submit', function (ev) { ev.preventDefault(); runSearch(); });
+  $('nearMe').addEventListener('click', nearMe);
+  $('country').addEventListener('change', function () { prefs.country = $('country').value; if (state.view === 'list') renderList(); });
+  document.querySelectorAll('[data-lang]').forEach(function (b) {
+    b.addEventListener('click', function () { prefs.lang = b.getAttribute('data-lang'); renderTexts(); render(); });
+  });
+  $('addSupplier').addEventListener('click', function () { openEditor(null, state.filter !== 'all' ? [state.filter] : []); });
+  $('askQuotes').addEventListener('click', openQuotes);
+  $('qNeed').addEventListener('input', renderQuotes);
+  $('quotesClose').addEventListener('click', function () { $('quotes').close(); });
+  $('exportCsv').addEventListener('click', function () {
+    var labels = { headers: t('csvHeaders'), status: t('status'), coverage: t('coverage'), yes: t('yes'), categories: {},
+      personTypes: { company: personLabel('company'), person: personLabel('person', prefs.country) } };
+    Categories.CATEGORIES.forEach(function (c) { labels.categories[c.id] = c.label[prefs.lang] || c.label.es; });
+    download('supplier-scout-lista-' + today() + '.csv', '﻿' + Short.toCsv(list, labels), 'text/csv;charset=utf-8');
+  });
+  $('clearList').addEventListener('click', function () {
+    if (!window.confirm(t('confirmClear'))) return;
+    list = [];
+    saveList();
+    render();
+  });
+  $('pasteFill').addEventListener('click', fillFromText);
+  $('editorForm').addEventListener('submit', saveEditor);
+  $('editorClose').addEventListener('click', function () { $('editor').close(); });
+  $('editorCancel').addEventListener('click', function () { $('editor').close(); });
+  window.addEventListener('hashchange', route);
+  window.addEventListener('storage', function (ev) {
+    if (ev.key === STORAGE + 'shortlist') { list = Short.sanitize(readStorage('shortlist')); render(); }
+  });
+
+  renderTexts();
+  route();
 })();

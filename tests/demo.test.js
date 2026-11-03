@@ -22,11 +22,11 @@ test('strict Content-Security-Policy: own scripts only, network only to OpenStre
   const csp = /http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html)[1];
   assert.match(csp, /default-src 'none'/);
   const directives = Object.fromEntries(csp.split(';').map((d) => d.trim().split(/\s+/)).map(([k, ...v]) => [k, v]));
-  assert.deepEqual(directives['connect-src'], ['https://nominatim.openstreetmap.org', 'https://overpass-api.de', 'https://router.project-osrm.org'],
+  assert.deepEqual(directives['connect-src'], ['https://nominatim.openstreetmap.org', 'https://overpass-api.de', 'https://router.project-osrm.org', 'https://www.datos.gov.co'],
     'the live search may reach place search, map data and driving times (all OpenStreetMap-based) and nothing else');
   assert.deepEqual(directives['img-src'], ["'self'", 'https://tile.openstreetmap.org'], 'map tiles come only from OpenStreetMap');
   for (const [name, values] of Object.entries(directives)) {
-    if (name !== 'connect-src' && name !== 'img-src') assert.ok(!values.some((v) => /^https?:/.test(v)), `${name} allows no other site (fonts are self-hosted)`);
+    if (name !== 'connect-src' && name !== 'img-src') assert.ok(!values.some((v) => /^https?:/.test(v)), `${name} allows no other site`);
   }
   assert.doesNotMatch(html, /<link[^>]+href="https?:/, 'no stylesheet or font from another site');
   assert.match(csp, /script-src 'self'(;|$)/);
@@ -50,12 +50,9 @@ test('only demo/live.js uses the network; the core modules and the rest of the p
   }
 });
 
-test('self-hosted fonts exist, with their licence', () => {
+test('no web fonts: the page uses each computer\'s system font', () => {
   const css = fs.readFileSync(path.join(root, 'demo', 'style.css'), 'utf8');
-  const urls = [...css.matchAll(/url\(([^)]+)\)/g)].map((m) => m[1]);
-  assert.equal(urls.length, 4, 'IBM Plex Sans 400/500/600 and Plex Mono 400');
-  urls.forEach((u) => assert.ok(fs.existsSync(path.join(root, 'demo', u)), u));
-  assert.ok(fs.readdirSync(path.join(root, 'demo', 'fonts')).some((f) => /^OFL/.test(f)));
+  assert.doesNotMatch(css, /@font-face|url\(/);
 });
 
 test('every interface text exists in Spanish, English, Portuguese and French', () => {
@@ -66,7 +63,8 @@ test('every interface text exists in Spanish, English, Portuguese and French', (
   assert.deepEqual(Object.keys(all), ['es', 'en', 'pt', 'fr']);
   for (const lang of ['en', 'pt', 'fr']) {
     assert.deepEqual(keys(all[lang]).sort(), keys(all.es).sort(), lang);
-    assert.equal(all[lang].ways.length, all.es.ways.length, lang);
+    assert.equal(all[lang].examples.length, all.es.examples.length, lang);
+    assert.equal(all[lang].csvHeaders.length, all.es.csvHeaders.length, lang);
     const placeholders = (text) => [...String(text).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
     for (const k of keys(all.es)) {
       const get = (o) => k.split('.').reduce((v, part) => v[part], o);

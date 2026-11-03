@@ -1,72 +1,58 @@
 <div align="center">
 
-# 🔭 Supplier Scout
+# Supplier Scout
 
-**Find suppliers of goods and services, including the ones that are not online, by typing what you need in your own words.**<br>
-Live map search · real order cost · fair ratings · trust from referrals · human review · optional Claude agent.
+**Find suppliers the way purchasing does: several options for every need, not just the shop around the corner.**<br>
+National companies that already sell to the state · your known suppliers and their terms · nearby businesses on the map · ready-made searches on Google, Facebook and LinkedIn.
 
 [![CI](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml/badge.svg)](https://github.com/Dsergio909/supplier-scout/actions/workflows/ci.yml)
-![Node 22+](https://img.shields.io/badge/node-22%2B-0b6b66)
-![Claude API](https://img.shields.io/badge/Claude_API-agent-0b6b66)
-![Web app dependencies: 0](https://img.shields.io/badge/web_app_dependencies-0-0b6b66)
-![Countries: 23 + generic](https://img.shields.io/badge/countries-23_%2B_generic-0b6b66)
-![Languages: ES · EN · PT · FR](https://img.shields.io/badge/languages-ES_·_EN_·_PT_·_FR-0b6b66)
+![Node 22+](https://img.shields.io/badge/node-22%2B-1a5fb4)
+![Web app dependencies: 0](https://img.shields.io/badge/web_app_dependencies-0-1a5fb4)
+![Data: SECOP II · OpenStreetMap](https://img.shields.io/badge/data-SECOP_II_·_OpenStreetMap-1a5fb4)
+![Languages: ES · EN · PT · FR](https://img.shields.io/badge/languages-ES_·_EN_·_PT_·_FR-1a5fb4)
 ![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)
 
-[**▶ Live demo**](https://dsergio909.github.io/supplier-scout/) · [How it works](docs/how-it-works.md) · [Cómo funciona (español)](docs/como-funciona.md) · [🇪🇸 Resumen en español](#-resumen-en-español) · [Playbook: suppliers that are not online](docs/offline-playbook.md) · [Countries and languages](docs/countries.md)
+[**Live demo**](https://dsergio909.github.io/supplier-scout/) · [How it works](docs/how-it-works.md) · [Cómo funciona (español)](docs/como-funciona.md) · [Resumen en español](#resumen-en-español) · [Playbook: suppliers that are not online](docs/offline-playbook.md) · [Countries and languages](docs/countries.md)
 
-<img src="docs/screenshot.png" alt="Supplier Scout with real OpenStreetMap data: a search for hardware stores in Barranquilla, 37 real businesses on the map and the search radius" width="100%">
+<img src="docs/screenshot.png" alt="Supplier Scout with real data: a search for cleaning and office supplies in Bogotá. National suppliers from SECOP II that sell both, with their reach, contracts, an example of what they sold and a filter for companies or individuals (contact details blurred in this image)" width="100%">
 
 </div>
 
 ## The problem
 
-Finding a new supplier usually means a web search, a spreadsheet and a few phone calls. Three things go wrong:
+A map search answers "who is near me?". Purchasing asks a different question: "who can supply this, on what terms?". For many needs the best answer is not nearby:
 
-1. **The best suppliers are often not on the web.** Small workshops, family businesses and distributors who sell by phone or WhatsApp have no website. A colleague knows them, a current supplier buys from them, or they are in a public registry or on a community map. Web search never shows them.
-2. **The cheapest list price is rarely the cheapest order.** Pack sizes, minimum orders, tax, shipping and payment terms change the total. A $2,100 box with a 1,000-unit minimum and 10-day delivery loses to a $2,600 box delivered in 2 days.
-3. **Star ratings mislead.** A 5.0 from 2 reviews beats a 4.7 from 300, and a supplier with no online reviews looks worse than one with bad reviews.
+1. **Supplies come from national companies.** Stationery, cleaning supplies, uniforms or toner are usually bought from distributors that deliver nationwide, invoice electronically and give 30 to 90 days of credit or quarterly payment. Their warehouse is in another city, so a map never shows them.
+2. **One supplier often covers several needs.** The distributor that sends stationery may also send cleaning and coffee supplies, which means one supplier to register, one contract and one invoice.
+3. **Purchasing needs several options.** Three quotes is the usual rule, and options come from different places: the state's own suppliers, the ones you already know, the shop around the corner, a Facebook page, a referral.
+4. **The best small suppliers are often not on the web.** Workshops and family businesses sell by phone or WhatsApp and appear on community maps, not in search results.
 
-The full walkthrough, from the live map search to how the ranking decides, is in **[How it works](docs/how-it-works.md)** ([español](docs/como-funciona.md)).
+The full walkthrough is in **[How it works](docs/how-it-works.md)** ([español](docs/como-funciona.md)).
 
 ## What it does
 
-1. **Understands what you need, in your own words, and finds real businesses on the map.** Type *air conditioning maintenance*, *plumber*, *fire extinguisher refill* or *cardboard boxes* plus a neighbourhood and a city. Rules (no AI) turn the request into OpenStreetMap tags and words found in business names, for 27 trades and services and 12 purchase categories in four languages, with regional words (*gasfitero*, *refaccionaria*, *tlapalería*, *gomería*, *borracharia*, *desentupidora*), and the app says what it understood. Places are identified the way buyers name them: a whole town or city (*Barranquilla*, *San Gil*), a neighbourhood, or the browser's location; towns that share a name are told apart by region and offered as alternatives, and a place typed with the wrong country is found anyway. The demo searches OpenStreetMap, the community map where many shops and workshops with no website are listed, reports how many have no website, links every result to its map entry, and opens the same search in Google Maps with one click (an official link: no key, no scraping).
-2. **Searches by location.** Distance from your delivery point, a search radius, and suppliers that deliver are kept even when they are far.
-3. **No quantities to find options.** Purchasing starts by gathering several options and negotiates amounts later, so the search ranks by quoted unit price (when there is one), distance, ratings, trust and speed. Quote requests for a service ask for the price of the job, what it includes and the response time. Once quotes arrive, the Quotes tab turns each one into the real cost of an order: whole packs, the minimum order, tax, shipping, your currency (at a rate you set) and, optionally, the value of paying later.
-4. **Rates fairly.** A Bayesian average of online reviews and your own team's reviews. No reviews means "unknown", not "bad".
-5. **Shows them on a real map, with driving times.** An OpenStreetMap map (no library, tiles only for the area in view) with the search radius and numbered markers that jump to each card; in a live search, one OSRM request adds the approximate driving time and road distance to every business. Each card has Call, its address and opening hours, its map entry and a Google Maps search.
-6. **Follows how purchasing actually decides.** Filters for *with phone* and *no website* and a *nearest* order; a shortlist (*My list*) that keeps the suppliers to contact with their status (to contact, contacted, quoted, chosen, discarded), shows progress towards the usual three quotes, sends one personalised quote request to everyone still pending over WhatsApp or email (a one-to-many request, as in Thomasnet, over the channel the region uses), links each supplier to its country's official registry and tax portals (RUES and DIAN, SAT, SUNAT, SII, ARCA, SRI, Receita Federal), and downloads a comparison table (*cuadro comparativo*) for Excel or Sheets with price, lead time, payment terms, warranty and notes. Quote requests can include the documents needed to register a supplier (in Colombia: RUT, Chamber of Commerce certificate, bank certificate, legal representative's ID).
-7. **Finds and records offline suppliers.** Community maps and public registries (connectors), fair and chamber-of-commerce lists (CSV), business cards and WhatsApp messages (a parser that runs in the browser), and referrals from people you trust.
-8. **Keeps a human in the loop.** New captures and ambiguous duplicates go to a review queue. Quote requests and referral requests are drafted for you to send; nothing is sent automatically.
-9. **Explains every position.** Each result says why: order total, adjusted rating, distance, trust, lead time, and warnings (no quote yet, misses the deadline, over budget, unverified).
-10. **Optional Claude agent.** Describe what you need in plain language; the agent searches your list, the map and the registry, ranks the candidates and drafts the messages.
-11. **Works across Latin America and beyond.** Spanish-speaking Latin America, Brazil, Spain, Portugal, France and the US have country profiles, and the whole app speaks Spanish, English, Portuguese and French. [Details](docs/countries.md).
+Type what you need in your own words (*papelería*, *dotación de aseo y papelería*, *recarga de extintores*, *plomero*) and the place. The app says what it understood and whether the need is a supply that can be shipped, an on-site service or a service that companies provide, and orders four layers accordingly:
+
+1. **National suppliers (Colombia, SECOP II).** Companies **and individuals** (personas naturales: in Latin America many suppliers are, and they are often cheaper) that sold that need to public entities in the last two years, from the government's open data. One row per supplier: in how many departments it sells (selling in three or more means it delivers nationally), how many contracts, the last one, **a real contract as an example** of what it sold, and its public phone, email and website. A request with several needs (*aseo y papelería*) puts first the suppliers that cover all of them, and a filter shows companies or individuals. People hired by the state as quasi-staff (*prestación de servicios profesionales y de apoyo a la gestión*), public utilities and joint ventures are left out. An individual's ID number is never shown or saved, and a note reminds the buyer that their contact details are personal data and what to ask before buying (RUT, the *documento soporte* if they do not invoice, social security for services).
+2. **Your suppliers for this.** The suppliers you saved for those categories, with their commercial terms: credit days, payment (cash, monthly, quarterly), delivery coverage and electronic invoicing.
+3. **Nearby.** Real businesses from OpenStreetMap on a map, with driving time, phone and opening hours when the map has them, and the same search in Google Maps. On-site services (a plumber, a locksmith) show this layer first; for supplies it is one click away.
+4. **Search the internet.** Ready-made searches for wholesalers and nationwide distributors on Google, company pages on LinkedIn and business pages on Facebook, plus a local search. Plain links: nothing is scraped.
+
+**My list** keeps the suppliers to contact from any layer, or added by hand (paste a WhatsApp message or a business card and the form fills itself). Each supplier can cover several categories, and the list shows progress towards three quotes per category. *Request quotes* drafts one message per supplier for WhatsApp or email, optionally asking for the documents to register the supplier, and *Download table* exports the comparison table (cuadro comparativo) for Excel or Sheets.
+
+The command line and the optional Claude agent add what a desk analysis needs: the real cost of an order (packs, minimum order, tax, shipping, currency, payment term), a fair rating, trust from referrals, duplicate detection and connectors for other registries.
 
 ## Finding suppliers that are not online
 
-This is the core of the project. The full guide is in the [playbook](docs/offline-playbook.md).
+The full guide is in the [playbook](docs/offline-playbook.md).
 
 | Channel | How Supplier Scout helps |
 |---|---|
-| Referrals from current suppliers and colleagues | Drafts the "who do you buy this from?" message; records who recommended whom; counts only independent referrals toward trust |
-| Public registries (procurement, chambers of commerce) | SECOP II connector for Colombia; an OCDS connector for every government that publishes open contracting data; any Socrata open-data portal; CSV import for any other registry. The app lists each country's procurement portal and business registry |
-| Community maps | Live OpenStreetMap search in the web app and a connector in the CLI, for any country, reporting how many results have no website; a one-click Google Maps search for the businesses OSM does not have |
-| Trade districts and fairs | CSV import that recognises columns by name in Spanish, English, Portuguese and French |
-| Business cards, flyers, WhatsApp | Rule-based parser: name, tax ID with check digit, phones, emails, handles, address, prices, pack size, minimum order, lead time, payment terms |
-| Verification | Tax-ID check digits, verification levels (contacted → formal → visited → bought from), human review queue |
-
-## How the ranking works
-
-| Factor | What it measures | When data is missing |
-|---|---|---|
-| Price | Quoted unit price with tax relative to the cheapest option; in the Quotes tab, the total cost of an order (packs, minimum, tax, shipping, currency, payment term) | Neutral + "ask for a quote" |
-| Rating | Bayesian blend: a neutral prior worth 5 reviews, online reviews (capped at 100), team reviews ×3 | Neutral |
-| Distance | Inside your radius; suppliers that deliver keep a floor | Neutral |
-| Trust | Verification level + independent referrals (self and same-group referrals ignored, mutual ones count half) | Lowest level |
-| Speed | Lead time; a hard warning if it misses your deadline | Neutral |
-
-Weights are presets (balanced, cheapest, most reliable, nearest, urgent) or sliders.
+| Public procurement (Colombia) | The national layer of the web app: companies that already sell that need to public entities, by NIT, with the departments they sell in and a real contract as an example. The CLI also reads SECOP, any OCDS publisher and any Socrata portal |
+| Community maps | The nearby layer: a live OpenStreetMap search, reporting how many businesses have no website, plus a one-click Google Maps search for the ones OpenStreetMap does not have |
+| Facebook, Google and LinkedIn | Ready-made searches (pages, wholesalers, nationwide distributors, companies). They open in a new tab; nothing is copied from those sites |
+| Referrals, fairs, business cards, WhatsApp | Paste the text into the supplier form and a rule-based parser fills name, phone, email, credit days, coverage and categories. The CLI imports fair and chamber-of-commerce lists (CSV) and counts independent referrals |
+| Verification | Links to RUES and DIAN (and each country's tax portal), tax-ID check digits, and the public contract history of national suppliers |
 
 ## Countries and languages
 
@@ -77,6 +63,18 @@ Built in Colombia, meant for Latin America, usable anywhere. The full table is i
 - **How suppliers actually write:** Argentina's "15" mobiles, Mexico's old "044", RD$, quetzales, colones, guaraníes, "+ IGV", "com impostos", "HT", an *arroba* (12.5 kg in Colombia, 15 kg in Brazil), *tlapalería* or *ferragens*, and addresses by landmark ("100 varas al sur").
 - **Four languages:** the web app, the explanation of every ranking, the quote and referral requests (which name the local tax: "¿incluye IGV?") and the agent. The app follows the browser's language.
 - **Sample data** for Bogotá, Mexico City and São Paulo.
+
+## How the ranking works (command line and agent)
+
+| Factor | What it measures | When data is missing |
+|---|---|---|
+| Price | Quoted unit price with tax relative to the cheapest option; with a quantity, the total cost of an order (packs, minimum, tax, shipping, currency, payment term) | Neutral + "ask for a quote" |
+| Rating | Bayesian blend: a neutral prior worth 5 reviews, online reviews (capped at 100), team reviews ×3 | Neutral |
+| Distance | Inside your radius; suppliers that deliver keep a floor | Neutral |
+| Trust | Verification level + independent referrals (self and same-group referrals ignored, mutual ones count half) | Lowest level |
+| Speed | Lead time; a hard warning if it misses your deadline | Neutral |
+
+Weights are presets (balanced, cheapest, most reliable, nearest, urgent) or sliders.
 
 ## Design decisions
 
@@ -111,43 +109,31 @@ Built in Colombia, meant for Latin America, usable anywhere. The full table is i
 | Malicious import file (XSS, `javascript:` links, huge files) | One sanitising gate for all external data (also applied to what the browser saved, since storage is shared by every page on the same GitHub Pages domain); http(s) links only; 2 MB limit; the page renders with `textContent` only |
 | Huge or hostile inputs (availability) | Capture text capped at 5,000 characters and tested against regex backtracking; imports capped at 2,000 suppliers; duplicate search and ranking tested to stay fast at those limits; connector responses capped at 5 MB while streaming |
 | Spreadsheet formula injection in the CSV export | Cells starting with `=`, `+`, `-`, `@` are exported as text (tested) |
-| Demo page | Strict CSP: scripts, styles and fonts (IBM Plex, self-hosted, SIL Open Font License) come from the site itself; `connect-src` allows only Nominatim, Overpass and the OSRM routing server, used only when you press *Search the map*, and `img-src` only OpenStreetMap's tiles (tested). Marker colours are set through the CSSOM because inline style attributes are blocked. No cookies or trackers. Map results go through the same sanitising gate as any import; the shortlist and recent places read back from storage are checked the same way |
+| Web app | Strict CSP: scripts and styles come from the site itself (no web fonts: the system's own font); `connect-src` allows only Nominatim, Overpass, the OSRM routing server and datos.gov.co, used only when you press *Search*, and `img-src` only OpenStreetMap's tiles (tested). Marker colours are set through the CSSOM because inline style attributes are blocked. No cookies or trackers. Map and registry results go through the same sanitising gate as any import; the saved list is checked the same way when read back from storage |
+| Individuals in public procurement data | Individuals are suppliers too, but their tax ID is their national ID number: it is used only to look up their public supplier contact, kept out of the rendered page, the saved list (a derived key instead) and the export, and never sent to Google (searched by name and city). Only their own registered contact is read, never the legal-representative fields. A note in the page cites Colombia's data-protection law (Ley 1581 of 2012): use their contact only to request a quote. Contracts that are personal-service work for the state, agreements with non-profits, leases and minors' ID documents are excluded in the query. The live check publishes no SECOP responses and blurs phones and emails in its screenshots (all tested) |
 | Personal data of sole traders (Colombia: Law 1581 of 2012; LGPD in Brazil and similar laws across the region) | Consent checkbox on capture that names the selected country's law, warning in the ranking when consent was refused, never sent to the AI agent when refused, data stays in the browser unless exported. The OCDS connector imports the business, never the contact person's name (tested) |
 | Leaking real data from this public repo | All data is fictional: `.example` domains, phones in unassigned ranges (Colombia `999`, Mexico `55 0000`, Brazil `(11) 0000`, or ranges reserved for fiction), tax IDs generated with a correct check digit. Tests enforce it |
 | CI supply chain | Read-only permissions, no persisted credentials, every GitHub Action pinned to a commit SHA (tested; Dependabot updates the pins), `npm ci --ignore-scripts`, one runtime dependency (the official SDK, used only by the agent), Dependabot for security updates |
 | Script injection through map data | Trusted Types enforced by the CSP (`require-trusted-types-for 'script'`), no HTML-string sinks anywhere in the web app (tested), every value rendered with `textContent` |
-| Abuse of free services and location privacy | Nominatim and OSRM calls queued to at most one per second across searches (tested); the browser location is rounded to about 100 m before it is sent |
+| Abuse of free services and location privacy | Nominatim and OSRM calls queued to at most one per second across searches (tested); the browser location is rounded to about 100 m before it is sent; nothing about the buyer is sent to datos.gov.co except the words searched |
 | Wrong but real results | Map tags checked against the OpenStreetMap wiki; name words that caught unrelated businesses (kindergartens, banks, universities) narrowed, with tests |
-| Terms of the data sources | OSM and Nominatim: attribution, one geocoding call per search (a second one a second later only when the place is not in the chosen country), no search-as-you-type, a 10 km radius cap and the button disabled while a search runs (the CLI also sends an identifying User-Agent); OSM tiles: attribution on the map, a Referer on every tile request (the page otherwise sends none), only the tiles in view; OSRM demo server: one table request per search, at most 100 places, non-commercial use, credited; Overpass: one retry after 3 s when busy, no unverified mirrors (some serve stale data silently); Google Maps: only an official search link, nothing is copied and no Google data is shown on the OSM map (against Google's terms); Google Places (CLI, your own key): records are flagged for refresh or deletion per Google's terms |
+| Terms of the data sources | datos.gov.co (SECOP II): open government data, credited under every table, a short gap between requests and at most four per search; OSM and Nominatim: attribution, one geocoding call per search (a second one a second later only when the place is not in the chosen country), no search-as-you-type, a 10 km radius cap and the button disabled while a search runs (the CLI also sends an identifying User-Agent); OSM tiles: attribution on the map, a Referer on every tile request (the page otherwise sends none), only the tiles in view; OSRM demo server: one table request per search, at most 100 places, non-commercial use, credited; Overpass: one retry after 3 s when busy, no unverified mirrors (some serve stale data silently); Google Maps: only an official search link, nothing is copied and no Google data is shown on the OSM map (against Google's terms); Google Places (CLI, your own key): records are flagged for refresh or deletion per Google's terms |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  subgraph S[Where suppliers come from]
-    MAP[OpenStreetMap]
-    REG[Public registries<br/>SECOP · OCDS · Socrata portals]
-    GP[Google Places<br/>optional key]
-    CSV[CSV<br/>fairs · chambers · sheets]
-    CARD[Cards · flyers · WhatsApp]
-    REF[Referrals]
-  end
-  MAP --> CON[Connectors · Node]
-  REG --> CON
-  GP --> CON
-  CSV --> CON
-  CARD --> PAR[Capture parser<br/>rules · offline]
-  REF --> PAR
-  CON --> GATE[(Common format<br/>sanitised)]
-  PAR --> REV{Human review}
-  GATE --> DUP{Duplicates<br/>confidence tiers}
-  DUP -->|exact · high · medium| DB[(Supplier list)]
-  DUP -->|low · conflict| REV
-  REV --> DB
-  DB --> RANK[Ranking<br/>order cost · fair rating<br/>distance · trust · speed]
-  RANK --> WEB[Web app]
-  RANK --> AG[Claude agent]
-  AG -.->|drafts only| YOU[You send quote<br/>and referral requests]
+  Q[What you need<br/>and where] --> I[Understand<br/>rules, 4 languages]
+  I --> SC{Supply, on-site service<br/>or company service}
+  SC --> N[National suppliers<br/>SECOP II · datos.gov.co]
+  SC --> M[Your suppliers<br/>saved in the browser]
+  SC --> NB[Nearby<br/>OpenStreetMap · OSRM]
+  SC --> W[Internet<br/>Google · Facebook · LinkedIn links]
+  N --> L[(My list<br/>categories · terms · status)]
+  NB --> L
+  W -.->|you add it by hand<br/>or paste a message| L
+  L --> RQ[Quote requests<br/>drafts you send]
+  L --> CSV[Comparison table<br/>Excel · Sheets]
 ```
 
 ## Project structure
@@ -155,25 +141,22 @@ flowchart LR
 ```
 src/core/          shared logic, no dependencies (browser + Node)
   services.js        what the buyer typed -> trades, categories, map tags and name words (rules, ES/EN/PT/FR)
-  osm.js             OpenStreetMap query and parsing, place disambiguation and search radius, Google Maps search link
-  shortlist.js       the buyer's shortlist: statuses, three-quote progress, comparison table (CSV)
+  channels.js        supply, on-site service or company service -> which layers first; Google, Facebook and LinkedIn searches
+  secop.js           national suppliers from SECOP II: companies and individuals, staff contracts out, merge by tax ID, contact details
+  osm.js             OpenStreetMap query and parsing, place disambiguation and search radius, Google Maps link
+  shortlist.js       the saved list: sources, categories, commercial terms, statuses, three quotes per need, CSV
   countries.js       23 country profiles: currency, tax, tax-ID check digits, phone habits, registries
   capture.js         business card / flyer / WhatsApp text -> draft supplier
-  quotes.js          units, packs, minimum order, tax, shipping, FX, payment terms
-  reviews.js         Bayesian rating blend
-  trust.js           verification levels and referral counting
-  dedupe.js          duplicate detection with confidence tiers, merging
-  score.js           explainable ranking
+  quotes.js · reviews.js · trust.js · dedupe.js · score.js   order cost, ratings, referrals, duplicates, ranking (CLI and agent)
   csv.js · schema.js import/export and the sanitising gate
-  messages.js        explanations (ES / EN / PT / FR) · outreach.js quote & referral drafts
+  messages.js · outreach.js   explanations and quote / referral drafts (ES / EN / PT / FR)
 src/connectors/    OpenStreetMap, Socrata/SECOP, OCDS, Google Places, Nominatim (Node)
-src/data/          fictional demo data (Bogotá, Mexico City and São Paulo)
-cli/scout.js       connectors, CSV import, merge and rank from the terminal (args.js: shared parser)
+cli/scout.js       connectors, CSV import, merge and rank from the terminal
 agent/             Claude agent: tools, loop, system prompt, CLI
-demo/              the web app (GitHub Pages): app.js, live.js (the only file that uses the network), map.js (OSM tiles + markers,
-                   no library), i18n.js (ES/EN/PT/FR texts), self-hosted IBM Plex fonts
-tests/             179 tests: core, regional formats, connectors against API-shaped fixtures,
-                   CLI, agent loop with a scripted model, demo security guards
+demo/              the web app (GitHub Pages): app.js, live.js (the only file that uses the network),
+                   map.js (OSM tiles + markers, no library), i18n.js (ES/EN/PT/FR texts)
+tools/             the live check run in GitHub Actions (services, searches and the page in a browser)
+tests/             198 tests
 docs/              how it works (ES/EN), screenshots, the offline playbook and the country coverage table
 ```
 
@@ -185,9 +168,9 @@ Requires Node 22+.
 npm test                 # the whole suite, no network and no API key needed
 ```
 
-**Web app:** open [the live demo](https://dsergio909.github.io/supplier-scout/), or serve the repository locally (for example `npx http-server .`) and open `/demo/`.
+**Web app:** open [the live demo](https://dsergio909.github.io/supplier-scout/), or serve the repository locally (for example `python3 -m http.server`) and open `/demo/`.
 
-**Connectors (no AI):** each command writes a JSON file you import in the web app (tab *Data*).
+**Connectors (no AI):** each command writes a JSON file that `merge`, `rank` and the agent read.
 
 ```bash
 npm install
@@ -218,11 +201,10 @@ npm run agent -- --dry-run --db data/all.json --category packaging --qty 500 --l
 
 Being explicit, because this matters more than the feature list:
 
-- **Tested (179 automated tests in CI):** all core logic; every country profile; check digits with fictional numbers that pass and fail; cards and WhatsApp messages written the way suppliers write in Mexico, the Dominican Republic, Brazil, Ecuador, Chile, Peru, Costa Rica and France; the connectors against fictional fixtures shaped like each API's documented responses (OCDS included); the CLI end to end; the agent loop against a scripted stand-in for the Claude API (tool calls, parallel results, errors, refusals, step limit, append-only history, no invented suppliers, no phones sent to the model); that every interface text exists in the four languages; how typed requests are understood in four languages; place disambiguation and the city-wide radius; the shortlist and its CSV; the live map search, driving times and retries with simulated OpenStreetMap and OSRM responses (geocoding, results, errors, size and time limits); the demo's CSP and rendering guards; speed at the import limits. The web app was checked in Chromium in the four languages, in light and dark mode, on desktop and on a 390 px phone viewport.
-- **Checked against official sources, not against live systems:** the check-digit algorithms were compared with examples published by each tax authority (those real numbers are not kept in the repository). Tax rates, portal names and law names are as of 2026 and are editable defaults, not tax or legal advice.
-- **Checked against the live services (November 2026):** a manual GitHub Actions workflow (`live-check.yml`) runs the web app's own search code against the real Nominatim, Overpass and OSRM for 12 buyer searches in Colombia, Peru, Mexico and Brazil, checks every listed business on the OpenStreetMap API, and uses the page in Chromium. Results: 67 of 67 businesses checked in three runs exist with the same name; searches with good map coverage found 16-37 real businesses (hardware stores in Barranquilla and Coyoacán, stationers in Chapinero, garages in Pinheiros); the map tiles, driving times, shortlist and quote request worked in the real browser with no console or security-policy error. The check also found real problems, now fixed: the public Overpass server took about 30 s to answer from GitHub's servers (hence the Nominatim fallback), searches took 13-20 s (now 3-13 s), place labels were long, and municipalities came back as "county".
-- **Not run against live services:** the CLI's SECOP, OCDS and Google Places connectors and the Claude agent; their request formats follow each service's documentation.
-- **Known limits:** results depend on what volunteers have mapped: trades such as plumbers, locksmiths, pest control or fire-extinguisher refills often return few or no businesses (0 in San Gil, Cali, Medellín and Miraflores in the live check), and phone numbers are on roughly 1 in 10 map results, which is why every search also opens in Google Maps; the Nominatim fallback returns at most 40 businesses per type; GitHub Pages cannot send security headers, so the CSP is a `<meta>` tag and cannot forbid framing (the page has no sensitive actions to hijack); driving times come from the OSRM demo server, ignore traffic and fall back to straight-line distance when it is unavailable; tax rates are editable defaults and import duties are not included; the capture parser handles common formats and anything unusual needs a manual fix, which is why every capture goes to review.
+- **Automated (198 tests in CI):** all core logic; how typed requests are understood in four languages and which layers come first; the SECOP queries (companies and individuals, staff contracts and minors excluded, an individual's ID never serialised, the last two years, escaped input, the contract-description filter), how companies are merged across departments and needs, the check digit of a NIT, phone numbers with their area code; every country profile and tax-ID check digit; cards and WhatsApp messages written the way suppliers write across the region; the connectors against fixtures shaped like each API; the CLI end to end; the agent loop against a scripted stand-in for the Claude API; the saved list and its CSV; the live map search with simulated OpenStreetMap and OSRM responses; the web app's CSP and rendering guards.
+- **Checked against the live services (November 2026):** a manual GitHub Actions workflow (`live-check.yml`) runs the app's own code against the real datos.gov.co, Nominatim, Overpass and OSRM, and uses the page in Chromium. Last run (3 November 2026): **10 national searches** (stationery, cleaning and stationery, extinguisher refills, private security, security, cardboard boxes, toner, uniforms, cleaning products, plumber). In 9 of them the companies listed are the right kind; for *plumber* they are hardware and building-maintenance suppliers, because the state rarely hires plumbing on its own. **All 40 companies checked by tax ID** have contracts under that NIT and are in the SECOP supplier registry, and **21 of 21 map businesses** checked exist on OpenStreetMap with the same name. In the browser, searches took 3-9 s on desktop and on a phone, with no console or security-policy error and nothing wider than the screen. The first run is what shaped this version: single words brought the wrong companies (*vigilancia* brought epidemiological surveillance, *empaques* brought laundries), individuals appeared with their ID number, old landlines had no area code, and the national table overflowed on a phone. All of that is fixed and covered by tests. **With individuals (second round, same day):** 12 national searches; individuals are 15-20 of the 40 suppliers listed in most of them (2 for private security, 0 for cardboard boxes), none of them a quasi-staff contract, and all 58 suppliers checked (companies and individuals) have contracts under that tax ID and are in the registry. Individuals with national reach exist: one extinguisher service sells in 17 departments. No ID number of an individual appears on screen (checked in the browser) or in the published results. The map alone found nothing for 6 of 12 searches (cardboard boxes in Fontibón, extinguisher refills in Cali, a locksmith in San Gil), which is why it is one layer of four.
+- **Not run against live services:** the CLI's OCDS and Google Places connectors and the Claude agent; their request formats follow each service's documentation.
+- **Known limits:** the national layer exists only for Colombia; SECOP shows who sells to the state, which is a strong signal of capacity and formality but not a full market (many good suppliers never sell to the state); the example contract is one of many and the public contact details are what the company registered; map results depend on what volunteers have mapped, so trades such as plumbers or fire-extinguisher refills often return few businesses, which is why every search also opens in Google Maps and Facebook; GitHub Pages cannot send security headers, so the CSP is a `<meta>` tag; driving times ignore traffic.
 
 ## Roadmap
 
@@ -243,22 +225,21 @@ Companion project: [Supplier Radar](https://github.com/Dsergio909/supplier-radar
 
 ---
 
-## 🇪🇸 Resumen en español
+---
 
-**Supplier Scout** sirve para encontrar proveedores nuevos de productos y servicios, **incluidos los que no aparecen en internet**, escribiendo lo que necesitas con tus palabras.
+## Resumen en español
 
-- **Entiende lo que necesitas y busca negocios reales en el mapa:** escribes *mantenimiento de aires acondicionados*, *plomero*, *recarga de extintores* o *cajas de cartón*, más la ciudad, el pueblo o el barrio (o usas tu ubicación). Si hay varios pueblos con el mismo nombre, te muestra cuál eligió y te ofrece los otros. Unas reglas (sin IA) lo convierten en etiquetas de OpenStreetMap y palabras del nombre del negocio, y la app te dice qué entendió. Busca en OpenStreetMap, donde aparecen muchos talleres y locales sin página web, dice cuántos no tienen web, enlaza cada resultado a su ficha y con un clic abre la misma búsqueda en Google Maps (enlace oficial: sin claves y sin copiar datos).
-- **Busca por ubicación:** distancia desde tu punto de entrega, radio de búsqueda y proveedores que hacen envíos.
-- **Sin cantidades para buscar:** en compras primero se buscan opciones y la cantidad se negocia después. El ranking usa el precio por unidad cotizado (si lo hay), la distancia, las reseñas, la confianza y la rapidez. Cuando ya tienes cotizaciones, la pestaña Cotizaciones calcula el costo real del pedido: paquetes completos, compra mínima, IVA, envío, moneda y el valor de pagar a plazo.
-- **Mapa real y lista corta:** los resultados aparecen en un mapa de OpenStreetMap con el tiempo aproximado en carro a cada negocio. *Mi lista* guarda los que vas a contactar, su estado y el avance hacia las tres cotizaciones que se suelen pedir, y descarga el cuadro comparativo para Excel o Sheets. La solicitud de cotización puede pedir los documentos para inscribir al proveedor (RUT, Cámara de Comercio, certificación bancaria, cédula).
-- **Reseñas justas:** un 5.0 con 2 reseñas no le gana a un 4.7 con 300, y "sin reseñas" cuenta como neutro, no como malo. Las reseñas de tu equipo pesan más.
-- **Proveedores fuera de internet:** conectores a OpenStreetMap (cualquier país) y a SECOP II (Colombia), importación de CSV (ferias, cámaras de comercio), lector de tarjetas, volantes y mensajes de WhatsApp (funciona sin IA y sin internet) y una red de recomendaciones donde solo cuentan las independientes.
-- **Revisión humana:** lo capturado y los posibles duplicados pasan a una cola de revisión. Las solicitudes de cotización y de recomendaciones se redactan para que **tú** las envíes.
-- **Agente de IA opcional (Claude):** le escribes "necesito 500 cajas de cartón cerca de Fontibón en 7 días" y busca en tu lista, en el mapa y en SECOP, clasifica y redacta los mensajes. No puede inventar proveedores ni enviar nada, y nunca ve teléfonos ni correos.
-- **Pensado para América Latina, útil en cualquier país:** 23 perfiles (los países hispanohablantes de la región, salvo Cuba que usa el genérico, más Puerto Rico, Brasil, España, Portugal, Francia y EE. UU.) más uno genérico. Cada uno conoce su moneda, su impuesto (IVA, IGV, ITBIS, ITBMS, ISV...), su ID tributario (con dígito de verificación en 13 países, incluido el CNPJ alfanumérico de Brasil), cómo se escriben los teléfonos, las unidades locales (arroba, quintal, libra) y dónde buscar proveedores formales (portal de compras públicas, registro de empresas y ley de datos). Hay conector para los datos abiertos de compras públicas en formato OCDS.
-- **En cuatro idiomas:** español, inglés, portugués y francés, en la web, en las explicaciones, en los mensajes y en el agente. [Detalle por país](docs/countries.md).
+**Supplier Scout** sirve para encontrar proveedores como se hace en compras: varias opciones para cada necesidad, no solo el local de la esquina.
 
-Los datos de ejemplo de la demo son ficticios (dominios `.example`, teléfonos en rangos sin asignar, IDs tributarios generados); los de la búsqueda en el mapa son reales. Honestidad: la búsqueda en el mapa, los conectores y el agente están probados con respuestas simuladas; todavía no se han ejecutado contra los servicios reales porque el entorno de desarrollo no tenía acceso a internet. [Ver la demo en vivo](https://dsergio909.github.io/supplier-scout/) · [Cómo funciona](docs/como-funciona.md) · [Guía para encontrar proveedores fuera de internet](docs/offline-playbook.md).
+- **Escribes lo que necesitas y dónde** (*papelería*, *dotación de aseo y papelería*, *recarga de extintores*, *plomero*) y la app dice qué entendió y si es un insumo que se despacha, un servicio en sitio o un servicio de empresa. Con eso ordena cuatro capas.
+- **Proveedores nacionales (Colombia):** empresas **y personas naturales** que ya les venden eso a entidades públicas, según los datos abiertos de SECOP II. Por cada proveedor: en cuántos departamentos vende (tres o más indica despacho nacional), cuántos contratos, el último, **un contrato real como ejemplo** de lo que vendió y su teléfono, correo y web públicos. Si pides varias cosas (*aseo y papelería*), primero van los que cubren todo, y un filtro muestra empresas o personas naturales. Quedan fuera los contratistas que el Estado contrata casi como empleados (*apoyo a la gestión*), las empresas de servicios públicos y los consorcios. La cédula de una persona nunca se muestra ni se guarda, y una nota recuerda que sus datos son personales y qué pedir antes de comprarle (RUT, documento soporte si no factura, seguridad social en servicios).
+- **Tus proveedores para esto,** con sus condiciones: días de crédito, forma de pago (contado, mensual, trimestral), cobertura del despacho y factura electrónica.
+- **Cerca:** negocios reales de OpenStreetMap en un mapa, con tiempo en carro, y la misma búsqueda en Google Maps. Para un plomero o un cerrajero esta capa va primero.
+- **Buscar en internet:** búsquedas listas de mayoristas y distribuidores con despacho nacional en Google, empresas en LinkedIn y páginas en Facebook. Son enlaces: no se copian datos.
+- **Mi lista:** guardas proveedores de cualquier capa o a mano (pegas un mensaje de WhatsApp o una tarjeta y el formulario se llena solo). Cada uno puede cubrir varias categorías, ves el avance hacia tres cotizaciones por categoría, pides cotizaciones por WhatsApp o correo (con los documentos para inscribir al proveedor, si quieres) y descargas el cuadro comparativo para Excel o Sheets.
+- **Probado con datos reales** (noviembre de 2026) en GitHub Actions: 10 búsquedas nacionales, las 40 empresas revisadas existen con su NIT en SECOP, los 21 negocios del mapa revisados existen en OpenStreetMap, y la página funcionó en computador y celular sin errores. Detalle en [What is tested](#what-is-tested-and-what-is-not).
+
+En cuatro idiomas (español, inglés, portugués y francés). [Ver la demo](https://dsergio909.github.io/supplier-scout/) · [Cómo funciona](docs/como-funciona.md) · [Guía para encontrar proveedores fuera de internet](docs/offline-playbook.md).
 
 ## License
 

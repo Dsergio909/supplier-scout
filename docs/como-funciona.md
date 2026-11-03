@@ -2,136 +2,119 @@
 
 **Español** · [English](how-it-works.md)
 
-Supplier Scout sirve para encontrar proveedores nuevos de productos **y de servicios**, **incluidos los que no tienen página web**, y compararlos para decidir a quién pedirle cotización. La [demo](https://dsergio909.github.io/supplier-scout/) funciona en el navegador, sin instalar nada y sin crear cuenta.
+Supplier Scout sirve para encontrar proveedores de productos y servicios como se hace en compras: reunir varias opciones para cada necesidad y compararlas antes de pedir cotización. La [demo](https://dsergio909.github.io/supplier-scout/) funciona en el navegador, sin instalar nada y sin crear cuenta.
 
 ## El problema
 
-Buscar un proveedor nuevo suele ser una búsqueda en Google, una hoja de cálculo y algunas llamadas. Fallan tres cosas:
+Un mapa responde «¿quién está cerca de mí?». En compras la pregunta es otra: «¿quién me puede surtir esto y en qué condiciones?». Muchas veces la mejor respuesta no está cerca:
 
-1. **Muchos buenos proveedores no están en internet.** Talleres, negocios familiares y distribuidores que venden por teléfono o WhatsApp no tienen página web, pero sí un local en la calle.
-2. **El precio de lista más bajo casi nunca es el pedido más barato.** Paquetes completos, compra mínima, impuesto, envío y plazo de pago cambian la cuenta.
-3. **Las estrellas engañan.** Un 5,0 con 2 reseñas no vale más que un 4,7 con 300, y "sin reseñas" no significa "malo".
+1. **Los insumos se compran a empresas nacionales.** La papelería, el aseo, la dotación o el tóner se suelen comprar a distribuidores que despachan a todo el país, facturan electrónicamente y dan crédito a 30, 60 o 90 días o pagos trimestrales. Su bodega está en otra ciudad, así que un mapa nunca los muestra.
+2. **Un proveedor puede cubrir varias necesidades.** El que manda la papelería también puede mandar el aseo y la cafetería: un solo proveedor para inscribir, un contrato y una factura.
+3. **Compras necesita varias opciones.** Lo normal es pedir tres cotizaciones, y las opciones salen de lugares distintos: los proveedores del Estado, los que ya conoces, el local de la esquina, una página de Facebook, una recomendación.
+4. **Muchos buenos proveedores pequeños no están en internet.** Talleres y negocios familiares venden por teléfono o WhatsApp y aparecen en mapas comunitarios, no en Google.
 
-## Buscar proveedores cerca de ti
+## Buscar
 
-Arriba de la pestaña **Buscar** está el buscador:
+1. En **¿Qué necesitas?** escribe con tus palabras: *papelería*, *dotación de aseo y papelería*, *recarga de extintores*, *vigilancia privada*, *plomero*. También puedes tocar uno de los ejemplos.
+2. Escribe **la ciudad o la zona** (*Bogotá*, *Kennedy, Bogotá*, *San Gil*) o pulsa **Usar mi ubicación**. Elige el **país**.
+3. Pulsa **Buscar**. Arriba aparece lo que entendió y por qué ordena así los resultados:
+   - **Insumos** (papelería, aseo, dotación, empaques): *se pueden despachar desde cualquier ciudad, así que primero van los proveedores nacionales*.
+   - **Servicios en sitio** (plomero, cerrajero, electricista): *alguien tiene que ir al sitio: primero van los proveedores cercanos*.
+   - **Servicios que suelen prestar empresas** (vigilancia, extintores, fumigación): verás nacionales y cercanos.
 
-1. En **¿Qué necesitas?** escribe con tus palabras un producto o un servicio: *mantenimiento de aires acondicionados*, *plomero*, *recarga de extintores*, *fumigación*, *cajas de cartón*, *tornillería*. Debajo aparece lo que la app entendió, por ejemplo **Entendí: Aire acondicionado y refrigeración**.
-2. Escribe **la ciudad, el pueblo o el barrio**: *Barranquilla*, *Guatavita*, *Kennedy, Bogotá*. Elige el **país**, o pulsa **Usar mi ubicación** para buscar donde estás.
-3. Pulsa **Buscar en el mapa**. En unos segundos aparecen en el ranking los negocios que existen de verdad en esa zona, con su teléfono, dirección y horario cuando el mapa los tiene.
-4. Encima del ranking puedes filtrar **Con teléfono** o **Sin página web** y ordenar por **Recomendado** o **Más cerca** (por tiempo en carro cuando lo hay).
-5. El mensaje de resultado dice cuántos encontró, **cuántos no tienen página web** y cuántos tienen teléfono.
-6. Pulsa **Ver en Google Maps** para abrir la misma búsqueda en Google Maps. Google suele tener más negocios; desde ahí puedes llamar, ver fotos y leer reseñas.
-7. Cada negocio muestra su dirección y horario cuando el mapa los tiene, un botón **Llamar**, **Ver en OpenStreetMap** (su ficha en el mapa) y **Buscar en Google Maps** (para ver fotos, reseñas y llamar). **Pedir cotización** arma un mensaje listo para WhatsApp o correo; si es un servicio, pide el valor del servicio, qué incluye y el tiempo de respuesta.
-8. **Volver a los datos de ejemplo** regresa a la demo con proveedores ficticios.
+Los resultados salen en cuatro capas.
 
-**No necesitas poner cantidades.** En compras primero se buscan varias opciones y la cantidad se negocia con cada proveedor. Las cantidades solo aparecen en la pestaña **Cotizaciones**, cuando ya tienes precios y quieres comparar el costo real de un pedido.
+### 1. Proveedores nacionales (Colombia)
 
-### Cómo identifica el lugar
+Empresas **y personas naturales** que ya les venden esa necesidad a entidades públicas, según **SECOP II**, el sistema de compras públicas de Colombia, que publica cada contrato como dato abierto en datos.gov.co.
 
-- **Ciudad o pueblo completo.** Si escribes solo *Barranquilla* o *San Gil*, busca en todo el municipio y sus alrededores. Si la ciudad mide más de 10 km desde el centro (Bogotá, Barranquilla, Medellín), busca 10 km alrededor del centro y te avisa: para otra zona, escribe el barrio (*Soledad, Atlántico* o *Kennedy, Bogotá*).
-- **Nombres repetidos.** Muchos pueblos se llaman igual (*San Pedro*, *La Unión*, *Santa Rosa*). La app muestra dónde buscó, con el departamento (*San Pedro, Valle del Cauca*), y debajo te ofrece los otros: **¿No era ahí? Elige: San Pedro, Antioquia · San Pedro, Sucre**. Elegir otro no vuelve a consultar el buscador de lugares.
-- **País equivocado.** Si escribes *Lima* con Colombia seleccionado, no lo encuentra en Colombia, lo busca en el resto del mundo, te dice *No lo encontré en Colombia: busqué en Lima (Perú)* y cambia el país.
-- **Usar mi ubicación.** El navegador te pide permiso; la ubicación solo se usa para la consulta al mapa y no se guarda.
-- El buscador de lugares es Nominatim, de OpenStreetMap. Por su política de uso, la app no sugiere lugares mientras escribes: busca cuando pulsas el botón.
-
-### Cómo entiende lo que escribes
-
-No usa inteligencia artificial: usa reglas, así que siempre se puede explicar qué buscó.
-
-1. **Oficios y servicios** que reconoce en español, inglés, portugués y francés, con plurales y sin importar tildes: aire acondicionado y refrigeración, plomería, electricista, cerrajería, soldadura y estructuras metálicas, pintores, vidrios y ventanas, obras y remodelaciones (también *reparaciones locativas*), techos e impermeabilización, jardinería, fumigación, servicio de aseo, lavandería, talleres de vehículos y montallantas, tornería y mecanizado, computadores y soporte técnico, electrodomésticos, tapicería, avisos, catering, mudanzas, seguridad y cámaras, extintores y seguridad industrial, ascensores, plantas eléctricas y motobombas, contabilidad y abogados. Cada uno sabe qué etiquetas usa OpenStreetMap (por ejemplo `craft=hvac` para aire acondicionado) y qué palabras suelen ir en el nombre del negocio (*refrigeración*, *climatización*).
-2. Si no es un oficio, busca en las **categorías de compra**: empaques, ferretería, impresión, textiles, electrónica, alimentos, aseo, transporte, mantenimiento, papelería, muebles e impresión 3D.
-3. Si no reconoce nada, busca negocios que tengan **esas palabras en el nombre** y te lo dice: *Buscaré negocios que tengan en su nombre: arepa*.
-
-La palabra *mantenimiento* sola no decide nada: en *mantenimiento de ascensores* busca empresas de ascensores, no plomeros.
-
-### De dónde salen los datos
-
-| Fuente | Qué aporta | Cómo se usa |
-|---|---|---|
-| [OpenStreetMap](https://www.openstreetmap.org/) | Un mapa comunitario: voluntarios registran locales y talleres caminando por la calle, por eso aparecen muchos negocios sin página web | La app consulta su buscador de lugares (Nominatim) para ubicar la zona y su servicio Overpass para listar los negocios de la categoría alrededor. Gratis y sin clave |
-| Google Maps | Más negocios, fotos y reseñas | Solo un enlace oficial que abre la búsqueda en Google Maps. **No** usa claves de Google ni copia sus datos: copiar datos de Google Maps está prohibido por sus condiciones de uso |
-
-**Nada se inventa.** Cada resultado de la búsqueda real es un lugar que existe en OpenStreetMap, con un enlace a su ficha. Si el mapa no tiene negocios de esa categoría en la zona, la app lo dice y te sugiere ampliar el radio o abrir Google Maps. Los datos de ejemplo de la demo (Bogotá, Ciudad de México y São Paulo) sí son ficticios y están marcados como tales.
-
-### Comprobado con datos reales
-
-En noviembre de 2026 la app se probó contra los servicios reales de OpenStreetMap con 12 búsquedas de compras en Colombia, Perú, México y Brasil (flujo manual `live-check.yml` en GitHub Actions). Los **67 negocios revisados en tres rondas existen** en la API oficial de OpenStreetMap con el mismo nombre que muestra la app. Donde el mapa está bien completo encontró entre 16 y 37 negocios reales (ferreterías en Barranquilla y Coyoacán, papelerías en Chapinero, talleres en Pinheiros). Para oficios como cerrajería, fumigación o recarga de extintores, en San Gil, Cali, Medellín o Miraflores encontró 0: esos negocios no están en el mapa, y para eso está **Ver en Google Maps**.
-
-**Si el servidor principal está lento.** El servidor público que busca negocios (Overpass) a veces tarda 30 segundos o más. Si en 5 segundos no responde, la app pregunta en paralelo al buscador de OpenStreetMap (Nominatim), que responde en menos de un segundo, y te lo dice: *Fuente: buscador de OpenStreetMap*. Ese buscador trae hasta 40 negocios por tipo.
-
-### Límites de la búsqueda real
-
-- El radio máximo es de **10 km**, para no saturar el servicio gratuito de OpenStreetMap. Si pides más, la app busca 10 km y te avisa.
-- Si el servidor del mapa está ocupado, la app reintenta una vez a los 3 segundos; si sigue ocupado, te pide intentar en un minuto.
-- Los datos del mapa pueden estar incompletos o desactualizados: **confirma por teléfono antes de comprar**.
-- Los negocios encontrados no traen precios ni reseñas. Aparecen con "sin reseñas" (neutro) y "sin cotización", y el ranking te dice qué preguntar.
-- Un negocio solo aparece si alguien lo registró en OpenStreetMap con la etiqueta o el nombre adecuados. Si no sale lo que buscas, prueba otras palabras ("refrigeración" en vez de "aires") o ábrelo en Google Maps.
-- La búsqueda real no se guarda en el navegador: si recargas la página, vuelves a los datos de ejemplo. Para conservarla, usa **Exportar** en la pestaña **Datos**.
-
-## El mapa y los tiempos en carro
-
-- Al lado de los filtros hay un **mapa real de OpenStreetMap**. El círculo punteado es tu radio de búsqueda y cada número es el puesto del proveedor en el ranking. Arrastra para moverte, usa **+** y **−** para acercar o alejar y toca un número para ir a su tarjeta.
-- En una búsqueda real, la app calcula **cuánto se tarda en carro** hasta cada negocio y la distancia por vía (servicio OSRM, sobre datos de OpenStreetMap). Son tiempos aproximados, sin tráfico. Si ese servicio no responde, muestra la distancia en línea recta.
-
-## Mi lista corta: de las opciones a la decisión
-
-En compras, la práctica habitual es reunir varias opciones, pedir **al menos tres cotizaciones** y compararlas en un **cuadro comparativo** (precio, tiempo de entrega, forma de pago, garantía) antes de elegir. La pestaña **Mi lista** sigue ese proceso:
-
-1. En cada tarjeta, **Agregar a mi lista** guarda el proveedor, con su teléfono, dirección y lo que estabas buscando.
-2. En **Mi lista** marcas cómo va cada uno: *Por contactar*, *Contactado*, *Cotizó*, *Elegido* o *Descartado*, y anotas el precio cotizado, el tiempo de entrega, la forma de pago y tus notas.
-3. Arriba ves el avance: **2 de 3 cotizaciones recomendadas**.
-4. **Pedir cotización a los que faltan** prepara el mensaje para todos los que están *Por contactar*, cada uno con su nombre: lo abres en WhatsApp (solo celulares) o lo copias para el correo, y el proveedor pasa a *Contactado*. Es lo que hacen herramientas como Thomasnet con su "solicitud a varios proveedores", pero por WhatsApp, que es como se compra en la región.
-5. **Verificar:** junto a cada proveedor hay enlaces a los portales oficiales de su país para revisarlo antes de inscribirlo: RUES y DIAN en Colombia, SAT en México (incluida la lista 69-B de empresas que facturan operaciones simuladas), SUNAT en Perú, SII en Chile, ARCA en Argentina, SRI en Ecuador y Receita Federal en Brasil. Son las páginas principales: ahí buscas por nombre o por número tributario.
-6. **Descargar cuadro comparativo** genera un archivo que se abre en Excel o Google Sheets, con columnas para precio, entrega, forma de pago, garantía, notas y el enlace a la ficha en el mapa.
-
-<img src="real-list.png" alt="Mi lista con tres proveedores reales de plomería en Kennedy, Bogotá, el mensaje de cotización para todos y los enlaces para verificar en RUES y DIAN" width="100%">
-
-La lista se guarda solo en tu navegador y se mantiene aunque hagas otras búsquedas o recargues la página. La app también recuerda tus últimos 5 lugares buscados para repetirlos con un toque.
-
-**Documentos para inscribir al proveedor.** En **Pedir cotización** puedes marcar *Incluir los documentos para inscribirlo como proveedor*. En Colombia el mensaje pide lo que suelen exigir las empresas: RUT actualizado, certificado de existencia y representación legal de la Cámara de Comercio reciente, certificación bancaria y copia de la cédula del representante legal. En otros países usa el nombre de su identificación tributaria (RUC, RFC, CNPJ...). Cada empresa tiene su propia lista: ajusta el mensaje si la tuya pide algo más, como el formato SAGRILAFT.
-
-## Las seis pestañas
-
-| Pestaña | Para qué sirve |
+| Columna | Qué dice |
 |---|---|
-| **1 Buscar** | Escribe qué necesitas y dónde, ajusta el radio y la prioridad, y mira el ranking. Cada proveedor muestra su teléfono, el precio por unidad si ya cotizó, explica **por qué** quedó en ese puesto y tiene un borrador de solicitud de cotización |
-| **2 Mi lista** | Los proveedores que vas a contactar, su estado y el cuadro comparativo para descargar |
-| **3 Cotizaciones** | Cuando ya tienes precios: escribe la cantidad y convierte cada cotización al costo real del pedido (paquetes completos, compra mínima, impuesto, envío, moneda y el valor de pagar a plazo) |
-| **4 Fuera de internet** | Dónde buscar proveedores formales en tu país (compras públicas, registro de empresas), un lector de tarjetas, volantes y mensajes de WhatsApp que funciona sin IA, y un mensaje para pedir recomendaciones |
-| **5 Revisión** | Los proveedores nuevos y los posibles duplicados esperan a que una persona los apruebe. El sistema no adivina |
-| **6 Datos** | De dónde vienen tus proveedores, importar CSV o JSON (listas de ferias, cámaras de comercio, tu hoja actual) y exportar a CSV para Google Sheets |
+| Proveedor | Nombre y ciudad registrada; el NIT si es empresa, o *Persona natural* (su cédula no se muestra) |
+| Alcance | **Nacional** si vendió en 3 o más departamentos en los últimos 2 años, **Regional** si en 2, **Local** si en 1, y si incluye tu zona |
+| Contratos | Cuántos contratos de eso firmó y la fecha del último |
+| Qué ha vendido | **Un contrato real como ejemplo**, como *Suministro de papelería, útiles de oficina, tóner y tintas…*. Así ves por qué aparece |
+| Contacto | Teléfono, correo y página web que el proveedor registró en SECOP. Los fijos viejos de 7 cifras salen con su indicativo (601, 604…) para que se puedan marcar |
 
-## Cómo arma el ranking
+- **Por qué sirve:** una empresa que vende en muchos departamentos ya despacha a todo el país, factura formalmente y maneja volumen. Es el tipo de proveedor que da crédito o pagos trimestrales.
+- **Varias necesidades:** si pides *aseo y papelería*, primero van las empresas que venden las dos cosas.
+- **Tus palabras primero:** si escribiste algo más específico que la categoría (*tóner para impresora* en vez de *papelería*), primero van las empresas que vendieron exactamente eso.
+- **Empresas y personas naturales.** En Latinoamérica muchos proveedores son personas naturales, y a veces son más baratas: en SECOP ganan entre el 30 y el 40 % de los contratos de papelería, extintores, fumigación o aires acondicionados. Arriba de la tabla puedes ver **Todos**, solo **Empresas** o solo **Personas naturales**.
+- **Lo que se deja por fuera:** las personas que el Estado contrata casi como empleados (*prestación de servicios profesionales y de apoyo a la gestión*, *operario*, *sin subordinación*), los convenios con entidades sin ánimo de lucro (Decreto 092 de 2017), los arriendos, los documentos de menores de edad, las empresas de servicios públicos (E.S.P.) y los consorcios y uniones temporales.
+- **Cuidado con los datos de una persona.** Su NIT es su cédula: la app la usa solo para buscar su contacto público y **nunca la muestra, ni la guarda en Mi lista, ni la exporta**; Google se busca por su nombre y ciudad. Su teléfono y correo son datos personales: úsalos solo para pedir cotización (Ley 1581 de 2012).
+- **Antes de comprarle a una persona natural:** pide su RUT; si no factura electrónicamente, tu empresa emite el *documento soporte*; si es un servicio, pide también el pago de seguridad social. La solicitud de cotización ya le pide sus propios papeles (cédula, RUT, certificación bancaria y registro mercantil si tiene), no los de una empresa.
+- **Agregar a mi lista** lo guarda con su contacto y cobertura (y el NIT si es empresa). **Buscar en Google** abre su nombre (y el NIT si es empresa) en Google para ver su página, reseñas o noticias.
 
-| Factor | Qué mide | Si falta el dato |
-|---|---|---|
-| Precio | El precio por unidad con impuesto que cotizó, comparado con el más barato (sin cantidad: la cantidad se negocia después). Avisa si tiene compra mínima | Neutro, con el aviso "pide cotización" |
-| Reseñas | Promedio bayesiano: las reseñas en línea pesan menos cuando son pocas y las de tu equipo pesan el triple | Neutro |
-| Distancia | Dentro de tu radio; quien hace envíos no queda por fuera aunque esté lejos | Neutro |
-| Confianza | Nivel de verificación (contactado, formal, visitado, ya le compramos) y recomendaciones independientes | Nivel más bajo |
-| Rapidez | Días de entrega; aviso si no llega a tiempo | Neutro |
+Para otros países todavía no hay un registro conectado: la capa lo dice y deja las búsquedas en internet.
 
-Las prioridades (equilibrado, más barato, más confiable, más cerca, urgente) cambian el peso de cada factor, o puedes moverlos a mano.
+### 2. Tus proveedores para esto
 
-**Por qué "neutro" y no "cero":** si un dato que falta contara como cero, un taller sin reseñas en internet y sin cotización todavía perdería siempre contra una tienda en línea. Con neutro compite, y la app te dice qué preguntarle.
+Los que ya guardaste en **Mi lista** para esas categorías, con sus condiciones. Si no tienes, **Agregar un proveedor que ya conozco** abre el formulario.
+
+### 3. Cerca
+
+Negocios reales de **OpenStreetMap**, el mapa comunitario donde personas registran locales y talleres caminando por la calle; por eso aparecen muchos negocios sin página web.
+
+- Un mapa con el radio de búsqueda y un número por negocio; tocar el número lleva a su tarjeta.
+- El tiempo aproximado en carro (servicio OSRM, sin tráfico), la dirección, el horario y el teléfono cuando el mapa los tiene.
+- Para insumos esta capa no se carga sola: pulsa **Buscar también tiendas cerca**.
+- Abajo dice cuántos encontró, cuántos no tienen página web y cuántos tienen teléfono.
+
+**El lugar.** Si escribes solo *Barranquilla* o *San Gil*, busca en todo el municipio (hasta 10 km del centro en ciudades grandes, y te avisa). Si hay pueblos con el mismo nombre (*San Pedro*), dice cuál eligió y ofrece los otros. Si escribes *Lima* con Colombia elegido, lo busca en el resto del mundo y cambia el país.
+
+### 4. Buscar en internet
+
+Búsquedas listas que se abren en otra pestaña:
+
+| Botón | Qué busca |
+|---|---|
+| Google: mayoristas | *papelería mayorista para empresas Colombia* |
+| Google: despacho nacional | *distribuidor de papelería con despacho nacional Colombia* |
+| LinkedIn: empresas | Páginas de empresas del sector |
+| Google: en la zona | La necesidad más tu zona |
+| Facebook: páginas | Páginas de negocios (muchos proveedores pequeños solo están ahí) |
+| Google Maps | La misma búsqueda en el mapa de Google, que suele tener más negocios, fotos y reseñas |
+
+Para un servicio en sitio (un plomero) solo aparecen las búsquedas de la zona. Son enlaces normales: Supplier Scout no copia datos de esos sitios (copiar datos de Google o Facebook va contra sus condiciones). Si encuentras uno bueno, agrégalo a tu lista con **Agregar proveedor**.
+
+## Mi lista: de las opciones a la decisión
+
+En compras se reúnen varias opciones, se piden **al menos tres cotizaciones** y se comparan en un **cuadro comparativo** antes de elegir. **Mi lista** sigue ese proceso.
+
+- **Agregar proveedor:** pega un mensaje de WhatsApp, una tarjeta o un correo y pulsa **Llenar desde el texto**. La app saca el nombre, el teléfono, el correo, los días de crédito, a dónde despacha y qué vende, y dice qué llenó para que lo revises. Funciona sin IA y sin internet.
+- **Cada proveedor puede tener varias categorías** (papelería y aseo) y sus **condiciones comerciales**: días de crédito, forma de pago (de contado, mensual, trimestral u otra), a dónde despacha (local, regional o nacional), si da factura electrónica, precio, tiempo de entrega y notas.
+- **Avance por categoría:** arriba ves *Papelería y oficina: 1 de 3 cotizaciones*, y puedes filtrar la lista por categoría.
+- **Estado:** *Por contactar*, *Contactado*, *Cotizó*, *Elegido* o *Descartado*.
+- **Pedir cotizaciones** arma un mensaje para cada proveedor por contactar, con su nombre, que también pide los documentos para inscribirlo como proveedor (en Colombia: RUT, Cámara de Comercio, certificación bancaria y cédula del representante legal). Lo abres en WhatsApp o en tu correo, o lo copias, y el proveedor pasa a *Contactado*.
+- **Verificar empresa:** enlaces a RUES y DIAN (o al portal tributario de cada país).
+- **Descargar cuadro (Excel):** un archivo que abre en Excel o Google Sheets con contacto, NIT, categorías, cobertura, crédito, forma de pago, factura electrónica, precio, entrega, estado y notas.
+
+La lista se guarda solo en tu navegador.
+
+## Comprobado con datos reales
+
+En noviembre de 2026 la app se probó contra los servicios reales con un flujo manual de GitHub Actions (`live-check.yml`): las consultas de SECOP II con el mismo código de la página, cada empresa verificada por su NIT en los datos de SECOP y en el registro de proveedores, la búsqueda en OpenStreetMap y la página completa en un navegador, en computador y en celular. Última ronda (3 de noviembre de 2026): **10 búsquedas nacionales** (papelería, aseo y papelería, recarga de extintores, vigilancia privada, vigilancia, cajas de cartón, tóner, uniformes, productos de aseo y plomero). En 9 las empresas son del tipo correcto; para *plomero* salen proveedores de ferretería y mantenimiento, porque el Estado casi nunca contrata la plomería sola. **Las 40 empresas revisadas por NIT** tienen contratos con ese NIT y están en el registro de proveedores de SECOP, y **los 21 negocios del mapa revisados** existen en OpenStreetMap con el mismo nombre. En el navegador las búsquedas tardaron de 3 a 9 segundos, en computador y en celular, sin errores y sin nada más ancho que la pantalla. La primera ronda fue la que dio forma a esta versión: con una sola palabra salían empresas equivocadas (*vigilancia* traía vigilancia epidemiológica y *empaques* traía lavanderías), aparecían personas naturales con su cédula, los fijos viejos no tenían indicativo y la tabla nacional se salía de la pantalla del celular. Todo eso quedó corregido y con pruebas. **Con personas naturales (segunda ronda, el mismo día):** 12 búsquedas nacionales; las personas naturales son entre 15 y 20 de los 40 proveedores en la mayoría (2 en vigilancia privada, 0 en cajas de cartón), ninguna es un contrato de personal de apoyo, y los 58 proveedores revisados (empresas y personas) tienen contratos con ese documento y están en el registro. Hay personas naturales con alcance nacional: una que recarga extintores vende en 17 departamentos. Ninguna cédula aparece en pantalla (revisado en el navegador) ni en los resultados publicados. El mapa solo no encontró nada en 6 de 12 búsquedas (cajas de cartón en Fontibón, recarga de extintores en Cali, cerrajero en San Gil): por eso es una capa de cuatro.
+
+## Límites
+
+- La capa nacional existe solo para Colombia.
+- SECOP muestra quién le vende al Estado. Es una buena señal de capacidad y formalidad, pero no es todo el mercado: muchos buenos proveedores nunca le venden al Estado. Por eso están las otras capas.
+- El ejemplo es uno de los contratos de la empresa y el contacto es el que ella registró en SECOP: **confirma por teléfono antes de comprar**.
+- El mapa depende de lo que la comunidad haya registrado: para plomeros, cerrajeros o recarga de extintores a veces encuentra pocos o ninguno. Para eso están Google Maps y Facebook.
+- Los tiempos en carro no tienen en cuenta el tráfico.
 
 ## Privacidad y seguridad
 
-- La página solo se conecta a servicios basados en OpenStreetMap: el buscador de lugares (Nominatim), los datos del mapa (Overpass) y los tiempos en carro (OSRM), y únicamente cuando pulsas **Buscar en el mapa**. Las imágenes del mapa vienen de los servidores de OpenStreetMap. Lo garantiza una política de seguridad (CSP) en la propia página: no puede hablar con ningún otro servidor.
-- **Por qué no hay un servidor de mapas de respaldo:** los servidores alternativos de Overpass que revisé pueden entregar datos viejos sin avisar. Es preferible reintentar una vez y avisar a mostrar negocios desactualizados.
-- **Por qué no hay reseñas de Google dentro de la app:** mostrar datos de Google junto a un mapa que no es de Google va contra sus condiciones, y la clave quedaría expuesta en el navegador. Para ver reseñas y fotos, cada tarjeta tiene **Buscar en Google Maps**.
-- No hay cookies, cuentas ni analítica. Lo que capturas o importas se queda en tu navegador.
-- **Respeta los servicios gratuitos:** como mucho una consulta por segundo al buscador de lugares y al de rutas, aunque hagas varias búsquedas seguidas.
-- **Tu ubicación:** si usas *Usar mi ubicación*, se envía redondeada a unos 100 m; la posición exacta no sale del navegador.
-- **Protección del navegador:** la página activa Trusted Types y no construye HTML a partir de texto, así que un nombre de negocio malicioso en el mapa no puede ejecutar código.
-- **Resultados que no son lo que buscas:** la búsqueda también mira palabras dentro del nombre de los negocios. Las palabras se eligieron para no traer negocios reales pero ajenos (por ejemplo, "jardinería" no trae jardines infantiles ni "empaques" trae a "Banco Caja Social"), y hay pruebas automáticas que lo vigilan.
-- Las solicitudes de cotización y de recomendaciones son **borradores**: los revisas y los envías tú. Nada se envía solo.
+- La página solo se conecta a datos.gov.co (SECOP II), al buscador de lugares de OpenStreetMap (Nominatim), a sus datos (Overpass) y a los tiempos en carro (OSRM), y solo cuando pulsas **Buscar**. Lo garantiza una política de seguridad (CSP) en la propia página.
+- A datos.gov.co solo se envían las palabras buscadas. Si usas tu ubicación, se envía redondeada a unos 100 m.
+- No hay cookies, cuentas ni analítica. Tu lista se queda en tu navegador.
+- La página no construye HTML a partir de texto externo (Trusted Types activado): un nombre malicioso en el mapa o en SECOP no puede ejecutar código.
+- Los mensajes son **borradores**: los revisas y los envías tú.
 
 ## Para usuarios avanzados
 
-Fuera del navegador, el mismo código tiene conectores para la línea de comandos (OpenStreetMap, SECOP II de Colombia, datos abiertos de compras públicas OCDS, portales Socrata, CSV y Google Places si tienes una clave propia) y un agente opcional con la API de Claude. Generan un JSON que importas en la pestaña **Datos**. Las instrucciones están en el [README](../README.md#run-it).
+Fuera del navegador, el mismo código tiene una línea de comandos y un agente opcional con la API de Claude: conectores (OpenStreetMap, SECOP II, datos de compras públicas OCDS, portales Socrata, CSV de ferias y cámaras de comercio, Google Places con tu propia clave), costo real del pedido (paquetes, compra mínima, impuesto, envío, moneda y plazo de pago), reseñas justas, confianza por recomendaciones y detección de duplicados. Instrucciones en el [README](../README.md#run-it).
 
 ## Cómo explicarlo en 2 minutos
 
-> Escribes lo que necesitas como lo dirías en voz alta, por ejemplo "mantenimiento de aires acondicionados", y la zona. Cuando buscas proveedores en Google solo encuentras a los que tienen página web, y en Latinoamérica muchos de los mejores no la tienen: son talleres y locales que venden por teléfono o WhatsApp. Supplier Scout busca en OpenStreetMap, un mapa comunitario donde esos negocios sí aparecen porque los registran personas que caminan la calle, y te dice cuántos no tienen web. Con un clic abres la misma búsqueda en Google Maps, sin copiar sus datos. No te pide cantidades, porque en compras primero se buscan opciones y la cantidad se negocia después; cuando ya tienes cotizaciones, compara el costo real del pedido con compra mínima, impuesto y envío. Y trata las reseñas con cuidado: pocas reseñas pesan poco y "sin reseñas" es neutro, no malo. Todo lo nuevo pasa por revisión humana y los mensajes son borradores que envías tú.
+> Escribes lo que necesitas, por ejemplo «papelería», y tu ciudad. En compras, la papelería no se le compra a la papelería del barrio: se le compra a distribuidores grandes que despachan a todo el país y dan crédito. Supplier Scout los encuentra en los datos abiertos de compras públicas: empresas que ya le venden papelería al Estado en muchos departamentos, con un contrato real de ejemplo y su contacto. Si pides aseo y papelería, primero salen las que venden las dos cosas. Luego ves los proveedores que ya tienes con sus condiciones de pago, los negocios cercanos en el mapa y búsquedas listas en Google, LinkedIn y Facebook. Si buscas un plomero, el orden cambia: primero los cercanos. Guardas los que te sirven, pides las tres cotizaciones por WhatsApp o correo y descargas el cuadro comparativo.

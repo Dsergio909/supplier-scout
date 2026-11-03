@@ -56,6 +56,7 @@ function loadApp() {
     ScoutOsm: require('../src/core/osm'),
     ScoutText: require('../src/core/text'),
     ScoutServices: require('../src/core/services'),
+    ScoutSecop: require('../src/core/secop'),
     URLSearchParams, AbortController, setTimeout, clearTimeout, Promise, Date, JSON, Math,
     fetch: politeFetch
   };
@@ -83,10 +84,85 @@ async function verifyOnOsm(supplier) {
   return { ok: name === supplier.name, reason: name === supplier.name ? 'exists, same name' : `name on OSM: ${name || '(none)'}`, tag: mainTag(el && el.tags) };
 }
 
+// National suppliers (SECOP II): what a buyer types, and the region of the buyer.
+const NATIONAL = [
+  { what: 'papelería', region: 'Bogotá, Distrito Capital' },
+  { what: 'dotación de aseo y papelería', region: 'Bogotá, Distrito Capital' },
+  { what: 'recarga de extintores', region: 'Antioquia' },
+  { what: 'vigilancia privada', region: 'Valle del Cauca' },
+  { what: 'cajas de cartón', region: 'Atlántico' },
+  { what: 'tóner para impresora', region: 'Santander' },
+  { what: 'uniformes y dotación', region: 'Bogotá, Distrito Capital' },
+  { what: 'plomero', region: 'Bogotá, Distrito Capital' },
+  { what: 'vigilancia', region: 'Bogotá, Distrito Capital' },
+  { what: 'productos de aseo', region: 'Atlántico' },
+  { what: 'fumigación', region: 'Antioquia' },
+  { what: 'mantenimiento de aires acondicionados', region: 'Atlántico' }
+];
+// Wording of a personal-service contract: none of these should reach the list.
+const STAFF = /apoyo a la gesti|servicios profesionales|operari|subordinaci|plena autonom/i;
+const SODA = 'https://www.datos.gov.co/resource/';
+const ScoutSecopNode = require('../src/core/secop');
+
+/** Independent check: the company has contracts under that tax ID, and appears in the registry. */
+async function verifyNational(e) {
+  const q = (dataset, params) => politeFetch(SODA + dataset + '.json?' + new URLSearchParams(params)).then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))));
+  // e.doc (an individual's ID) is used for the lookup and never printed.
+  const id = e.doc || e.nit;
+  const forms = [id, id + ScoutSecopNode.checkDigit(id)].map((x) => `'${x}'`).join(', ');
+  const contracts = await q('jbjy-vk9h', { $select: 'count(*) as n, max(proveedor_adjudicado) as name', $where: `documento_proveedor in (${forms})` });
+  await sleep(600);
+  const registered = await q('qmzu-gj57', { $select: 'nombre, esta_activa', $where: `nit in (${forms})`, $limit: '1' });
+  const n = Number(contracts[0] && contracts[0].n) || 0;
+  return { nit: e.name + ' · ' + (e.personType === 'person' ? 'persona natural (documento oculto)' : e.nit), contracts: n, inRegistry: registered.length > 0, active: registered[0] ? registered[0].esta_activa : null, ok: n > 0 };
+}
+
+async function nationalChecks(Live, Services) {
+  const out = [];
+  for (const sc of NATIONAL) {
+    const started = Date.now();
+    const entry = { scenario: sc };
+    try {
+      const interp = Services.interpret(sc.what);
+      entry.understood = Services.describe(interp, 'es');
+      const res = await Live.national({ what: sc.what, interpretation: interp, region: sc.region, today: new Date().toISOString().slice(0, 10) });
+      entry.terms = res.terms.map((t) => t.term + (t.exact ? ' (como lo escribió)' : '') + (t.like ? ' [' + t.like + ']' : ''));
+      entry.failed = res.failed;
+      entry.found = res.suppliers.length;
+      entry.reach = { national: 0, regional: 0, local: 0 };
+      res.suppliers.forEach((s) => { entry.reach[s.reach]++; });
+      entry.withContact = res.suppliers.filter((s) => s.contacts && (s.contacts.phone || s.contacts.email)).length;
+      entry.inRegion = res.suppliers.filter((s) => s.inBuyerRegion).length;
+      entry.multiNeed = res.suppliers.filter((s) => s.needs.length > 1).length;
+      entry.withPhone = res.suppliers.filter((s) => s.contacts && s.contacts.phone).length;
+      entry.people = res.suppliers.filter((s) => s.personType === 'person').length;
+      // Only individuals: a cleaning company that sends «operarias» is a real supplier.
+      entry.staffLeaks = res.suppliers.filter((s) => s.personType === 'person' && STAFF.test(s.example || '')).map((s) => s.name + ': ' + s.example);
+      const firstPeople = res.suppliers.filter((s) => s.personType === 'person').slice(0, 4);
+      entry.topPeople = firstPeople.map((s) => ({ name: s.name, departments: s.departments.length, contracts: s.contracts, example: s.example, contact: !!(s.contacts && (s.contacts.phone || s.contacts.email)) }));
+      entry.top = res.suppliers.filter((s) => s.personType === 'company').slice(0, 6).map((s) => ({ name: s.name, nit: s.nit, departments: s.departments.length, contracts: s.contracts, last: s.last, needs: s.needs, exact: s.exact, example: s.example, phone: s.contacts ? s.contacts.phone : '', website: s.contacts ? s.contacts.website : '', contact: !!(s.contacts && (s.contacts.phone || s.contacts.email)) }));
+      entry.verified = [];
+      for (const s of res.suppliers.filter((x) => x.personType === 'company').slice(0, 3).concat(firstPeople.slice(0, 2))) {
+        await sleep(800);
+        entry.verified.push(await verifyNational(s).catch((err) => ({ nit: s.name, ok: false, error: String(err.message) })));
+      }
+    } catch (err) {
+      entry.error = (err && [err.code, err.message].filter(Boolean).join(' · ')) || String(err);
+    }
+    entry.seconds = Math.round((Date.now() - started) / 100) / 10;
+    out.push(entry);
+    console.log(JSON.stringify({ national: sc.what, found: entry.found, error: entry.error || null, seconds: entry.seconds }));
+    await sleep(1500);
+  }
+  return out;
+}
+
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const Live = loadApp();
   const Services = require('../src/core/services');
+  const national = await nationalChecks(Live, Services);
+  fs.writeFileSync(path.join(OUT, 'national.json'), JSON.stringify({ at: new Date().toISOString(), national }, null, 2));
   const report = [];
   for (const sc of SCENARIOS) {
     const started = Date.now();
@@ -121,7 +197,20 @@ async function main() {
   }
   fs.writeFileSync(path.join(OUT, 'live-check.json'), JSON.stringify({ at: new Date().toISOString(), report }, null, 2));
 
-  const lines = ['# Supplier Scout · prueba con datos reales', '', `Fecha: ${new Date().toISOString()}`, ''];
+  const lines = ['# Supplier Scout · prueba con datos reales', '', `Fecha: ${new Date().toISOString()}`, '', '# Proveedores nacionales (SECOP II)', ''];
+  for (const e of national) {
+    lines.push(`## ${e.scenario.what} · zona ${e.scenario.region}`, '');
+    if (e.error) { lines.push(`- **Error:** ${e.error}`, ''); continue; }
+    lines.push(`- Entendió: ${e.understood.join(', ') || '(por nombre)'} · términos: ${e.terms.join(', ')}${e.failed.length ? ' · fallaron: ' + e.failed.join(', ') : ''} · ${e.seconds} s`);
+    lines.push(`- Empresas: ${e.found} · nacionales ${e.reach.national}, regionales ${e.reach.regional}, locales ${e.reach.local} · con contacto ${e.withContact} · con teléfono marcable ${e.withPhone} · en la zona ${e.inRegion} · cubren varias necesidades ${e.multiNeed}`);
+    lines.push(`- Personas naturales: ${e.people} · contratos de personal («apoyo a la gestión») de personas que se colaron: ${e.staffLeaks.length}${e.staffLeaks.length ? ' → ' + e.staffLeaks.join(' | ') : ''}`);
+    for (const r of e.topPeople) lines.push(`  - (persona natural) ${r.name} · ${r.departments} dptos · ${r.contracts} contratos${r.contact ? ' · con contacto' : ''}\n    - Ej.: ${r.example || '(sin ejemplo)'}`);
+    for (const r of e.top) lines.push(`  - ${r.name} · NIT ${r.nit} · ${r.departments} dptos · ${r.contracts} contratos · último ${r.last} · ${r.needs.join('+')}${r.exact ? ' · palabras exactas' : ''}${r.phone ? ' · ' + r.phone : ''}${r.website ? ' · ' + r.website : ''}\n    - Ej.: ${r.example || '(sin ejemplo)'}`);
+    lines.push(`- Verificadas por NIT en los datos de SECOP: ${e.verified.filter((v) => v.ok).length}/${e.verified.length}`);
+    for (const v of e.verified) lines.push(`  - ${v.ok ? 'OK' : 'NO'} ${v.nit} · ${v.contracts} contratos con ese NIT · en el registro de proveedores: ${v.inRegistry ? 'sí' : 'no'}${v.error ? ' · ' + v.error : ''}`);
+    lines.push('');
+  }
+  lines.push('# Negocios cercanos (OpenStreetMap)', '');
   for (const e of report) {
     const sc = e.scenario;
     lines.push(`## ${sc.what} · ${sc.place} (${sc.country})`, '');
