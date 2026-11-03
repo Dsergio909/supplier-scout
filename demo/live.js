@@ -18,8 +18,12 @@
   var ALTERNATIVES = 5;
   // Nominatim's policy: at most one request per second.
   var NOMINATIM_GAP_MS = 1100;
-  // The public Overpass server is often busy for a few seconds: one polite retry.
-  var OVERPASS_RETRY_MS = 3000;
+  // The public Overpass server can take 30 s or more to answer (measured from
+  // GitHub's servers in November 2026). After this long the page stops waiting
+  // and asks Nominatim instead: fast, and also OpenStreetMap data.
+  var OVERPASS_TIMEOUT_MS = 12000;
+  // Nominatim fallback: one request per tag, at most this many tags.
+  var FALLBACK_TAGS = 3;
   // Enough for a whole town; the ranking orders them by distance.
   var MAX_RESULTS = 150;
   // Driving times from the OSRM demo server (FOSSGIS): one table request per
@@ -158,24 +162,46 @@
       var scope = Osm.searchRadius(point, p.radiusKm);
       var radiusKm = scope.km;
       var query = wanted
-        ? Osm.buildQuery({ tags: wanted.tags, nameHint: wanted.nameHint, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000, limit: MAX_RESULTS })
-        : Osm.buildQuery({ category: p.category, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000, limit: MAX_RESULTS });
-      function ask() {
-        return fetchJson(Osm.ENDPOINT, {
-          method: 'POST',
-          headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: 'data=' + encodeURIComponent(query)
-        });
-      }
-      return ask().catch(function (err) {
-        if (err.code !== 'busy' || p.noRetry) throw err;
-        return wait(OVERPASS_RETRY_MS).then(ask);
-      }).then(function (json) {
-        var found = Osm.normalize(json, { country: country, category: category });
+        ? Osm.buildQuery({ tags: wanted.tags, nameHint: wanted.nameHint, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000, limit: MAX_RESULTS, serverTimeout: 12 })
+        : Osm.buildQuery({ category: p.category, lat: point.lat, lng: point.lng, radiusM: radiusKm * 1000, limit: MAX_RESULTS, serverTimeout: 12 });
+      var tags = wanted ? wanted.tags : ((root.ScoutCategories && root.ScoutCategories.byId(p.category) || {}).osm || []);
+      var source = 'overpass';
+      var overpassError = null;
+      return fetchJson(Osm.ENDPOINT, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'data=' + encodeURIComponent(query)
+      }, OVERPASS_TIMEOUT_MS).then(function (json) {
+        return Osm.normalize(json, { country: country, category: category });
+      }, function (err) {
+        // Slow, busy or down: search businesses with Nominatim instead.
+        if (p.noFallback) throw err;
+        overpassError = err;
+        source = 'nominatim';
+        var asks = tags.slice(0, FALLBACK_TAGS).map(function (tag) { return { tag: tag }; });
+        if (!asks.length) asks = [{ text: (wanted && wanted.terms[0]) || what }];
+        var merged = [];
+        var seen = {};
+        return asks.reduce(function (chain, ask) {
+          return chain.then(function () {
+            return politely('nominatim', function () {
+              return fetchJson(Osm.poiSearchUrl({ tag: ask.tag, text: ask.text, lat: point.lat, lng: point.lng, radiusKm: radiusKm, country: country }));
+            }).then(function (results) {
+              Osm.normalizePois(results, { country: country, category: category, center: point, radiusKm: radiusKm }).suppliers.forEach(function (s) {
+                if (!seen[s.id]) { seen[s.id] = true; merged.push(s); }
+              });
+            });
+          });
+        }, Promise.resolve()).then(function () {
+          var withWebsite = merged.filter(function (s) { return s.websites.length; }).length;
+          return { suppliers: merged, stats: { total: merged.length, withWebsite: withWebsite, withoutWebsite: merged.length - withWebsite, withPhone: merged.filter(function (s) { return s.phones.length; }).length } };
+        }, function () { throw overpassError; });
+      }).then(function (found) {
         var short = (point.label || place).slice(0, 60);
         var routes = p.noRoutes ? Promise.resolve(null) : travelTimes(point, found.suppliers);
         return routes.then(function (travel) { return {
           travel: travel,
+          source: source,
           point: point,
           alternatives: loc.given ? [] : loc.places.slice(1),
           movedFrom: loc.movedFrom && country !== loc.movedFrom ? loc.movedFrom : null,

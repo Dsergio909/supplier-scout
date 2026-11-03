@@ -1347,6 +1347,7 @@
       notes.push(st.total
         ? fmt(t('liveFound'), { n: st.total, place: where, offline: st.withoutWebsite, phone: st.withPhone })
         : fmt(t('liveNone'), { cat: what, place: where }));
+      if (res.source === 'nominatim') notes.push(t('liveFallback'));
       if (res.scope === 'whole') notes.push(fmt(t('scopeWhole'), { place: res.point.name || where, km: res.radiusKm }));
       else if (res.scope === 'centre') notes.push(fmt(t('scopeCentre'), { place: res.point.name || where, km: res.radiusKm }));
       else if (Number(radiusKm) > res.radiusKm) notes.push(fmt(t('liveCapped'), { km: res.radiusKm }));

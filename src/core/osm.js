@@ -80,7 +80,7 @@
     }
     if (!lines.length) throw new Error('There is nothing to search for: give a category, map tags or a name hint');
     var max = Math.min(200, Math.max(1, Number(p.limit) || 60));
-    return '[out:json][timeout:25];\n(\n' + lines.join('\n') + '\n);\nout center tags ' + max + ';';
+    return '[out:json][timeout:' + (Number(p.serverTimeout) || 25) + '];\n(\n' + lines.join('\n') + '\n);\nout center tags ' + max + ';';
   }
 
   function splitList(value) {
@@ -237,6 +237,83 @@
     return { km: Math.max(km, Math.min(maxKm, Math.ceil(half))), scope: 'whole' };
   }
 
+  // ---------- Nominatim as a business search (fallback when Overpass is slow) ----------
+
+  var POI_CATEGORIES = ['shop', 'craft', 'office', 'amenity'];
+
+  /**
+   * Nominatim URL to find businesses with one OSM tag ("[shop=hardware]") or
+   * a word, inside a box around the point. Up to 40 results, with phone and
+   * website (extratags). Checked against the live service in November 2026.
+   */
+  function poiSearchUrl(params) {
+    var p = params || {};
+    var coords = checkCoords(p.lat, p.lng);
+    var km = Math.min(MAX_RADIUS_M / 1000, Math.max(0.5, Number(p.radiusKm) || 3));
+    var dLat = km / 111.32;
+    var dLng = km / (111.32 * Math.max(0.2, Math.cos(coords[0] * Math.PI / 180)));
+    var q;
+    if (Array.isArray(p.tag) && /^[a-z0-9_:]+$/.test(p.tag[0]) && /^[a-z0-9_]+$/.test(p.tag[1])) q = '[' + p.tag[0] + '=' + p.tag[1] + ']';
+    else q = String(p.text || '').replace(/[\u0000-\u001f\[\]]/g, ' ').trim().slice(0, 60);
+    if (!q) throw new Error('There is nothing to search for');
+    var params2 = new URLSearchParams({
+      q: q, format: 'jsonv2', limit: '40', bounded: '1', addressdetails: '1', extratags: '1',
+      viewbox: [coords[1] - dLng, coords[0] + dLat, coords[1] + dLng, coords[0] - dLat].map(function (x) { return x.toFixed(5); }).join(',')
+    });
+    if (/^[A-Z]{2}$/.test(p.country || '') && p.country !== 'XX') params2.set('countrycodes', p.country.toLowerCase());
+    return GEOCODE_ENDPOINT + '?' + params2.toString();
+  }
+
+  /** Nominatim business results -> supplier records (same shape as normalize). */
+  function normalizePois(results, options) {
+    var opts = options || {};
+    var seen = {};
+    var suppliers = [];
+    (Array.isArray(results) ? results : []).forEach(function (hit) {
+      if (!hit || POI_CATEGORIES.indexOf(hit.category) === -1 || !/^(node|way|relation)$/.test(hit.osm_type || '')) return;
+      var name = clean(hit.name, 120);
+      var lat = Number(hit.lat);
+      var lng = Number(hit.lon);
+      var key = hit.osm_type + '/' + Number(hit.osm_id);
+      if (!name || !isFinite(lat) || !isFinite(lng) || seen[key] || !(Number(hit.osm_id) > 0)) return;
+      if (opts.center && opts.radiusKm && haversineKm(opts.center.lat, opts.center.lng, lat, lng) > opts.radiusKm * 1.05) return;
+      seen[key] = true;
+      var x = hit.extratags || {};
+      var a = hit.address || {};
+      var phones = splitList(x.phone || x['contact:phone']).concat(splitList(x['contact:mobile']), splitList(x['contact:whatsapp']))
+        .map(function (ph) { return Countries.normalizePhone(ph, opts.country); }).filter(Boolean);
+      var website = x.website || x['contact:website'] || x.url;
+      var email = x.email || x['contact:email'];
+      var street = [a.road, a.house_number].filter(Boolean).join(' ');
+      var detected = Categories.detect([name, hit.type].join(' '));
+      suppliers.push({
+        id: 'osm-' + hit.osm_type + '-' + Number(hit.osm_id),
+        name: name,
+        categories: unique((opts.category ? [opts.category] : []).concat(detected)),
+        phones: unique(phones),
+        emails: email ? [email] : [],
+        websites: website ? [website] : [],
+        address: street || null,
+        city: a.city || a.town || a.village || null,
+        country: opts.country || null,
+        lat: lat,
+        lng: lng,
+        sources: [{ type: 'map', ref: 'osm:' + key, at: opts.at || today() }],
+        verification: 0,
+        notes: x.opening_hours ? 'Horario (OSM): ' + String(x.opening_hours).slice(0, 120) : null
+      });
+    });
+    var withWebsite = suppliers.filter(function (s) { return s.websites.length; }).length;
+    return {
+      suppliers: suppliers,
+      stats: {
+        total: suppliers.length, withWebsite: withWebsite, withoutWebsite: suppliers.length - withWebsite,
+        withPhone: suppliers.filter(function (s) { return s.phones.length; }).length
+      },
+      attribution: ATTRIBUTION
+    };
+  }
+
   /**
    * Official Google Maps search link ("Maps URLs", no key): opens Maps with the
    * search typed in, e.g. "Ferretería near Kennedy, Bogotá".
@@ -252,6 +329,7 @@
     ENDPOINT: ENDPOINT, GEOCODE_ENDPOINT: GEOCODE_ENDPOINT, ATTRIBUTION: ATTRIBUTION, MAX_RADIUS_M: MAX_RADIUS_M,
     safeRegex: safeRegex, buildQuery: buildQuery, normalize: normalize,
     geocodeUrl: geocodeUrl, parseGeocode: parseGeocode, parsePlaces: parsePlaces, searchRadius: searchRadius,
+    poiSearchUrl: poiSearchUrl, normalizePois: normalizePois,
     mapsSearchUrl: mapsSearchUrl
   };
 

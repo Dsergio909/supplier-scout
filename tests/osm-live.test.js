@@ -83,8 +83,10 @@ test('live search: clear error codes for the cases the page explains', async () 
   await assert.rejects(notFound.search({ place: 'Nowhere', country: 'CO', category: 'hardware' }), { code: 'place-not-found' });
   let overpassCalls = 0;
   const busy = loadLive((url) => (url.startsWith(Osm.GEOCODE_ENDPOINT) ? response(200, [{ lat: '1', lon: '1' }]) : (overpassCalls++, response(429, {}))));
-  await assert.rejects(busy.search({ place: 'X', country: 'CO', category: 'hardware' }), { code: 'busy' });
-  assert.equal(overpassCalls, 2, 'a busy Overpass is retried once, then the page explains');
+  const fallback = await busy.search({ place: 'X', country: 'CO', category: 'hardware' });
+  assert.equal(overpassCalls, 1, 'a busy Overpass is not hammered: the page goes to the fallback');
+  assert.equal(fallback.source, 'nominatim');
+  await assert.rejects(busy.search({ place: 'X', country: 'CO', category: 'hardware', noFallback: true }), { code: 'busy' });
   const offline = loadLive(() => Promise.reject(new TypeError('Failed to fetch')));
   await assert.rejects(offline.search({ place: 'X', country: 'CO', category: 'hardware' }), { code: 'network' });
 });
@@ -161,4 +163,30 @@ test('live search: Nominatim gets at most one request per second, even across fa
   ]);
   assert.equal(times.length, 2);
   assert.ok(times[1] - times[0] >= 1000, `second geocoding waited ${times[1] - times[0]} ms`);
+});
+
+test('live search: when Overpass is slow, businesses come from Nominatim (real OSM data too)', async () => {
+  const urls = [];
+  const Live = loadLive((url) => {
+    urls.push(url);
+    if (url.startsWith('https://overpass-api.de/')) return Promise.reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+    if (url.startsWith(Osm.GEOCODE_ENDPOINT) && url.includes('bounded=1')) {
+      const q = new URL(url).searchParams.get('q');
+      return response(200, q === '[shop=hardware]' ? [
+        { osm_type: 'node', osm_id: 11, category: 'shop', type: 'hardware', name: 'Ferretería Don Kike', lat: '10.981', lon: '-74.801', extratags: { phone: '+57 300 555 0111' }, address: { road: 'Calle 72', city: 'Barranquilla' } },
+        { osm_type: 'way', osm_id: 12, category: 'highway', type: 'residential', name: 'Calle Ferretería', lat: '10.98', lon: '-74.80' },
+        { osm_type: 'node', osm_id: 13, category: 'shop', type: 'hardware', name: 'Muy lejos', lat: '11.5', lon: '-74.80' }
+      ] : []);
+    }
+    if (url.startsWith(Osm.GEOCODE_ENDPOINT)) return response(200, [town('Barranquilla', 'Atlántico', 'city', 10.98, -74.80, [10.9, 11.05, -74.86, -74.74])]);
+    return response(200, { code: 'Ok', durations: [[0, 300]], distances: [[0, 2100]] });
+  });
+  const res = await Live.search({ what: 'ferretería', place: 'Barranquilla', country: 'CO', radiusKm: 5 });
+  assert.equal(res.source, 'nominatim');
+  assert.deepEqual(plain(res.dataset.suppliers.map((s) => s.name)), ['Ferretería Don Kike'], 'only businesses inside the radius');
+  assert.equal(res.dataset.suppliers[0].sources[0].ref, 'osm:node/11');
+  assert.equal(res.dataset.suppliers[0].phones[0], '+573005550111');
+  const asked = urls.filter((u) => u.includes('bounded=1')).map((u) => new URL(u).searchParams.get('q'));
+  assert.ok(asked.length >= 1 && asked.length <= 3, 'one request per tag, at most three');
+  assert.ok(asked.every((q) => /^\[[a-z_]+=[a-z_]+\]$/.test(q)), 'searches by exact OSM tag');
 });
